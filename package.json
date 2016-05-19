@@ -1,12 +1,12 @@
 {
-  "name": "hackathon-starter",
-  "version": "4.0.1",
+  "name": "Guide",
+  "version": "1.0.0",
   "repository": {
     "type": "git",
-    "url": "https://github.com/sahat/hackathon-starter.git"
+    "url": "https://github.com/IntelliMedia/Guide"
   },
   "scripts": {
-    "start": "node app.js",
+    "start": "node guide.js",
     "test": "mocha --reporter spec --timeout 5000"
   },
   "dependencies": {
