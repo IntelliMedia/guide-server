@@ -13,6 +13,10 @@
       ul.nav.navbar-nav
         li(class=(title == 'Home') ? 'active' : undefined)
           a(href='/') Home
+        li(class=(title == 'Simulator') ? 'active' : undefined)
+          a(href='/simulator') Simulator       
+        li(class=(title == 'API') ? 'active' : undefined)
+          a(href='/api') API                    
       ul.nav.navbar-nav.navbar-right
         if !user
           li(class=(title == 'Login') ? 'active' : undefined)

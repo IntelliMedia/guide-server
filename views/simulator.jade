@@ -1,0 +1,36 @@
+extends layout 
+block content
+  script.
+    var something = function() {
+      console.log('something')
+    }
+  .page-header
+    h2 Simulator
+  .row
+    .col-sm-6  
+      h3
+        i.fa.fa-upload
+        | Geniverse Log Upload  
+      form(role='form', enctype='multipart/form-data', method='POST')
+        .form-group
+          input(type='file', name='log')
+        button.btn.btn-primary(type='submit') Upload
+    .col-sm-6
+      h3 Events
+      button.btn.btn-primary(onclick='something()') Send to ITS    
+  .row
+    .col-sm-6
+      h3 Tutor Feedback
+        textarea.form-control(name='feedback', id='feedback', rows='6')    
+    .col-sm-6
+      h3 Received Events
+      table.table.table-striped.table-bordered
+        thead
+          tr
+            th Time
+            th Event
+        tbody
+          for event in sentEvents
+            tr
+              td= event.prettyTime
+              td= event.event                

@@ -33,6 +33,7 @@ const homeController = require('./controllers/home');
 const userController = require('./controllers/user');
 const apiController = require('./controllers/api');
 const contactController = require('./controllers/contact');
+const simulatorController = require('./controllers/simulator');
 
 /**
  * API keys and Passport configuration.
@@ -81,7 +82,7 @@ app.use(passport.initialize());
 app.use(passport.session());
 app.use(flash());
 app.use((req, res, next) => {
-  if (req.path === '/api/upload') {
+  if (req.path === '/api/upload' || req.path === '/simulator') {
     next();
   } else {
     lusca.csrf()(req, res, next);
@@ -95,7 +96,7 @@ app.use((req, res, next) => {
 });
 app.use((req, res, next) => {
   // After successful login, redirect back to /api, /contact or /
-  if (/(api)|(contact)|(^\/$)/i.test(req.path)) {
+  if (/(api)|(contact)|(simulator)|(^\/$)/i.test(req.path)) {
     req.session.returnTo = req.path;
   }
   next();
@@ -122,6 +123,8 @@ app.post('/account/profile', passportConfig.isAuthenticated, userController.post
 app.post('/account/password', passportConfig.isAuthenticated, userController.postUpdatePassword);
 app.post('/account/delete', passportConfig.isAuthenticated, userController.postDeleteAccount);
 app.get('/account/unlink/:provider', passportConfig.isAuthenticated, userController.getOauthUnlink);
+app.get('/simulator', simulatorController.getSimulator);
+app.post('/simulator', upload.single('log'), simulatorController.postFileUpload);
 
 /**
  * API examples routes.
