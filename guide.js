@@ -21,6 +21,7 @@ const sass = require('node-sass-middleware');
 const multer = require('multer');
 const upload = multer({ dest: path.join(__dirname, 'uploads') });
 const cors = require('cors');
+const http = require('http');
 
 /**
  * Load environment variables from .env file, where API keys and passwords are configured.
@@ -35,6 +36,7 @@ const userController = require('./controllers/user');
 const apiController = require('./controllers/api');
 const eventController = require('./controllers/event');
 const contactController = require('./controllers/contact');
+const tutorActionController = require('./controllers/tutoractions');
 
 /**
  * API keys and Passport configuration.
@@ -230,10 +232,20 @@ app.get('/auth/pinterest/callback', passport.authorize('pinterest', { failureRed
 app.use(errorHandler());
 
 /**
+ * Start HTTP server.
+ */
+var server = http.Server(app);
+
+/**
  * Start Express server.
  */
-app.listen(app.get('port'), () => {
+server.listen(app.get('port'), () => {
   console.log('Express server listening on port %d in %s mode', app.get('port'), app.get('env'));
 });
+
+/**
+ * Start WebSocket listener.
+ */
+tutorActionController.listen(server);
 
 module.exports = app;
