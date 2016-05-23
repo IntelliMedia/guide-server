@@ -33,6 +33,7 @@ dotenv.load({ path: '.env.example' });
 const homeController = require('./controllers/home');
 const userController = require('./controllers/user');
 const apiController = require('./controllers/api');
+const eventController = require('./controllers/event');
 const contactController = require('./controllers/contact');
 
 /**
@@ -87,7 +88,7 @@ app.use(passport.initialize());
 app.use(passport.session());
 app.use(flash());
 app.use((req, res, next) => {
-  if (req.path === '/api/upload') {
+  if (req.path === '/api/upload' || req.path.indexOf('/api/v1/') == 0) {
     next();
   } else {
     lusca.csrf()(req, res, next);
@@ -165,6 +166,11 @@ app.get('/api/upload', apiController.getFileUpload);
 app.post('/api/upload', upload.single('myFile'), apiController.postFileUpload);
 app.get('/api/pinterest', passportConfig.isAuthenticated, passportConfig.isAuthorized, apiController.getPinterest);
 app.post('/api/pinterest', passportConfig.isAuthenticated, passportConfig.isAuthorized, apiController.postPinterest);
+
+/**
+ * REST API
+ */
+app.post('/api/v1/event', eventController.handleEvent);
 
 /**
  * OAuth authentication routes. (Sign in)
