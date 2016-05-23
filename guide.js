@@ -20,6 +20,7 @@ const expressValidator = require('express-validator');
 const sass = require('node-sass-middleware');
 const multer = require('multer');
 const upload = multer({ dest: path.join(__dirname, 'uploads') });
+const cors = require('cors');
 
 /**
  * Load environment variables from .env file, where API keys and passwords are configured.
@@ -56,6 +57,11 @@ mongoose.connection.on('error', () => {
 /**
  * Express configuration.
  */
+var corsOptions = {
+  credentials: true,
+  origin: true
+};
+app.use(cors(corsOptions));
 app.set('port', process.env.PORT || 3000);
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'jade');
