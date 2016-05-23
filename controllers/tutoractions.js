@@ -21,9 +21,6 @@ exports.listen = (server) => {
         autoAcceptConnections: false
     });
 
-    // TODO student mode -> record student’s domain knowledge, problem-solving state, and task history.
-    // TODO tutorial planner ->  that plans curricular sequencing, provides hints, generates explanations, and supplies feedback.
-
     wsServer.on('request', function(request) {
         if (!originIsAllowed(request.origin)) {
         // Make sure we only accept requests from an allowed origin
@@ -37,7 +34,11 @@ exports.listen = (server) => {
         connection.on('message', function(message) {
             if (message.type === 'utf8') {
                 console.log('Received Message: ' + message.utf8Data);
-                connection.sendUTF(message.utf8Data);
+                var logEvent = JSON.parse(message.utf8Data);
+                var action = handleIncomingEvent(logEvent);
+                if (action) {
+                    connection.sendUTF(JSON.stringify(action));
+                }                
             }
             else if (message.type === 'binary') {
                 console.log('Received Binary Message of ' + message.binaryData.length + ' bytes');
@@ -53,4 +54,108 @@ exports.listen = (server) => {
 function originIsAllowed(origin) {
   // put logic here to detect whether the specified origin is allowed.
   return true;
+}
+
+// TODO student mode -> record student’s domain knowledge, problem-solving state, and task history.
+// TODO tutorial planner ->  that plans curricular sequencing, provides hints, generates explanations, and supplies feedback.
+// TODO Wrap in v1 module file
+
+function handleIncomingEvent(logEvent) {
+    return createTutorAction(logEvent);
+}
+
+function createTutorAction(logEvent) {
+
+    var action = null;
+        
+    if (logEvent.event.event == 'Started session') {
+        
+    } else if (logEvent.event.event == 'User logged in') {       
+        action = {
+            type: 'dialog',
+            text: '???',
+            date: Date.now()
+        };         
+        switch(Math.floor(Math.random() * 3)) {
+            case 0:
+                action.text = 'Hello ' + logEvent.event.parameters.UniqueID + '! I\'m ready to help you learn about genetics.';
+            break;
+            case 1:
+                action.text = 'Hi there!';
+            break;
+            case 2:
+                action.text = 'Let\'s get started!';
+            break;          
+            default:
+            action = null;
+        }          
+    } else if (logEvent.event.event == 'Started challenge') {      
+        action = {
+            type: 'dialog',
+            text: '???',
+            date: Date.now()
+        };         
+        switch(Math.floor(Math.random() * 3)) {
+            case 0:
+                action.text = 'I can help you with ' + logEvent.event.parameters.title;
+            break;
+            case 1:
+                action.text = 'Ok! Let\'s get to work on ' + logEvent.event.parameters.title;
+            break;
+            case 2:
+                action.text = 'I\'m sure you\'re up to the \'challenge\' :-). See what I did there?';
+            break;          
+            default:
+            action = null;
+        }          
+    } else if (logEvent.event.event == 'Changed allele') {
+        action = {
+            type: 'dialog',
+            text: '???',
+            date: Date.now()
+        };         
+        switch(Math.floor(Math.random() * 6)) {
+            case 0:
+                action.text = 'Hmmm... something doesn\'t look quite right about that allele selection.';
+            break;
+            case 1:
+                action.text = 'That allele selection looks correct to me.';
+            break;
+            case 2:
+                action.text = 'You are on the right track. Keep going!';
+            break;
+            case 2:
+                action.text = 'Perhaps you should review the info on recessive genes?';
+            break;            
+            default:
+            action = null;
+        }       
+    } else if (logEvent.event.event == 'Closed info') {
+        action = {
+            type: 'alert',
+            text: 'Student closed info',
+            date: Date.now()
+        };        
+    } else if (logEvent.event.event == 'Completed challenge') {
+        action = {
+            type: 'dialog',
+            text: '???',
+            date: Date.now()
+        };         
+        switch(Math.floor(Math.random() * 3)) {
+            case 0:
+                action.text = 'Good work! I knew you could do it.';
+            break;
+            case 1:
+                action.text = 'Challenge completed!';
+            break;
+            case 2:
+                action.text = 'You got ' + logEvent.event.parameters.starsAwarded + 'stars';
+            break;          
+            default:
+            action = null;
+        }       
+    }         
+  
+  return action;
 }
