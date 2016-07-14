@@ -21,7 +21,7 @@ This project was originally created using the [hackathon-starter](https://github
 
 ```bash
 # Get the latest snapshot
-git clone https://github.com/IntelliMedia/Guide
+git clone https://github.com/IntelliMedia/guide-server
 
 # Change directory
 cd Guide
