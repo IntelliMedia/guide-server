@@ -3,13 +3,14 @@
   "version": "1.0.0",
   "repository": {
     "type": "git",
-    "url": "https://github.com/IntelliMedia/Guide"
+    "url": "https://github.com/IntelliMedia/guide-server"
   },
   "scripts": {
     "start": "node guide.js",
     "test": "mocha --reporter spec --timeout 5000"
   },
   "dependencies": {
+    "acl": "^0.4.9",
     "async": "^2.0.0-rc.4",
     "bcrypt-nodejs": "^0.0.3",
     "bitgo": "1.6.1",
@@ -57,6 +58,7 @@
     "tumblr.js": "^1.0.0",
     "twilio": "^3.3.0-edge",
     "twit": "^2.2.4",
+    "underscore": "^1.8.3",
     "uuid": "^2.0.2",
     "validator": "^5.2.0",
     "websocket": "^1.0.23",

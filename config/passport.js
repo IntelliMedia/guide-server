@@ -13,6 +13,7 @@ const OAuthStrategy = require('passport-oauth').OAuthStrategy;
 const OAuth2Strategy = require('passport-oauth').OAuth2Strategy;
 
 const User = require('../models/User');
+const userController = require('../controllers/user');
 
 passport.serializeUser((user, done) => {
   done(null, user.id);
@@ -95,17 +96,18 @@ passport.use(new FacebookStrategy({
           req.flash('errors', { msg: 'There is already an account using this email address. Sign in to that account and link it with Facebook manually from Account Settings.' });
           done(err);
         } else {
-          const user = new User();
-          user.email = profile._json.email;
-          user.facebook = profile.id;
-          user.tokens.push({ kind: 'facebook', accessToken });
-          user.profile.name = profile.name.givenName + ' ' + profile.name.familyName;
-          user.profile.gender = profile._json.gender;
-          user.profile.picture = `https://graph.facebook.com/${profile.id}/picture?type=large`;
-          user.profile.location = (profile._json.location) ? profile._json.location.name : '';
-          user.save((err) => {
+          const newUser = new User();
+          newUser.email = profile._json.email;
+          newUser.facebook = profile.id;
+          newUser.tokens.push({ kind: 'facebook', accessToken });
+          newUser.profile.name = profile.name.givenName + ' ' + profile.name.familyName;
+          newUser.profile.gender = profile._json.gender;
+          newUser.profile.picture = `https://graph.facebook.com/${profile.id}/picture?type=large`;
+          newUser.profile.location = (profile._json.location) ? profile._json.location.name : '';        
+
+          userController.createUser(newUser, (user, err) => {  
             done(err, user);
-          });
+          });        
         }
       });
     });
@@ -151,17 +153,18 @@ passport.use(new GitHubStrategy({
           req.flash('errors', { msg: 'There is already an account using this email address. Sign in to that account and link it with GitHub manually from Account Settings.' });
           done(err);
         } else {
-          const user = new User();
-          user.email = profile._json.email;
-          user.github = profile.id;
-          user.tokens.push({ kind: 'github', accessToken });
-          user.profile.name = profile.displayName;
-          user.profile.picture = profile._json.avatar_url;
-          user.profile.location = profile._json.location;
-          user.profile.website = profile._json.blog;
-          user.save((err) => {
+          const newUser = new User();
+          newUser.email = profile._json.email;
+          newUser.github = profile.id;
+          newUser.tokens.push({ kind: 'github', accessToken });
+          newUser.profile.name = profile.displayName;
+          newUser.profile.picture = profile._json.avatar_url;
+          newUser.profile.location = profile._json.location;
+          newUser.profile.website = profile._json.blog;
+
+          userController.createUser(newUser, (user, err) => {  
             done(err, user);
-          });
+          });        
         }
       });
     });
@@ -200,19 +203,20 @@ passport.use(new TwitterStrategy({
       if (existingUser) {
         return done(null, existingUser);
       }
-      const user = new User();
+      const newUser = new User();
       // Twitter will not provide an email address.  Period.
       // But a person’s twitter username is guaranteed to be unique
       // so we can "fake" a twitter email address as follows:
-      user.email = `${profile.username}@twitter.com`;
-      user.twitter = profile.id;
-      user.tokens.push({ kind: 'twitter', accessToken, tokenSecret });
-      user.profile.name = profile.displayName;
-      user.profile.location = profile._json.location;
-      user.profile.picture = profile._json.profile_image_url_https;
-      user.save((err) => {
+      newUser.email = `${profile.username}@twitter.com`;
+      newUser.twitter = profile.id;
+      newUser.tokens.push({ kind: 'twitter', accessToken, tokenSecret });
+      newUser.profile.name = profile.displayName;
+      newUser.profile.location = profile._json.location;
+      newUser.profile.picture = profile._json.profile_image_url_https;
+
+      userController.createUser(newUser, (user, err) => {  
         done(err, user);
-      });
+      });  
     });
   }
 }));
@@ -255,16 +259,17 @@ passport.use(new GoogleStrategy({
           req.flash('errors', { msg: 'There is already an account using this email address. Sign in to that account and link it with Google manually from Account Settings.' });
           done(err);
         } else {
-          const user = new User();
-          user.email = profile.emails[0].value;
-          user.google = profile.id;
-          user.tokens.push({ kind: 'google', accessToken });
-          user.profile.name = profile.displayName;
-          user.profile.gender = profile._json.gender;
-          user.profile.picture = profile._json.image.url;
-          user.save((err) => {
+          const newUser = new User();
+          newUser.email = profile.emails[0].value;
+          newUser.google = profile.id;
+          newUser.tokens.push({ kind: 'google', accessToken });
+          newUser.profile.name = profile.displayName;
+          newUser.profile.gender = profile._json.gender;
+          newUser.profile.picture = profile._json.image.url;
+
+          userController.createUser(newUser, (user, err) => {  
             done(err, user);
-          });
+          });  
         }
       });
     });
@@ -311,17 +316,18 @@ passport.use(new LinkedInStrategy({
           req.flash('errors', { msg: 'There is already an account using this email address. Sign in to that account and link it with LinkedIn manually from Account Settings.' });
           done(err);
         } else {
-          const user = new User();
-          user.linkedin = profile.id;
-          user.tokens.push({ kind: 'linkedin', accessToken });
-          user.email = profile._json.emailAddress;
-          user.profile.name = profile.displayName;
-          user.profile.location = profile._json.location.name;
-          user.profile.picture = profile._json.pictureUrl;
-          user.profile.website = profile._json.publicProfileUrl;
-          user.save((err) => {
+          const newUser = new User();
+          newUser.linkedin = profile.id;
+          newUser.tokens.push({ kind: 'linkedin', accessToken });
+          newUser.email = profile._json.emailAddress;
+          newUser.profile.name = profile.displayName;
+          newUser.profile.location = profile._json.location.name;
+          newUser.profile.picture = profile._json.pictureUrl;
+          newUser.profile.website = profile._json.publicProfileUrl;
+
+          userController.createUser(newUser, (user, err) => {  
             done(err, user);
-          });
+          });  
         }
       });
     });
@@ -361,19 +367,20 @@ passport.use(new InstagramStrategy({
       if (existingUser) {
         return done(null, existingUser);
       }
-      const user = new User();
-      user.instagram = profile.id;
-      user.tokens.push({ kind: 'instagram', accessToken });
-      user.profile.name = profile.displayName;
+      const newUser = new User();
+      newUser.instagram = profile.id;
+      newUser.tokens.push({ kind: 'instagram', accessToken });
+      newUser.profile.name = profile.displayName;
       // Similar to Twitter API, assigns a temporary e-mail address
       // to get on with the registration process. It can be changed later
       // to a valid e-mail address in Profile Management.
-      user.email = `${profile.username}@instagram.com`;
-      user.profile.website = profile._json.data.website;
-      user.profile.picture = profile._json.data.profile_picture;
-      user.save((err) => {
+      newUser.email = `${profile.username}@instagram.com`;
+      newUser.profile.website = profile._json.data.website;
+      newUser.profile.picture = profile._json.data.profile_picture;
+
+      userController.createUser(newUser, (user, err) => {  
         done(err, user);
-      });
+      });  
     });
   }
 }));
@@ -462,15 +469,16 @@ passport.use(new OpenIDStrategy({
         const data = JSON.parse(body);
         const profile = data.response.players[0];
 
-        const user = new User();
-        user.steam = steamId;
-        user.email = `${steamId}@steam.com`; // steam does not disclose emails, prevent duplicate keys
-        user.tokens.push({ kind: 'steam', accessToken: steamId });
-        user.profile.name = profile.personaname;
-        user.profile.picture = profile.avatarmedium;
-        user.save((err) => {
+        const newUser = new User();
+        newUser.steam = steamId;
+        newUser.email = `${steamId}@steam.com`; // steam does not disclose emails, prevent duplicate keys
+        newUser.tokens.push({ kind: 'steam', accessToken: steamId });
+        newUser.profile.name = profile.personaname;
+        newUser.profile.picture = profile.avatarmedium;
+
+        userController.createUser(newUser, (user, err) => {  
           done(err, user);
-        });
+        }); 
       } else {
         done(error, null);
       }

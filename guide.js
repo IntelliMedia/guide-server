@@ -32,11 +32,14 @@ dotenv.load({ path: '.env.example' });
  * Controllers (route handlers).
  */
 const homeController = require('./controllers/home');
+const monitorController = require('./controllers/monitor');
+const usersController = require('./controllers/users');
 const userController = require('./controllers/user');
 const apiController = require('./controllers/api');
 const eventController = require('./controllers/event');
 const contactController = require('./controllers/contact');
 const tutorActionController = require('./controllers/tutoractions');
+const authz = require('./controllers/authorization');
 
 /**
  * API keys and Passport configuration.
@@ -51,10 +54,41 @@ const app = express();
 /**
  * Connect to MongoDB.
  */
-mongoose.connect(process.env.MONGODB_URI || process.env.MONGOLAB_URI);
+var dbc = mongoose.connect('mongodb://localhost/guide');
+
+mongoose.connection.on('open', function (ref) {
+    console.log('Connected to mongo server.');
+
+    authz.initialize(dbc, (err) =>
+    {
+        if (err) { 
+          console.error('Unable to initialize AuthZ: ' + err)
+          process.exit(1);
+        }
+        else {
+          app.use( function( req, res, next) {
+            req.acl = authz.acl;
+            authz.getIsAllowed(req.user, (isAllowed, isAllowedErr) => {
+              if (isAllowedErr) {
+                console.error('Unable to get isAllowed function: ' + isAllowedErr);
+                next(isAllowedErr);
+                return;
+              }
+              res.locals.isAllowed = isAllowed; 
+              next();
+            });
+          });
+
+          initializeRoutes();
+        }
+    });
+});
 mongoose.connection.on('error', () => {
   console.error('MongoDB Connection Error. Please make sure that MongoDB is running.');
   process.exit(1);
+});
+mongoose.connection.on('disconnected', () => {
+  console.log('Mongoose default connection disconnected');
 });
 
 /**
@@ -86,8 +120,10 @@ app.use(session({
     autoReconnect: true
   })
 }));
+
 app.use(passport.initialize());
 app.use(passport.session());
+
 app.use(flash());
 app.use((req, res, next) => {
   if (req.path === '/api/upload' || req.path.indexOf('/api/v1/') == 0) {
@@ -112,9 +148,40 @@ app.use((req, res, next) => {
 app.use(express.static(path.join(__dirname, 'public'), { maxAge: 31557600000 }));
 
 /**
+ * Error Handler.
+ */
+app.use(errorHandler());
+
+/**
+ * Start HTTP server.
+ */
+var server = http.Server(app);
+
+/**
+ * Start Express server.
+ */
+server.listen(app.get('port'), () => {
+  console.log('Express server listening on port %d in %s mode', app.get('port'), app.get('env'));
+});
+
+/**
+ * Start WebSocket listener.
+ */
+tutorActionController.listen(server);
+
+module.exports = app;
+
+/*****************************************************************************
+ * Functions
+ */
+
+function initializeRoutes() {
+/**
  * Primary app routes.
  */
 app.get('/', homeController.index);
+app.get('/monitor', authz.Middleware(), monitorController.index);
+app.get('/users', usersController.index);
 app.get('/login', userController.getLogin);
 app.post('/login', userController.postLogin);
 app.get('/logout', userController.logout);
@@ -126,11 +193,12 @@ app.get('/signup', userController.getSignup);
 app.post('/signup', userController.postSignup);
 app.get('/contact', contactController.getContact);
 app.post('/contact', contactController.postContact);
-app.get('/account', passportConfig.isAuthenticated, userController.getAccount);
-app.post('/account/profile', passportConfig.isAuthenticated, userController.postUpdateProfile);
-app.post('/account/password', passportConfig.isAuthenticated, userController.postUpdatePassword);
-app.post('/account/delete', passportConfig.isAuthenticated, userController.postDeleteAccount);
-app.get('/account/unlink/:provider', passportConfig.isAuthenticated, userController.getOauthUnlink);
+app.get('/account/:userId?', authz.usersMiddleware(), userController.getAccount);
+app.post('/account/profile/:userId?', authz.usersMiddleware(), userController.postUpdateProfile);
+app.post('/account/roles/:userId?', authz.Middleware(2), userController.postUpdateRoles);
+app.post('/account/password/:userId?', authz.usersMiddleware(), userController.postUpdatePassword);
+app.post('/account/delete/:userId?', authz.usersMiddleware(), userController.postDeleteAccount);
+app.get('/account/unlink/:provider/:userId?', authz.usersMiddleware(), userController.getOauthUnlink);
 
 /**
  * API examples routes.
@@ -224,28 +292,5 @@ app.get('/auth/steam/callback', passport.authorize('openid', { failureRedirect: 
 app.get('/auth/pinterest', passport.authorize('pinterest', { scope: 'read_public write_public' }));
 app.get('/auth/pinterest/callback', passport.authorize('pinterest', { failureRedirect: '/login' }), (req, res) => {
   res.redirect('/api/pinterest');
-});
-
-/**
- * Error Handler.
- */
-app.use(errorHandler());
-
-/**
- * Start HTTP server.
- */
-var server = http.Server(app);
-
-/**
- * Start Express server.
- */
-server.listen(app.get('port'), () => {
-  console.log('Express server listening on port %d in %s mode', app.get('port'), app.get('env'));
-});
-
-/**
- * Start WebSocket listener.
- */
-tutorActionController.listen(server);
-
-module.exports = app;
+});  
+}

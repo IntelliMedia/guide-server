@@ -3,6 +3,8 @@ const crypto = require('crypto');
 const nodemailer = require('nodemailer');
 const passport = require('passport');
 const User = require('../models/User');
+const authz = require('./authorization');
+const _ = require('underscore');
 
 /**
  * GET /login
@@ -86,35 +88,93 @@ exports.postSignup = (req, res, next) => {
     return res.redirect('/signup');
   }
 
-  const user = new User({
-    email: req.body.email,
-    password: req.body.password
-  });
+  const newUser = new User();
+  newUser.email = req.body.email;
+  newUser.password = req.body.password;
 
-  User.findOne({ email: req.body.email }, (err, existingUser) => {
-    if (existingUser) {
-      req.flash('errors', { msg: 'Account with that email address already exists.' });
-      return res.redirect('/signup');
+  exports.createUser(newUser, (user, err) => {
+    if (err) { 
+      req.flash('errors', { msg: err });
+      res.redirect('/signup'); 
     }
-    user.save((err) => {
-      if (err) { return next(err); }
-      req.logIn(user, (err) => {
-        if (err) {
-          return next(err);
-        }
-        res.redirect('/');
-      });
-    });
+    else {
+      req.logIn(user, (logInErr) => {
+        if (logInErr) { return next(logInErr); }
+        req.flash('success', { msg: 'Success! New account created.' });
+        res.redirect(req.session.returnTo || '/');
+      }); 
+    }
   });
 };
+
+/**
+ * Save user object to database and assign initial role
+ */
+exports.createUser = (user, cb) => {
+
+  // Does the user already exist in database?
+  User.findOne({ email: user.email }).then((existingUser) => {
+    if (existingUser) {
+      throw 'Account with that email address already exists.';
+    }    
+    return user.save();
+  })
+  // Save new user in database
+  .then((user) => {
+    return authz.acl.roleUsers("administrator");
+  })
+  // Add role to new user
+  .then((adminUsers) => {
+    // If there isn't at least one admin, make this user the admin
+    if (adminUsers.length == 0) {
+      return authz.acl.addUserRoles(user.id, "administrator");
+    }
+    else {
+      return authz.acl.addUserRoles(user.id, "guest");
+    }
+  })
+  // Callback with user or error
+  .then(() => {
+    cb(user);
+  })
+  .catch((err) => {
+    cb(null, err);
+  });
+};
+
+/**
+ * Get the user ID of the resource being modified and the URL suffix
+ * for cases where the user being edited isn't the current user.
+ */
+function extractUserInfo(req, res) {
+  const userId = (req.params.userId ? req.params.userId : req.user.id);
+  const userUrl = (req.params.userId ? req.params.userId : '');
+
+    return {
+    id: userId,
+    url: userUrl
+  }; 
+}
 
 /**
  * GET /account
  * Profile page.
  */
 exports.getAccount = (req, res) => {
-  res.render('account/profile', {
-    title: 'Account Management'
+  const userInfo = extractUserInfo(req, res);
+  User.findById(userInfo.id, (err, user) => {
+    if (err) { return next(err); }
+
+    authz.acl.userRoles( userInfo.id, (roleErr, roles) =>
+    {
+      if (roleErr) { return next(roleErr); }
+
+      res.render('account/profile', {
+        title: 'Account Management',
+        selectedUser: user,
+        selectedUserRoles: roles
+      }); 
+    });
   });
 };
 
@@ -123,6 +183,8 @@ exports.getAccount = (req, res) => {
  * Update profile information.
  */
 exports.postUpdateProfile = (req, res, next) => {
+  const userInfo = extractUserInfo(req, res);
+
   req.assert('email', 'Please enter a valid email address.').isEmail();
   req.sanitize('email').normalizeEmail({ remove_dots: false });
 
@@ -130,10 +192,10 @@ exports.postUpdateProfile = (req, res, next) => {
 
   if (errors) {
     req.flash('errors', errors);
-    return res.redirect('/account');
+    return res.redirect('/account/' + userInfo.url);
   }
 
-  User.findById(req.user.id, (err, user) => {
+  User.findById(userInfo.id, (err, user) => {
     if (err) { return next(err); }
     user.email = req.body.email || '';
     user.profile.name = req.body.name || '';
@@ -144,13 +206,71 @@ exports.postUpdateProfile = (req, res, next) => {
       if (err) {
         if (err.code === 11000) {
           req.flash('errors', { msg: 'The email address you have entered is already associated with an account.' });
-          return res.redirect('/account');
+          return res.redirect('/account/' + userInfo.url);
         }
         return next(err);
       }
       req.flash('success', { msg: 'Profile information has been updated.' });
-      res.redirect('/account');
+      res.redirect('/account/' + userInfo.url);
     });
+  });
+};
+
+/**
+ * POST /account/roles
+ * Update user roles
+ */
+exports.postUpdateRoles = (req, res, next) => {
+  const userInfo = extractUserInfo(req, res);
+
+  var selectedRoles = [];
+  if (req.body.administratorCheckbox == 'on') {
+    selectedRoles.push('administrator');
+  }
+  if (req.body.researcherCheckbox == 'on') {
+    selectedRoles.push('researcher');
+  }
+  if (req.body.guestCheckbox == 'on') {
+    selectedRoles.push('guest');
+  }    
+
+  // Get user object from ID
+  User.findById(userInfo.id).then((user) => {
+    return authz.acl.userRoles(userInfo.id);
+  })
+  // Remove deselected roles  
+  .then((roles) => {
+    var removedRoles = _.difference(roles, selectedRoles);
+    if (removedRoles.length > 0) {
+      return authz.acl.removeUserRoles(userInfo.id, removedRoles).then(() => {
+          return Promise.resolve(roles);
+        });
+    }
+    else
+    {
+      return Promise.resolve(roles);
+    }
+  })
+  // Add selected roles
+  .then((roles) => {    
+    var addedRoles = _.difference(selectedRoles, roles);
+    if (addedRoles.length > 0) {
+      return authz.acl.addUserRoles(userInfo.id, addedRoles).then(() => {
+          return Promise.resolve(roles);
+        });
+    }
+    else
+    {
+      return Promise.resolve(roles);
+    }
+  })
+  // Refresh page
+  .then(() => {
+    req.flash('success', { msg: 'Role(s) have been changed.' });
+    res.redirect('/account/' + userInfo.url);
+  })
+  .catch((err) => {
+    next(err);
   });
 };
 
@@ -159,6 +279,8 @@ exports.postUpdateProfile = (req, res, next) => {
  * Update current password.
  */
 exports.postUpdatePassword = (req, res, next) => {
+  const userInfo = extractUserInfo(req, res);
+
   req.assert('password', 'Password must be at least 4 characters long').len(4);
   req.assert('confirmPassword', 'Passwords do not match').equals(req.body.password);
 
@@ -166,16 +288,16 @@ exports.postUpdatePassword = (req, res, next) => {
 
   if (errors) {
     req.flash('errors', errors);
-    return res.redirect('/account');
+    return res.redirect('/account/' + userInfo.url);
   }
 
-  User.findById(req.user.id, (err, user) => {
+  User.findById(userInfo.id, (err, user) => {
     if (err) { return next(err); }
     user.password = req.body.password;
     user.save((err) => {
       if (err) { return next(err); }
       req.flash('success', { msg: 'Password has been changed.' });
-      res.redirect('/account');
+      res.redirect('/account/' + userInfo.url);
     });
   });
 };
@@ -185,11 +307,35 @@ exports.postUpdatePassword = (req, res, next) => {
  * Delete user account.
  */
 exports.postDeleteAccount = (req, res, next) => {
-  User.remove({ _id: req.user.id }, (err) => {
-    if (err) { return next(err); }
-    req.logout();
-    req.flash('info', { msg: 'Your account has been deleted.' });
-    res.redirect('/');
+  const userInfo = extractUserInfo(req, res);
+
+  // Remove all roles assigned to this user
+  authz.acl.userRoles( userInfo.id).then((roles) => {
+    if (roles.length > 0) {
+      return authz.acl.removeUserRoles( userInfo.id, roles);
+    }
+    else {
+      return Promise.resolve();
+    }
+  })
+  // Remove user from database
+  .then(() =>
+  {    
+    return User.remove({ _id: userInfo.id });
+  })
+  .then(() => {        
+        if (userInfo.id == req.user.id) {
+          req.logout();
+          req.flash('info', { msg: 'Your account has been deleted.' });
+          res.redirect('/');
+        } else {
+          req.flash('success', { msg: 'User account has been deleted.' });
+          res.redirect('/users');
+        }
+  })
+  .catch((err) =>
+  {
+    next(err);
   });
 };
 
@@ -198,15 +344,17 @@ exports.postDeleteAccount = (req, res, next) => {
  * Unlink OAuth provider.
  */
 exports.getOauthUnlink = (req, res, next) => {
+  const userInfo = extractUserInfo(req, res);
+
   const provider = req.params.provider;
-  User.findById(req.user.id, (err, user) => {
+  User.findById(userInfo.id, (err, user) => {
     if (err) { return next(err); }
     user[provider] = undefined;
     user.tokens = user.tokens.filter(token => token.kind !== provider);
     user.save((err) => {
       if (err) { return next(err); }
       req.flash('info', { msg: `${provider} account has been unlinked.` });
-      res.redirect('/account');
+      res.redirect('/account/' + userInfo.url);
     });
   });
 };

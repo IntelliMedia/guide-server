@@ -13,6 +13,12 @@
       ul.nav.navbar-nav
         li(class=(title == 'Home') ? 'active' : undefined)
           a(href='/') Home
+        if isAllowed('monitor','get')
+          li(class=(title == 'Monitor') ? 'active' : undefined)
+            a(href='/monitor') Monitor  
+        if isAllowed('users', 'get')
+          li(class=(title == 'Users') ? 'active' : undefined)
+            a(href='/users') Users                              
       ul.nav.navbar-nav.navbar-right
         if !user
           li(class=(title == 'Login') ? 'active' : undefined)

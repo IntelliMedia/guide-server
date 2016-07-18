@@ -1,0 +1,19 @@
+extends layout
+
+block content
+  h1 Users
+
+  div
+     table.table.table-striped
+      thead
+        tr
+          th Email
+          th Name
+          th Roles
+      tbody
+        for user in users
+          tr
+            td 
+              a(href='/account/#{user.id}') #{user.email}          
+            td #{user.profile.name}
+            td #{roleMap[user.id]}
