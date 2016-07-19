@@ -4,12 +4,38 @@
  * Configuration
  * TODO move to config settings
  */
-const TutorActionProtocol = 'tutor-actions-v1';
+const GuideProtocolV1 = 'tutor-actions-v1';
+const GuideProtocolV2 = 'guide-protocol-v2';
 
 const http = require('http');
+const socketio = require('socket.io');
 const WebSocketServer = require('websocket').server;
 
-exports.listen = (server) => {
+exports.initialize = (server) => {
+    initializeV2(server);
+}
+
+function  initializeV2(server) {
+    var ioServer = socketio.listen(server);
+    ioServer.on('connect_error', function(err) {
+        console.error('Connect failed: ' + err);
+    });
+    ioServer.on('connection', function(socket) {
+        var address = socket.handshake.address;
+        console.log('Connected to ' + address);         
+ 
+        socket.on('event', function(data) {
+            console.log('Received event: ' + data);
+            var logEvent = JSON.parse(data);
+            var action = handleIncomingEvent(logEvent);
+            if (action) {
+                socket.emit('message', JSON.stringify(action));
+            }        
+        });
+    });      
+}
+
+function  initializeV1(server) {
 
     var wsServer = new WebSocketServer({
         httpServer: server,
@@ -29,7 +55,7 @@ exports.listen = (server) => {
         return;
         }
 
-        var connection = request.accept(TutorActionProtocol, request.origin);
+        var connection = request.accept(GuideProtocolV1, request.origin);
         console.log((new Date()) + ' Connection accepted.');
         connection.on('message', function(message) {
             if (message.type === 'utf8') {

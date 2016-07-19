@@ -126,7 +126,7 @@ app.use(passport.session());
 
 app.use(flash());
 app.use((req, res, next) => {
-  if (req.path === '/api/upload' || req.path.indexOf('/api/v1/') == 0) {
+  if (req.path === '/api/upload' || req.path.indexOf('/api/') == 0) {
     next();
   } else {
     lusca.csrf()(req, res, next);
@@ -167,7 +167,7 @@ server.listen(app.get('port'), () => {
 /**
  * Start WebSocket listener.
  */
-tutorActionController.listen(server);
+tutorActionController.initialize(server);
 
 module.exports = app;
 
@@ -240,7 +240,8 @@ app.post('/api/pinterest', passportConfig.isAuthenticated, passportConfig.isAuth
 /**
  * REST API
  */
-app.post('/api/v1/event', eventController.handleEvent);
+app.post('/api/v1/event', eventController.handleEventV1);
+app.post('/api/v2/event', eventController.handleEventV2);
 
 /**
  * OAuth authentication routes. (Sign in)
