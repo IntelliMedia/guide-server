@@ -42,6 +42,8 @@ const contactController = require('./controllers/contact');
 const tutorActionController = require('./controllers/tutoractions');
 const authz = require('./controllers/authorization');
 
+const sessionRepository = require('./controllers/sessionRepository');
+
 /**
  * API keys and Passport configuration.
  */
@@ -51,6 +53,14 @@ const passportConfig = require('./config/passport');
  * Create Express server.
  */
 const app = express();
+app.locals.moment = require('moment');
+
+/**
+ * Initialize Session In-Memory Repo
+ */
+sessionRepository.initialize((err) => {
+  console.log('Session Repository Initialized');
+});
 
 /**
  * Connect to MongoDB.
@@ -60,6 +70,7 @@ var dbc = mongoose.connect('mongodb://localhost/guide');
 mongoose.connection.on('open', function (ref) {
     console.log('Connected to mongo server.');
 
+    // Initialize authorization module
     authz.initialize(dbc, (err) =>
     {
         if (err) { 
@@ -183,6 +194,8 @@ function initializeRoutes() {
 app.get('/', homeController.index);
 app.get('/monitor', authz.Middleware(), monitorController.index);
 app.get('/session/:sessionId', authz.Middleware(1), sessionController.index);
+app.get('/session/:sessionId/event/:eventIndex', authz.Middleware(1), sessionController.event);
+app.get('/session/:sessionId/action/:actionIndex', authz.Middleware(1), sessionController.action);
 app.get('/users', usersController.index);
 app.get('/login', userController.getLogin);
 app.post('/login', userController.postLogin);

@@ -1,7 +1,8 @@
 extends layout
 
 block content
-  h1 Session Monitor
+  h1 Session 
+  h3 #{session.id}
 
   .row
     .col-sm-6
@@ -16,7 +17,7 @@ block content
             for event in session.events
               tr
                 td 
-                  a(href='/session/#{session.id}') #{event.event}          
+                  a(href='/session/#{session.id}/event/#{session.events.indexOf(event)}') #{event.event}          
                 td #{event.prettyTime}
     .col-sm-6            
       div
@@ -31,6 +32,6 @@ block content
             for action in session.actions
               tr
                 td 
-                  a(href='/session/#{session.id}') #{action.type}          
+                  a(href='/session/#{session.id}/action/#{session.actions.indexOf(action)}') #{action.type}          
                 td #{action.date}
-                td #{action.text}            
+                td #{action.text}

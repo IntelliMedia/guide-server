@@ -1,4 +1,4 @@
-"use strict";
+const sessionRepository = require('./sessionRepository');
 
 /**
  * Configuration
@@ -27,10 +27,7 @@ function  initializeV2(server) {
         socket.on('event', function(data) {
             console.log('Received event: ' + data);
             var logEvent = JSON.parse(data);
-            var action = handleIncomingEvent(logEvent);
-            if (action) {
-                socket.emit('message', JSON.stringify(action));
-            }        
+            handleIncomingEvent(logEvent, socket);       
         });
     });      
 }
@@ -86,17 +83,24 @@ function originIsAllowed(origin) {
 // TODO tutorial planner ->  that plans curricular sequencing, provides hints, generates explanations, and supplies feedback.
 // TODO Wrap in v1 module file
 
-function handleIncomingEvent(logEvent) {
-    return createTutorAction(logEvent);
+function handleIncomingEvent(logEvent, socket) {
+    sessionRepository.findOrCreate(logEvent.event.session, (session) => {
+        session.events.unshift(logEvent.event);
+        var action = createTutorAction(logEvent, session);
+        if (action) {
+            session.actions.unshift(action);
+            socket.emit('message', JSON.stringify(action));
+        }                
+    });
 }
 
-function createTutorAction(logEvent) {
+function createTutorAction(logEvent, session) {
 
     var action = null;
         
-    if (logEvent.event.event == 'Started session') {
-        
-    } else if (logEvent.event.event == 'User logged in') {       
+    if (logEvent.event.event == 'Started session') {      
+    } else if (logEvent.event.event == 'User logged in') {   
+        session.studentId =  logEvent.event.parameters.UniqueID;   
         action = {
             type: 'dialog',
             text: '???',

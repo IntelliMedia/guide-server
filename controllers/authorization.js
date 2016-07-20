@@ -1,9 +1,5 @@
 const nodeAcl = require('acl');
 
-/*****************************************************************************
- * Exports
- */
-
 /**
  * Access Control List
  * Initialized after database connection is established.

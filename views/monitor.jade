@@ -8,13 +8,15 @@ block content
      table.table.table-striped
       thead
         tr
+          th Session ID
           th Student ID
-          th Session Duration
+          th Start Time
           th Total Events
       tbody
         for session in sessions
           tr
             td 
-              a(href='/session/#{session.id}') #{session.student.id}          
-            td #{session.duration}
-            td #{session.totalEvents}
+              a(href='/session/#{session.id}') #{session.id}          
+            td #{session.studentId}
+            td #{session.startTime}
+            td #{session.events.length}
