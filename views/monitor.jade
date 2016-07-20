@@ -2,16 +2,19 @@ extends layout
 
 block content
   h1 Monitor
-  p.lead ITS server for Geniverse game-based learning environment
-  hr
-  .row
-    .col-sm-6
-      h2 Upload Geniverse log data
-      p Donec id elit non mi porta gravida at eget metus. Fusce dapibus, tellus ac cursus commodo, tortor mauris condimentum nibh, ut fermentum massa justo sit amet risus. Etiam porta sem malesuada magna mollis euismod. Donec sed odio dui.
-      p
-        a.btn.btn-default(href='#', role='button') View details »
-    .col-sm-6
-      h2 Get tutoring feedback
-      p Donec id elit non mi porta gravida at eget metus. Fusce dapibus, tellus ac cursus commodo, tortor mauris condimentum nibh, ut fermentum massa justo sit amet risus. Etiam porta sem malesuada magna mollis euismod. Donec sed odio dui.
-      p
-        a.btn.btn-default(href='#', role='button') View details »
+
+  div
+     h2 Active Sessions  
+     table.table.table-striped
+      thead
+        tr
+          th Student ID
+          th Session Duration
+          th Total Events
+      tbody
+        for session in sessions
+          tr
+            td 
+              a(href='/session/#{session.id}') #{session.student.id}          
+            td #{session.duration}
+            td #{session.totalEvents}

@@ -33,6 +33,7 @@ dotenv.load({ path: '.env.example' });
  */
 const homeController = require('./controllers/home');
 const monitorController = require('./controllers/monitor');
+const sessionController = require('./controllers/session');
 const usersController = require('./controllers/users');
 const userController = require('./controllers/user');
 const apiController = require('./controllers/api');
@@ -181,6 +182,7 @@ function initializeRoutes() {
  */
 app.get('/', homeController.index);
 app.get('/monitor', authz.Middleware(), monitorController.index);
+app.get('/session/:sessionId', authz.Middleware(1), sessionController.index);
 app.get('/users', usersController.index);
 app.get('/login', userController.getLogin);
 app.post('/login', userController.postLogin);

@@ -1,0 +1,36 @@
+extends layout
+
+block content
+  h1 Session Monitor
+
+  .row
+    .col-sm-6
+      div
+        h2 Events 
+        table.table.table-striped
+          thead
+            tr
+              th Event
+              th Timestamp
+          tbody
+            for event in session.events
+              tr
+                td 
+                  a(href='/session/#{session.id}') #{event.event}          
+                td #{event.prettyTime}
+    .col-sm-6            
+      div
+        h2 Tutor Actions 
+        table.table.table-striped
+          thead
+            tr
+              th Type
+              th Date
+              th Text
+          tbody
+            for action in session.actions
+              tr
+                td 
+                  a(href='/session/#{session.id}') #{action.type}          
+                td #{action.date}
+                td #{action.text}            
