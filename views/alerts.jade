@@ -1,0 +1,33 @@
+extends layout
+
+block content
+  h1 Alerts
+
+  div.pull-right
+    form.form-horizontal(action='/alerts/clear', method='POST')
+      .form-group
+        input(type='hidden', name='_csrf', value=_csrf)
+        button.btn.btn-danger(type='submit')
+          i.fa.fa-trash
+          | Clear all
+
+  div
+     table.table.table-striped
+      thead
+        tr
+          th Type
+          th Timestamp          
+          th Message
+      tbody
+        for alert in alerts
+          tr
+            td
+              case alert.type
+                when 'error'
+                  i.btn-danger.fa.fa-exclamation-circle 
+                when 'warning'
+                  i.btn-warning.fa.fa-exclamation-triangle
+                when 'info'
+                  i.btn-primary.fa.fa-info-circle
+            td #{alert.timestamp}                                  
+            td #{alert.message}

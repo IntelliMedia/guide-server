@@ -1,49 +1,52 @@
 
 var db = [];
 
-exports.initialize = (cb) => {
-    cb();
+exports.initialize = () => {
+  return new Promise((resolve, reject) => {
+    resolve();
+  });
 };
 
-exports.create = (sessionId, studentId, cb) => {
-  var newSession = {
-    'id': sessionId,
-    'studentId': studentId,
-    'startTime': Date.now(),
-    'events': [],
-    'actions': []
-  };
+exports.create = (sessionId) => {
+  return new Promise((resolve, reject) => {
+    var newSession = {
+      'id': sessionId,
+      'send': null, // Function used to send message to user on this session
+      'studentId': null,
+      'startTime': Date.now(),
+      'events': [],
+      'actions': []
+    };
 
-  db[newSession.id] = newSession;
+    db[newSession.id] = newSession;
 
-  cb(newSession);
+    resolve(newSession);
+  });
 };
 
-exports.delete = (sessionId, cb) => {
-  db.delete(sessionId);
-  cb();
+exports.delete = (sessionId) => {
+  return new Promise((resolve, reject) => {  
+    db.delete(sessionId);
+    resolve();
+  });
 };
 
-exports.findById = (sessionId, cb) => {
-  if (db[sessionId]) {
-    cb(db[sessionId]);
-  } else {
-    cb(null, 'Session does not exist with id:' + sessionId)
-  }
-};
-
-exports.findOrCreate = (sessionId, cb) => {
-  if (db[sessionId]) {
-    cb(db[sessionId]);
-  } else {
-    exports.create(sessionId, "[not signed in]", cb)
-  }
+exports.findById = (sessionId) => {
+  return new Promise((resolve, reject) => {  
+    if (db[sessionId]) {
+      resolve(db[sessionId]);
+    } else {
+      reject('Session with id not found: ' + sessionId);
+    }
+  });
 };
 
 exports.all = (cb) => {
-  var allSessions = [];
-  for(var session in db) {
-    allSessions.push(db[session]);
-  }
-  cb(allSessions);
+  return new Promise((resolve, reject) => {   
+    var allSessions = [];
+    for(var session in db) {
+      allSessions.push(db[session]);
+    }
+    resolve(allSessions);
+  });
 };

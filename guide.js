@@ -34,15 +34,16 @@ dotenv.load({ path: '.env.example' });
 const homeController = require('./controllers/home');
 const monitorController = require('./controllers/monitor');
 const sessionController = require('./controllers/session');
+const alertsController = require('./controllers/alerts');
 const usersController = require('./controllers/users');
 const userController = require('./controllers/user');
 const apiController = require('./controllers/api');
-const eventController = require('./controllers/event');
 const contactController = require('./controllers/contact');
-const tutorActionController = require('./controllers/tutoractions');
+const socketManager = require('./controllers/socketManager');
 const authz = require('./controllers/authorization');
 
 const sessionRepository = require('./controllers/sessionRepository');
+const tutor = require('./controllers/tutor');
 
 /**
  * API keys and Passport configuration.
@@ -101,6 +102,16 @@ mongoose.connection.on('error', () => {
 });
 mongoose.connection.on('disconnected', () => {
   console.log('Mongoose default connection disconnected');
+});
+
+/**
+ * Initialize Tutor
+ */
+tutor.initialize().then(() => {
+  console.info('Tutor initialized');
+})
+.catch((err) => {
+  console.error('Tutor initialization failed: ' + err);
 });
 
 /**
@@ -179,7 +190,7 @@ server.listen(app.get('port'), () => {
 /**
  * Start WebSocket listener.
  */
-tutorActionController.initialize(server);
+socketManager.initialize(server);
 
 module.exports = app;
 
@@ -196,6 +207,8 @@ app.get('/monitor', authz.Middleware(), monitorController.index);
 app.get('/session/:sessionId', authz.Middleware(1), sessionController.index);
 app.get('/session/:sessionId/event/:eventIndex', authz.Middleware(1), sessionController.event);
 app.get('/session/:sessionId/action/:actionIndex', authz.Middleware(1), sessionController.action);
+app.get('/alerts', authz.Middleware(), alertsController.index);
+app.post('/alerts/clear', authz.Middleware(1), alertsController.clear);
 app.get('/users', usersController.index);
 app.get('/login', userController.getLogin);
 app.post('/login', userController.postLogin);
@@ -251,12 +264,6 @@ app.get('/api/upload', apiController.getFileUpload);
 app.post('/api/upload', upload.single('myFile'), apiController.postFileUpload);
 app.get('/api/pinterest', passportConfig.isAuthenticated, passportConfig.isAuthorized, apiController.getPinterest);
 app.post('/api/pinterest', passportConfig.isAuthenticated, passportConfig.isAuthorized, apiController.postPinterest);
-
-/**
- * REST API
- */
-app.post('/api/v1/event', eventController.handleEventV1);
-app.post('/api/v2/event', eventController.handleEventV2);
 
 /**
  * OAuth authentication routes. (Sign in)

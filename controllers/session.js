@@ -10,17 +10,15 @@ exports.index = (req, res) => {
     return res.redirect('/monitor');
   }
 
-  sessionRepository.findById(sessionId, (session) => {
-
-    if (!session) {
-      req.flash('errors', { msg: 'Session with ID is not active: ' + sessionId});
-      return res.redirect('/monitor');
-    }
-
+  sessionRepository.findById(sessionId).then((session) => {
     res.render('session', {
       title: 'Session',
       session: session
     });
+  })
+  .catch((erro) => {
+    req.flash('errors', { msg: 'Session with ID is not active: ' + sessionId});
+    return res.redirect('/monitor');
   });
 };
 
@@ -31,18 +29,16 @@ exports.event = (req, res) => {
     return res.redirect('/monitor');
   }
 
-  sessionRepository.findById(sessionId, (session) => {
-
-    if (!session) {
-      req.flash('errors', { msg: 'Session with ID is not active: ' + sessionId});
-      return res.redirect('/monitor');
-    }
-
+  sessionRepository.findById(sessionId).then((session) => {
     res.render('event', {
       title: 'Event',
       session: session,
       eventStr: JSON.stringify(session.events[eventIndex], undefined, 2)
     });
+  })
+  .catch((err) => {
+      req.flash('errors', { msg: 'Session with ID is not active: ' + sessionId});
+      return res.redirect('/monitor');
   });
 };
 
@@ -53,17 +49,15 @@ exports.action = (req, res) => {
     return res.redirect('/monitor');
   }
 
-  sessionRepository.findById(sessionId, (session) => {
-
-    if (!session) {
-      req.flash('errors', { msg: 'Session with ID is not active: ' + sessionId});
-      return res.redirect('/monitor');
-    }
-
+  sessionRepository.findById(sessionId).then((session) => {
     res.render('action', {
       title: 'Action',
       session: session,
       actionStr: JSON.stringify(session.actions[actionIndex], undefined, 2)
     });
-  });
+  })
+  .catch((err) => {
+      req.flash('errors', { msg: 'Session with ID is not active: ' + sessionId});
+      return res.redirect('/monitor');
+  });  
 };

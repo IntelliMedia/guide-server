@@ -6,7 +6,7 @@ const moment = require('moment');
  * Monitor page.
  */
 exports.index = (req, res) => {
-  sessionRepository.all((sessions) => {
+  sessionRepository.all().then((sessions) => {
     res.render('monitor', {
       title: 'Monitor',
       sessions: sessions

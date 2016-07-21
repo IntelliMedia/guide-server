@@ -72,13 +72,13 @@ function initializeRoles() {
           allows:[
               {resources:['/users','users'], permissions:'*'},
               {resources:['/account/roles','roles'], permissions:'*'},
-              {resources:['/monitor','monitor','/session','session'], permissions:'*'}
+              {resources:['/monitor','monitor','/session','session','/alerts','alerts'], permissions:'*'}
           ]
       },
       {
           roles:['researcher'],
           allows:[
-              {resources:['/monitor','monitor','/session','session'], permissions:'*'}
+              {resources:['/monitor','monitor','/session','session','/alerts','alerts'], permissions:'*'}
           ]
       }
     ], (err) => {

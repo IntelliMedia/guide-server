@@ -15,7 +15,10 @@
           a(href='/') Home
         if isAllowed('monitor','get')
           li(class=(title == 'Monitor') ? 'active' : undefined)
-            a(href='/monitor') Monitor  
+            a(href='/monitor') Monitor
+        if isAllowed('alerts','get')              
+          li(class=(title == 'Alerts') ? 'active' : undefined)
+            a(href='/alerts') Alerts              
         if isAllowed('users', 'get')
           li(class=(title == 'Users') ? 'active' : undefined)
             a(href='/users') Users                              
