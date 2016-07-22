@@ -1,11 +1,11 @@
 const mongoose = require('mongoose');
 
-const userSchema = new mongoose.Schema({
+const alertSchema = new mongoose.Schema({
   timestamp: Date,
   type: String,
   message: String,
 }, { timestamps: true });
 
-const Alert = mongoose.model('Alert', userSchema);
+const Alert = mongoose.model('Alert', alertSchema);
 
 module.exports = Alert;

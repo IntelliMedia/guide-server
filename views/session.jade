@@ -18,7 +18,7 @@ block content
               tr
                 td 
                   a(href='/session/#{session.id}/event/#{session.events.indexOf(event)}') #{event.actor} #{event.action} #{event.target}          
-                td #{event.time}
+                td #{new Date(event.time)}
     .col-sm-6            
       div
         h2 Tutor Actions 
@@ -33,5 +33,5 @@ block content
               tr
                 td 
                   a(href='/session/#{session.id}/action/#{session.actions.indexOf(action)}') #{action.type}          
-                td #{action.time}
+                td #{new Date(action.time)}
                 td #{action.message.text}

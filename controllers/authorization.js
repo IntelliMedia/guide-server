@@ -46,21 +46,6 @@ exports.getIsAllowed = (user, cb) => {
   {
     cb(null, err);
   })
-/*
-  exports.acl.allowedPermissions(user.id, ['monitor', 'users', 'permissions'], function(err, permissions){
-    if(err) {
-        cb(null, err);
-        return;
-    }
-
-    var isAllowedFunc = function(resource, requestedPermission) {
-        return (permissions[resource] 
-          && (permissions[resource].indexOf(requestedPermission) >= 0 || permissions[resource].indexOf('*') >= 0));
-    }
-
-    cb(isAllowedFunc, null);
-  });
-  */
 };
 
 function initializeRoles() {
@@ -72,13 +57,13 @@ function initializeRoles() {
           allows:[
               {resources:['/users','users'], permissions:'*'},
               {resources:['/account/roles','roles'], permissions:'*'},
-              {resources:['/monitor','monitor','/session','session','/alerts','alerts'], permissions:'*'}
+              {resources:['/monitor','monitor','/session','session','/alerts','alerts','/students','students'], permissions:'*'}
           ]
       },
       {
           roles:['researcher'],
           allows:[
-              {resources:['/monitor','monitor','/session','session','/alerts','alerts'], permissions:'*'}
+              {resources:['/monitor','monitor','/session','session','/alerts','alerts','/students','students'], permissions:'*'}
           ]
       }
     ], (err) => {

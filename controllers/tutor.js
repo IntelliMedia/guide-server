@@ -1,4 +1,6 @@
 const sessionRepository = require('./sessionRepository');
+const students = require('./students');
+const await = require('asyncawait/await');
 
 exports.initialize = () => {
     return Promise.resolve(true);
@@ -29,7 +31,14 @@ function createTutorAction(event, session) {
     }
         
     if (isMatch(event, 'SYSTEM', 'STARTED', 'SESSION')) { 
-        session.studentId =  event.username;       
+        session.studentId =  event.username;
+        session.startTime = event.time;
+        students.updateSessionInfo(session.studentId, event.time).then((student) => {
+            console.log('Updated student info for: ' + student.id);
+        })
+        .catch((err) => {
+            console.error('Unable to update student info for: ' + session.studentId + '. ' + err);
+        });
                   
         switch(Math.floor(Math.random() * 3)) {
             case 0:

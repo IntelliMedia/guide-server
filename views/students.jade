@@ -1,0 +1,18 @@
+extends layout
+
+block content
+  h1 Students
+
+  div
+     table.table.table-striped
+      thead
+        tr
+          th Student ID
+          th Last Sign In
+          th Total Sessions
+      tbody
+        for student in students
+          tr
+            td #{student.id}          
+            td #{student.lastSignIn}
+            td #{student.totalSessions}
