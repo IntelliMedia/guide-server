@@ -75,20 +75,19 @@ function findSession(socket, sessionId) {
         }
 
         if (socketMap[socket] && socketMap[socket].id == sessionId) {
+            checkSessionSocket(socketMap[socket], socket)
             return resolve(socketMap[socket]);
         }
         if (sessionId) {
             sessionRepository.findById(sessionId).then((session) => {
                 socketMap[socket] = session;
+                checkSessionSocket(session, socket);
                 resolve(session);
             })
             .catch((err) => {
                 sessionRepository.create(sessionId).then((session) => {
                     socketMap[socket] = session;
-                    session.send = (type, message) => {
-                        console.log('Sent event: ' + message.tutorAction.type); 
-                        socket.emit(type, JSON.stringify(message)); 
-                    };
+                    checkSessionSocket(session, socket)
                     resolve(session);
                 })
                 .catch((err) => {
@@ -99,6 +98,16 @@ function findSession(socket, sessionId) {
             reject('Unable to find session with id: ' + sessionId);
         }
     });
+}
+
+function checkSessionSocket(session, socket) {
+    if (session.socket != socket) {
+        session.socket = socket;
+        session.send = (type, message) => {
+            console.log('Sent event: ' + message.tutorAction.type); 
+            socket.emit(type, JSON.stringify(message)); 
+        };                    
+    }    
 }
 
 /*
