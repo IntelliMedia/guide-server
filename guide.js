@@ -26,10 +26,15 @@ const http = require('http');
 /**
  * Load environment variables from .env file, where API keys and passwords are configured.
  */
-if (process.env.NODE_ENV == 'production') {
-  dotenv.load({ path: '.env.production' });
-} else {
-  dotenv.load({ path: '.env.example' });  
+switch(process.env.NODE_ENV){
+  case 'production':
+    console.info('Server configured for production');
+    dotenv.load({ path: '.env.production' });
+    break;
+
+  default:
+    console.info('Server configured for development');
+    dotenv.load({ path: '.env.example' });  
 }
 
 /**
