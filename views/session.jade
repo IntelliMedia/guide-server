@@ -12,13 +12,13 @@ block content
           thead
             tr
               th Event
-              th Timestamp
+              th Time
           tbody
             for event in session.events
               tr
                 td 
-                  a(href='/session/#{session.id}/event/#{session.events.indexOf(event)}') #{event.event}          
-                td #{event.prettyTime}
+                  a(href='/session/#{session.id}/event/#{session.events.indexOf(event)}') #{event.actor} #{event.action} #{event.target}          
+                td #{event.time}
     .col-sm-6            
       div
         h2 Tutor Actions 
@@ -26,12 +26,12 @@ block content
           thead
             tr
               th Type
-              th Date
-              th Text
+              th Time
+              th Messsage
           tbody
             for action in session.actions
               tr
                 td 
                   a(href='/session/#{session.id}/action/#{session.actions.indexOf(action)}') #{action.type}          
-                td #{action.date}
-                td #{action.text}
+                td #{action.time}
+                td #{action.message.text}
