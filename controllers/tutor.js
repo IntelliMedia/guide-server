@@ -32,6 +32,7 @@ function createTutorAction(event, session) {
         
     if (isMatch(event, 'SYSTEM', 'STARTED', 'SESSION')) { 
         session.studentId =  event.username;
+        session.active = true;
         session.startTime = event.time;
         students.updateSessionInfo(session.studentId, event.time).then((student) => {
             console.log('Updated student info for: ' + student.id);
@@ -56,7 +57,11 @@ function createTutorAction(event, session) {
             break;          
             default:
                 action = null;
-        }          
+        }         
+    } else if (isMatch(event, 'SYSTEM', 'ENDED', 'SESSION')) {
+        session.active = false;
+        session.endTime = event.time;
+        action = null;
     } else if (isMatch(event, 'USER', 'NAVIGATED', 'CHALLENGE')) {             
         switch(Math.floor(Math.random() * 3)) {
             case 0:

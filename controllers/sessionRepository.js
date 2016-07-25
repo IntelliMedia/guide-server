@@ -11,9 +11,11 @@ exports.create = (sessionId) => {
   return new Promise((resolve, reject) => {
     var newSession = {
       'id': sessionId,
+      'active': false,
       'send': null, // Function used to send message to user on this session
       'studentId': null,
       'startTime': Date.now(),
+      'endTime': null,      
       'events': [],
       'actions': []
     };
@@ -41,12 +43,34 @@ exports.findById = (sessionId) => {
   });
 };
 
-exports.all = (cb) => {
+exports.getAllActiveSessions = (cb) => {
   return new Promise((resolve, reject) => {   
     var allSessions = [];
     for(var session in db) {
-      allSessions.push(db[session]);
+      if (db[session].active) {
+        allSessions.push(db[session]);
+      }
     }
-    resolve(allSessions);
+    resolve(allSessions.sort(compareStartTime));
   });
 };
+
+exports.getAllInactiveSessions = (cb) => {
+  return new Promise((resolve, reject) => {   
+    var allSessions = [];
+    for(var session in db) {
+      if (!db[session].active) {
+        allSessions.push(db[session]);
+      }
+    }
+    resolve(allSessions.sort(compareStartTime));
+  });
+};
+
+function compareStartTime(a,b) {
+  if (a.startTime < b.startTime)
+    return -1;
+  if (a.startTime > b.startTime)
+    return 1;
+  return 0;
+}

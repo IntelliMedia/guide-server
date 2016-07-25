@@ -6,10 +6,17 @@ const moment = require('moment');
  * Monitor page.
  */
 exports.index = (req, res) => {
-  sessionRepository.all().then((sessions) => {
+  var activeSessions = [];
+  sessionRepository.getAllActiveSessions().then((sessions) => {
+    activeSessions = sessions;
+    return sessionRepository.getAllInactiveSessions();
+  }).then((inactiveSessions) => {
     res.render('monitor', {
       title: 'Monitor',
-      sessions: sessions
+      activeSessions: activeSessions,
+      inactiveSessions: inactiveSessions
     });
+  }).catch((err) => {
+    req.flash('errors', { msg: err });
   });
 };

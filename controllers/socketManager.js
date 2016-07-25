@@ -48,7 +48,13 @@ function handleConnectError(err) {
 
 function handleDisconnect(socket) {
     var address = socket.handshake.address;
-    console.log('Disconnected from ' + address);   
+    console.log('Disconnected from ' + address);
+    findSessionBySocket(socket).then((session) => {
+        if (session && session.active) {
+            session.active = false;
+            session.endTime = Date.now();
+        }
+    })            
 }
 
 function handleEvent(socket, data) {
@@ -65,6 +71,20 @@ function handleEvent(socket, data) {
         newAlert.message = err;
         newAlert.save();
         console.error('Failed to process event: ' + err);
+    });
+}
+
+function findSessionBySocket(socket) {
+    return new Promise((resolve, reject) => {
+        if (!socket) {
+            reject('Cannot find session since socket is null');
+        }
+
+        if (socketMap[socket]) {
+            return resolve(socketMap[socket]);
+        } else {
+            return resolve(null);
+        }        
     });
 }
 

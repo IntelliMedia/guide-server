@@ -9,10 +9,18 @@ exports.index = (req, res) => {
   Student.find({}, (err, students) => {
     res.render('students', {
       title: 'Students',
-      students: students
+      students: students.sort(compareId)
     });
   });
 };
+
+function compareId(a,b) {
+  if (a.id < b.id)
+    return -1;
+  if (a.id > b.id)
+    return 1;
+  return 0;
+}
 
 exports.updateSessionInfo = (studentId, timestamp) => {
   return new Promise((resolve, reject) => {

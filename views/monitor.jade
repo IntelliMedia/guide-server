@@ -4,7 +4,7 @@ block content
   h1 Monitor
 
   div
-     h2 Active Sessions  
+     h3 Active Sessions  
      table.table.table-striped
       thead
         tr
@@ -13,7 +13,25 @@ block content
           th Start Time
           th Total Events
       tbody
-        for session in sessions
+        for session in activeSessions
+          tr
+            td 
+              a(href='/session/#{session.id}') #{session.id}          
+            td #{session.studentId}
+            td #{new Date(session.startTime)}
+            td #{session.events.length}
+
+  div
+     h3 Inactive Sessions  
+     table.table.table-striped
+      thead
+        tr
+          th Session ID
+          th Student ID
+          th Start Time
+          th Total Events
+      tbody
+        for session in inactiveSessions
           tr
             td 
               a(href='/session/#{session.id}') #{session.id}          
