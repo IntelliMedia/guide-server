@@ -33,6 +33,12 @@ npm install
 node guide.js
 ```
 
+## Reset Database
+
+```
+mongo mongodb://localhost/guide --eval "db.dropDatabase()"
+```
+
 ## Copyright
 
 Copyright 2016 North Carolina State University
