@@ -244,6 +244,8 @@ app.get('/account/unlink/:provider/:userId?', authz.usersMiddleware(), userContr
 /**
  * API examples routes.
  */
+app.get('/api/student/:studentId',  authz.Middleware(1), apiController.getStudent);
+/*
 app.get('/api', apiController.getApi);
 app.get('/api/lastfm', apiController.getLastfm);
 app.get('/api/nyt', apiController.getNewYorkTimes);
@@ -277,6 +279,7 @@ app.get('/api/upload', apiController.getFileUpload);
 app.post('/api/upload', upload.single('myFile'), apiController.postFileUpload);
 app.get('/api/pinterest', passportConfig.isAuthenticated, passportConfig.isAuthorized, apiController.getPinterest);
 app.post('/api/pinterest', passportConfig.isAuthenticated, passportConfig.isAuthorized, apiController.postPinterest);
+*/
 
 /**
  * OAuth authentication routes. (Sign in)

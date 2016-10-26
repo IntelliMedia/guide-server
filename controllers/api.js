@@ -27,6 +27,62 @@ const foursquare = require('node-foursquare')({
   }
 });
 
+const Student = require('../models/Student');
+
+
+/**
+ * GET /api/student/:studentId
+ * List of API examples.
+ */
+exports.getStudent = (req, res) => {
+  const studentId = req.params.studentId;
+  if (!studentId) {
+    return res.redirect('/');
+  }
+
+  var view = req.query.view;
+
+  Student.findOne({ 'id': studentId }, (err, student) => {
+    if (err) { return next(err); }
+
+    switch(view) {
+      case 'concept-chart':
+      var options = {
+            chart: {
+                type: 'bar',                  
+            },
+            title: {
+                text: 'Concepts'
+            },
+            xAxis: {
+                categories: ['Apples', 'Bananas', 'Oranges']
+            },
+            yAxis: {
+                title: {
+                    text: 'Score'
+                }
+            },
+            series: [{
+                  name: 'Jane',
+                  data: [1, 0, -4]
+              }, {
+                  name: 'John',
+                  data: [5, 7, 3]
+              }]
+        };        
+      res.end(JSON.stringify(options));
+      break;
+
+      default:
+      res.end(JSON.stringify(student));
+    }
+  })
+  .catch((erro) => {
+    req.flash('errors', { msg: 'Student with ID is not found: ' + studentId});
+    return res.redirect('/');
+  });
+};
+
 /**
  * GET /api
  * List of API examples.
