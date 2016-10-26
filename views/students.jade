@@ -13,6 +13,7 @@ block content
       tbody
         for student in students
           tr
-            td #{student.id}          
+            td
+              a(href='/student/#{student.id}') #{student.id}          
             td #{student.lastSignIn}
             td #{student.totalSessions}

@@ -3,7 +3,7 @@ const mongoose = require('mongoose');
 const studentSchema = new mongoose.Schema({
   id: String,
   lastSignIn: Date,
-  totalSessions: Number
+  totalSessions: Number,
 }, { timestamps: true });
 
 const Student = mongoose.model('Student', studentSchema);

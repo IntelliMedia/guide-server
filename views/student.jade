@@ -1,0 +1,70 @@
+extends layout
+
+block content
+  h1 Student 
+  h3 #{student.id}
+
+  div#container(style="min-width: 500px; height: 500px; margin: 0 auto")
+    script.
+      var arrToMultiArr = function(arr){
+        var result = new Array()
+        for (var i=0; i < arr.length; i+=2){
+          var date = arr[i]
+          var count = arr[i + 1]
+          result.push([date, count])
+        }
+        return result
+      };
+      var mySeries = arrToMultiArr([#{seriesData}]);
+      $(function () {
+          $('#container').highcharts({
+          chart: {
+              type: 'column'
+          },
+          title: {
+              text: "#{title}"
+          },
+          subtitle: {
+              text: 'Source: Internal DB'
+          },
+          xAxis: {
+              type: 'category',          
+              labels: {
+                  rotation: -45,
+                  style: {
+                      fontSize: '13px',
+                      fontFamily: 'Verdana, sans-serif'
+                  }
+              }
+          },
+          yAxis: {
+              min: 0,
+              title: {
+                  text: "#{yAxisTitle}"
+              }
+          },
+          legend: {
+              enabled: false
+          },
+          series: [{
+              name: '#{seriesName}',
+              data: mySeries,
+              dataGrouping: {
+                  enabled: true
+              },
+              dataLabels: {
+                  enabled: true,
+                  rotation: -90,
+                  color: '#FFFFFF',
+                  align: 'right',
+                  x: 4,
+                  y: 10,
+                  style: {
+                      fontSize: '11px',
+                      fontFamily: 'Verdana, sans-serif',
+                      textShadow: '0 0 3px black'
+                  }
+              }
+          }]
+        });
+      });
