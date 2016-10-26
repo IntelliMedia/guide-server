@@ -41,7 +41,7 @@ switch(process.env.NODE_ENV){
  * Controllers (route handlers).
  */
 const homeController = require('./controllers/home');
-const monitorController = require('./controllers/monitor');
+const sessionsController = require('./controllers/sessions');
 const sessionController = require('./controllers/session');
 const studentsController = require('./controllers/students');
 const studentController = require('./controllers/student');
@@ -214,7 +214,7 @@ function initializeRoutes() {
  * Primary app routes.
  */
 app.get('/', homeController.index);
-app.get('/monitor', authz.Middleware(), monitorController.index);
+app.get('/sessions', authz.Middleware(), sessionsController.index);
 app.get('/session/:sessionId', authz.Middleware(1), sessionController.index);
 app.get('/session/:sessionId/event/:eventIndex', authz.Middleware(1), sessionController.event);
 app.get('/session/:sessionId/action/:actionIndex', authz.Middleware(1), sessionController.action);

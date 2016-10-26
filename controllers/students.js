@@ -3,7 +3,7 @@ const moment = require('moment');
 
 /**
  * GET /
- * Monitor page.
+ * Students page.
  */
 exports.index = (req, res) => {
   Student.find({}, (err, students) => {

@@ -3,7 +3,7 @@ const moment = require('moment');
 
 /**
  * GET /
- * Monitor page.
+ * Sessions page.
  */
 exports.index = (req, res) => {
   var activeSessions = [];
@@ -11,8 +11,8 @@ exports.index = (req, res) => {
     activeSessions = sessions;
     return sessionRepository.getAllInactiveSessions();
   }).then((inactiveSessions) => {
-    res.render('monitor', {
-      title: 'Monitor',
+    res.render('sessions', {
+      title: 'Sessions',
       activeSessions: activeSessions,
       inactiveSessions: inactiveSessions
     });

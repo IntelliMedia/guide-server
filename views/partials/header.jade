@@ -11,12 +11,12 @@
         | GUIDE
     .collapse.navbar-collapse
       ul.nav.navbar-nav
-        if isAllowed('monitor','get')
-          li(class=(title == 'Monitor') ? 'active' : undefined)
-            a(href='/monitor') Monitor
         if isAllowed('students','get')
           li(class=(title == 'Students') ? 'active' : undefined)
-            a(href='/students') Students            
+            a(href='/students') Students          
+        if isAllowed('sessions','get')
+          li(class=(title == 'Sessions') ? 'active' : undefined)
+            a(href='/sessions') Sessions        
         if isAllowed('alerts','get')              
           li(class=(title == 'Alerts') ? 'active' : undefined)
             a(href='/alerts') Alerts              

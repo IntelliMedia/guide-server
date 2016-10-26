@@ -7,7 +7,7 @@ const sessionRepository = require('./sessionRepository');
 exports.index = (req, res) => {
   const sessionId = req.params.sessionId;
   if (!sessionId) {
-    return res.redirect('/monitor');
+    return res.redirect('/sessions');
   }
 
   sessionRepository.findById(sessionId).then((session) => {
@@ -18,7 +18,7 @@ exports.index = (req, res) => {
   })
   .catch((erro) => {
     req.flash('errors', { msg: 'Session with ID is not active: ' + sessionId});
-    return res.redirect('/monitor');
+    return res.redirect('/sessions');
   });
 };
 
@@ -26,7 +26,7 @@ exports.event = (req, res) => {
   const sessionId = req.params.sessionId;
   const eventIndex = req.params.eventIndex;
   if (!sessionId || !eventIndex) {
-    return res.redirect('/monitor');
+    return res.redirect('/sessions');
   }
 
   sessionRepository.findById(sessionId).then((session) => {
@@ -38,7 +38,7 @@ exports.event = (req, res) => {
   })
   .catch((err) => {
       req.flash('errors', { msg: 'Session with ID is not active: ' + sessionId});
-      return res.redirect('/monitor');
+      return res.redirect('/sessions');
   });
 };
 
@@ -46,7 +46,7 @@ exports.action = (req, res) => {
   const sessionId = req.params.sessionId;
   const actionIndex = req.params.actionIndex;
   if (!sessionId || !actionIndex) {
-    return res.redirect('/monitor');
+    return res.redirect('/sessions');
   }
 
   sessionRepository.findById(sessionId).then((session) => {
@@ -58,6 +58,6 @@ exports.action = (req, res) => {
   })
   .catch((err) => {
       req.flash('errors', { msg: 'Session with ID is not active: ' + sessionId});
-      return res.redirect('/monitor');
+      return res.redirect('/sessions');
   });  
 };
