@@ -71,6 +71,7 @@ function handleEvent(socket, data) {
         newAlert.message = err;
         newAlert.save();
         console.error('Failed to process event: ' + err);
+        socket.emit('alert', JSON.stringify(newAlert)); 
     });
 }
 

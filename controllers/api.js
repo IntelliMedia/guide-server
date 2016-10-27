@@ -36,16 +36,12 @@ function createConceptChart(student) {
     var conceptIds = Object.keys(concepts);
     var conceptStateValues = [];
 
-    for (var key in conceptIds) {
-      var value = student.conceptStates.filter(function(conceptState) {
-        return conceptState.value == key;
-      });
-      if (value == null) {
-        value = 0;
-      }
-      
+    conceptIds.forEach(function (id) {
+      var state = student.conceptState(id);
+      var value = (state != null ? state.value : 0);
+             
       conceptStateValues.push(value);
-    }
+    });
 
   return  {
             chart: {

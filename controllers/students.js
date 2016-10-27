@@ -22,6 +22,30 @@ function compareId(a,b) {
   return 0;
 }
 
+exports.createOrFind = (studentId) => {
+  return new Promise((resolve, reject) => {
+    Student.findOne({ 'id': studentId }, (err, student) => {
+      if (err) {
+        reject(err);
+      }
+
+      if (!student) {
+        student = new Student();
+        student.id = studentId;
+        student.totalSessions = 0;
+      }
+
+      student.save((err) => {
+        if (err) {
+          reject(err);
+        } else {
+          resolve(student);
+        }
+      });
+    });
+  });
+};
+
 exports.updateSessionInfo = (studentId, timestamp) => {
   return new Promise((resolve, reject) => {
     Student.findOne({ 'id': studentId }, (err, student) => {

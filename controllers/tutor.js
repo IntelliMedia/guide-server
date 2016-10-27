@@ -7,18 +7,28 @@ exports.initialize = () => {
 }
 
 exports.processEvent = (logEvent, session) => {
-    return new Promise((resolve, reject) => {
+
+    var event = logEvent.event;
+
+    // Is this the beginning of the session?
+    if (isMatch(event, 'SYSTEM', 'STARTED', 'SESSION')) { 
+        session.studentId =  event.username;
+        session.active = true;
+        session.startTime = event.time;       
+    }
+
+    return students.createOrFind(session.studentId).then((student) => {
+        console.log('Tutor processing student: ' + student.id);
         session.events.unshift(logEvent.event);
-        var action = createTutorAction(logEvent.event, session);
+        var action = createTutorAction(student, session, event);
         if (action) {
             session.actions.unshift(action.tutorAction);
             session.send('tutorAction', action);
         }           
-        resolve(true);     
-    });
+    });   
 }
 
-function createTutorAction(event, session) {
+function createTutorAction(student, session, event) {
 
     var action = {
         "tutorAction": {
@@ -28,18 +38,12 @@ function createTutorAction(event, session) {
                 "args": {}
             }              
         }
-    }
+    } 
         
     if (isMatch(event, 'SYSTEM', 'STARTED', 'SESSION')) { 
-        session.studentId =  event.username;
-        session.active = true;
-        session.startTime = event.time;
-        students.updateSessionInfo(session.studentId, event.time).then((student) => {
-            console.log('Updated student info for: ' + student.id);
-        })
-        .catch((err) => {
-            console.error('Unable to update student info for: ' + session.studentId + '. ' + err);
-        });
+
+        student.lastSignIn = new Date(event.time);
+        student.totalSessions += 1;           
                   
         switch(Math.floor(Math.random() * 3)) {
             case 0:
@@ -147,7 +151,17 @@ function createTutorAction(event, session) {
     } else {
         // Do nothing
         action = null;
-    }      
+    }
+
+    var conceptState = student.conceptState('PC 3-B.1-a');
+    conceptState.value++;
+
+    student.save((err) => {
+        if (err) {
+            console.error('Unable to save student info for: ' + currentStudent.id);
+            throw err;
+        }
+    });         
   
   return action;
 }
