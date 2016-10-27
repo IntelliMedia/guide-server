@@ -28,7 +28,46 @@ const foursquare = require('node-foursquare')({
 });
 
 const Student = require('../models/Student');
+const concept = require('../models/Concept');
 
+function createConceptChart(student) {
+    var concepts = concept.all();
+
+    var conceptIds = Object.keys(concepts);
+    var conceptStateValues = [];
+
+    for (var key in conceptIds) {
+      var value = student.conceptStates.filter(function(conceptState) {
+        return conceptState.value == key;
+      });
+      if (value == null) {
+        value = 0;
+      }
+      
+      conceptStateValues.push(value);
+    }
+
+  return  {
+            chart: {
+                type: 'bar',                  
+            },
+            title: {
+                text: 'Concepts'
+            },
+            xAxis: {
+                categories: conceptIds             
+            },
+            yAxis: {
+                title: {
+                    text: 'Score'
+                }
+            },
+            series: [{
+                  name: student.id,
+                  data: conceptStateValues
+              }]
+        };  
+}
 
 /**
  * GET /api/student/:studentId
@@ -46,31 +85,8 @@ exports.getStudent = (req, res) => {
     if (err) { return next(err); }
 
     switch(view) {
-      case 'concept-chart':
-      var options = {
-            chart: {
-                type: 'bar',                  
-            },
-            title: {
-                text: 'Concepts'
-            },
-            xAxis: {
-                categories: ['Apples', 'Bananas', 'Oranges']
-            },
-            yAxis: {
-                title: {
-                    text: 'Score'
-                }
-            },
-            series: [{
-                  name: 'Jane',
-                  data: [1, 0, -4]
-              }, {
-                  name: 'John',
-                  data: [5, 7, 3]
-              }]
-        };        
-      res.end(JSON.stringify(options));
+      case 'concept-chart':      
+      res.end(JSON.stringify(createConceptChart(student)));
       break;
 
       default:
