@@ -87,7 +87,7 @@ if (typeof exports === 'undefined') {
     GuideProtocol.TutorDialog.fromJson = function(json) {
         var obj = JSON.parse(json);
         return new GuideProtocol.TutorDialog(
-            obj.message, 
+            Object.create(GuideProtocol.Text, obj.message), 
             obj.time);
     }
 
