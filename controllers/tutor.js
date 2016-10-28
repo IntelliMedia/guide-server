@@ -1,14 +1,13 @@
 const sessionRepository = require('./sessionRepository');
 const students = require('./students');
+const ecdRules = require('../models/EcdRules');
 const await = require('asyncawait/await');
 
 exports.initialize = () => {
     return Promise.resolve(true);
 }
 
-exports.processEvent = (logEvent, session) => {
-
-    var event = logEvent.event;
+exports.processEvent = (event, session) => {
 
     // Is this the beginning of the session?
     if (isMatch(event, 'SYSTEM', 'STARTED', 'SESSION')) { 
@@ -19,7 +18,7 @@ exports.processEvent = (logEvent, session) => {
 
     return students.createOrFind(session.studentId).then((student) => {
         console.log('Tutor processing student: ' + student.id);
-        session.events.unshift(logEvent.event);
+        session.events.unshift(event);
         var action = createTutorAction(student, session, event);
         if (action) {
             session.actions.unshift(action.tutorAction);
@@ -113,6 +112,16 @@ function createTutorAction(student, session, event) {
         action.tutorAction.message.id = 'ITS.TRIAL.FEEDBACK.1';
         action.tutorAction.message.text = '{{username}} advanced trial';
         action.tutorAction.message.args.username = event.username;
+    } else if (isMatch(event, 'USER', 'SUBMITTED', 'ORGANISM')) {    
+
+        ecdRules.updateStudentModel(
+            student, 
+            event.case, 
+            event.challenge,
+            event.editableGenes, 
+            event.initialAlleles, 
+            event.selectedAlleles);
+
     } else if (isMatch(event, 'USER', 'SUBMITTED', 'DRAKE')) {        
         switch(Math.floor(Math.random() * 3)) {
             case 0:
@@ -152,9 +161,6 @@ function createTutorAction(student, session, event) {
         // Do nothing
         action = null;
     }
-
-    var conceptState = student.conceptState('PC 3-B.1-a');
-    conceptState.value++;
 
     student.save((err) => {
         if (err) {

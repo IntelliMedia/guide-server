@@ -4,6 +4,7 @@ const WebSocketServer = require('websocket').server;
 const sessionRepository = require('./sessionRepository');
 const tutor = require('./tutor');
 const Alert = require('../models/Alert');
+const guideProtocol = require('../shared/guide-protocol.js');
 
 /**
  * Configuration
@@ -58,11 +59,13 @@ function handleDisconnect(socket) {
 }
 
 function handleEvent(socket, data) {
-    var logEvent = JSON.parse(data);
-    console.log('Received event: ' + logEvent.event.time);
-
-    findSession(socket, logEvent.event.session).then((session) => {
-        return tutor.processEvent(logEvent, session);
+    var receivedEvent = null;
+    GuideProtocol.Event.fromJsonAsync(data).then((event) => {
+        receivedEvent = event;
+        return findSession(socket, receivedEvent.username, receivedEvent.session); 
+    })
+    .then((session) => {
+        return tutor.processEvent(receivedEvent, session);
     })        
     .catch((err) => {
         const newAlert = Alert();
@@ -89,7 +92,7 @@ function findSessionBySocket(socket) {
     });
 }
 
-function findSession(socket, sessionId) {
+function findSession(socket, studentId, sessionId) {
     return new Promise((resolve, reject) => {
         if (!socket) {
             reject('Cannot find session since socket is null');
@@ -107,8 +110,9 @@ function findSession(socket, sessionId) {
             })
             .catch((err) => {
                 sessionRepository.create(sessionId).then((session) => {
+                    session.studentId = studentId;
                     socketMap[socket] = session;
-                    checkSessionSocket(session, socket)
+                    checkSessionSocket(session, socket);
                     resolve(session);
                 })
                 .catch((err) => {
