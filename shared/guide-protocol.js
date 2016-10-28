@@ -70,11 +70,15 @@ if (typeof exports === 'undefined') {
      * TutorDialog - used by the ITS to send a message to the student
      */
     GuideProtocol.TutorDialog = function(message, time) {
-        if (message instanceof String) {
-            this.message = new GuideProtocol.Text(null, message);            
-        } else {
+        
+        if (message instanceof GuideProtocol.Text) {
            this.message = message;
+        } else if (message instanceof String) {
+            this.message = new GuideProtocol.Text(null, message);  
+        } else if (message.hasProperty('id') && message.hasProperty('text') && message.hasProperty('args')) {
+            this.message = new GuideProtocol.Text(message.id, message.text, message.args);
         }
+
         this.time = (time == null ? Date.now() : time);        
     }
 
@@ -87,7 +91,7 @@ if (typeof exports === 'undefined') {
     GuideProtocol.TutorDialog.fromJson = function(json) {
         var obj = JSON.parse(json);
         return new GuideProtocol.TutorDialog(
-            Object.create(GuideProtocol.Text, obj.message), 
+            obj.message, 
             obj.time);
     }
 
