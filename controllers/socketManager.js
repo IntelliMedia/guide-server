@@ -68,13 +68,16 @@ function handleEvent(socket, data) {
         return tutor.processEvent(receivedEvent, session);
     })        
     .catch((err) => {
+        console.error('Failed to process event: ' + err);
+
         const newAlert = Alert();
         newAlert.type = 'error';
         newAlert.timestamp = Date.now();
         newAlert.message = err;
         newAlert.save();
-        console.error('Failed to process event: ' + err);
-        socket.emit('alert', JSON.stringify(newAlert)); 
+        
+        var alert = new GuideProtocol.Alert(GuideProtocol.Alert.Error, err);
+        socket.emit(GuideProtocol.Alert.Channel, alert.toJson());
     });
 }
 
@@ -99,20 +102,20 @@ function findSession(socket, studentId, sessionId) {
         }
 
         if (socketMap[socket] && socketMap[socket].id == sessionId) {
-            checkSessionSocket(socketMap[socket], socket)
+            initializeSessionSocket(socketMap[socket], socket)
             return resolve(socketMap[socket]);
         }
         if (sessionId) {
             sessionRepository.findById(sessionId).then((session) => {
                 socketMap[socket] = session;
-                checkSessionSocket(session, socket);
+                initializeSessionSocket(session, socket);
                 resolve(session);
             })
             .catch((err) => {
                 sessionRepository.create(sessionId).then((session) => {
                     session.studentId = studentId;
                     socketMap[socket] = session;
-                    checkSessionSocket(session, socket);
+                    initializeSessionSocket(session, socket);
                     resolve(session);
                 })
                 .catch((err) => {
@@ -125,12 +128,11 @@ function findSession(socket, studentId, sessionId) {
     });
 }
 
-function checkSessionSocket(session, socket) {
+function initializeSessionSocket(session, socket) {
     if (session.socket != socket) {
         session.socket = socket;
-        session.send = (type, message) => {
-            console.log('Sent event: ' + message.tutorAction.type); 
-            socket.emit(type, JSON.stringify(message)); 
+        session.emit = (channel, message) => {
+            socket.emit(channel, message);
         };                    
     }    
 }

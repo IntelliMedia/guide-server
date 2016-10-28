@@ -2,6 +2,7 @@ const sessionRepository = require('./sessionRepository');
 const students = require('./students');
 const ecdRules = require('../models/EcdRules');
 const await = require('asyncawait/await');
+const guideProtocol = require('../shared/guide-protocol.js');
 
 exports.initialize = () => {
     return Promise.resolve(true);
@@ -19,26 +20,19 @@ exports.processEvent = (event, session) => {
     return students.createOrFind(session.studentId).then((student) => {
         console.log('Tutor processing student: ' + student.id);
         session.events.unshift(event);
-        var action = createTutorAction(student, session, event);
-        if (action) {
-            session.actions.unshift(action.tutorAction);
-            session.send('tutorAction', action);
+        
+        var tutorDialog = createTutorAction(student, session, event);
+        if (tutorDialog) {
+            session.actions.unshift(tutorDialog);
+            session.emit(GuideProtocol.TutorDialog.Channel, tutorDialog.toJson());
         }           
-    });   
+    });
 }
 
 function createTutorAction(student, session, event) {
-
-    var action = {
-        "tutorAction": {
-            "type": "dialog",
-            "time": Date.now(), 
-            "message": {
-                "args": {}
-            }              
-        }
-    } 
         
+    var dialogMessage = null;
+
     if (isMatch(event, 'SYSTEM', 'STARTED', 'SESSION')) { 
 
         student.lastSignIn = new Date(event.time);
@@ -46,17 +40,20 @@ function createTutorAction(student, session, event) {
                   
         switch(Math.floor(Math.random() * 3)) {
             case 0:
-                action.tutorAction.message.id = 'ITS.HELLO.1';
-                action.tutorAction.message.text = 'Hello {{username}}! I\'m ready to help you learn about genetics.';
-                action.tutorAction.message.args.username = event.username;
+                dialogMessage = new GuideProtocol.Text(
+                    'ITS.HELLO.1',
+                    'Hello {{username}}! I\'m ready to help you learn about genetics.')
+                dialogMessage.args.username = event.username;
             break;
             case 1:                
-                action.tutorAction.message.id = 'ITS.HELLO.2';
-                action.tutorAction.message.text = 'Hi there!';                
+                dialogMessage = new GuideProtocol.Text(            
+                    'ITS.HELLO.2',
+                    'Hi there!');                
             break;
             case 2:
-                action.tutorAction.message.id = 'ITS.HELLO.3';
-                action.tutorAction.message.text = 'Let\'s get started!';
+                dialogMessage = new GuideProtocol.Text(
+                    'ITS.HELLO.3',
+                    'Let\'s get started!');
             break;          
             default:
                 action = null;
@@ -68,20 +65,23 @@ function createTutorAction(student, session, event) {
     } else if (isMatch(event, 'USER', 'NAVIGATED', 'CHALLENGE')) {             
         switch(Math.floor(Math.random() * 3)) {
             case 0:
-                action.tutorAction.message.id = 'ITS.CHALLENGE.INTRO.1';
-                action.tutorAction.message.text = 'I can help you with Case {{case}} Challenge {{challenge}}.';
-                action.tutorAction.message.args.case = event.context.case;
-                action.tutorAction.message.args.challenge = event.context.challenge;                
+                dialogMessage = new GuideProtocol.Text(            
+                    'ITS.CHALLENGE.INTRO.1',
+                    'I can help you with Case {{case}} Challenge {{challenge}}.');
+                dialogMessage.args.case = event.context.case;
+                dialogMessage.args.challenge = event.context.challenge;              
             break;
             case 1:
-                action.tutorAction.message.id = 'ITS.CHALLENGE.INTRO.2';
-                action.tutorAction.message.text = 'Ok! Let\'s get to work on Case {{case}} Challenge {{challenge}}.';
-                action.tutorAction.message.args.case = event.context.case;
-                action.tutorAction.message.args.challenge = event.context.challenge;                  
+                dialogMessage = new GuideProtocol.Text(            
+                    'ITS.CHALLENGE.INTRO.2',
+                    'Ok! Let\'s get to work on Case {{case}} Challenge {{challenge}}.');
+                dialogMessage.args.case = event.context.case;
+                dialogMessage.args.challenge = event.context.challenge;                   
             break;
             case 2:
-                action.tutorAction.message.id = 'ITS.CHALLENGE.INTRO.3';
-                action.tutorAction.message.text = 'I\'m sure you\'re up to the \'challenge\' :-). See what I did there?';                
+                dialogMessage = new GuideProtocol.Text(            
+                    'ITS.CHALLENGE.INTRO.3',
+                    'I\'m sure you\'re up to the \'challenge\' :-). See what I did there?');                
             break;          
             default:
             action = null;
@@ -89,29 +89,30 @@ function createTutorAction(student, session, event) {
     } else if (isMatch(event, 'USER', 'CHANGED', 'ALLELE')) {       
         switch(Math.floor(Math.random() * 6)) {
             case 0:
-                action.tutorAction.message.id = 'ITS.ALLELE.FEEDBACK.1';
-                action.tutorAction.message.text = 'Hmmm... something doesn\'t look quite right about that allele selection.';
+                dialogMessage = new GuideProtocol.Text(            
+                    'ITS.ALLELE.FEEDBACK.1',
+                    'Hmmm... something doesn\'t look quite right about that allele selection.');
             break;
             case 1:
-                action.tutorAction.message.id = 'ITS.ALLELE.FEEDBACK.2';
-                action.tutorAction.message.text = 'That allele selection looks correct to me.';
+                dialogMessage = new GuideProtocol.Text(            
+                    'ITS.ALLELE.FEEDBACK.2',
+                    'That allele selection looks correct to me.');
             break;
             case 2:
-                action.tutorAction.message.id = 'ITS.ALLELE.FEEDBACK.3';
-                action.tutorAction.message.text = 'You are on the right track. Keep going!';
+                dialogMessage = new GuideProtocol.Text(            
+                    'ITS.ALLELE.FEEDBACK.3',
+                    'You are on the right track. Keep going!');
             break;
             case 2:
-                action.tutorAction.message.id = 'ITS.ALLELE.FEEDBACK.4';
-                action.tutorAction.message.text = 'Perhaps you should review the info on recessive genes?';
+                dialogMessage = new GuideProtocol.Text(            
+                    'ITS.ALLELE.FEEDBACK.4',
+                    'Perhaps you should review the info on recessive genes?');
             break;            
             default:
             action = null;
         }       
-    } else if (isMatch(event, 'USER', 'ADVANCED', 'TRIAL')) {    
-        action.tutorAction.type = 'popup';
-        action.tutorAction.message.id = 'ITS.TRIAL.FEEDBACK.1';
-        action.tutorAction.message.text = '{{username}} advanced trial';
-        action.tutorAction.message.args.username = event.username;
+    } else if (isMatch(event, 'USER', 'ADVANCED', 'TRIAL')) {
+        // TODO    
     } else if (isMatch(event, 'USER', 'SUBMITTED', 'ORGANISM')) {    
 
         ecdRules.updateStudentModel(
@@ -126,32 +127,38 @@ function createTutorAction(student, session, event) {
         switch(Math.floor(Math.random() * 3)) {
             case 0:
                 if (event.context.correct == true) {        
-                    action.tutorAction.message.id = 'ITS.SUBMITTED.CORRECT.DRAKE.1';
-                    action.tutorAction.message.text = 'Good work! I knew you could do it.';
+                    dialogMessage = new GuideProtocol.Text(                    
+                        'ITS.SUBMITTED.CORRECT.DRAKE.1',
+                        'Good work! I knew you could do it.');
                 }
                 else {
-                    action.tutorAction.message.id = 'ITS.SUBMITTED.INCORRECT.DRAKE.1';
-                    action.tutorAction.message.text = 'Not quite, try again.';
+                    dialogMessage = new GuideProtocol.Text(                    
+                        'ITS.SUBMITTED.INCORRECT.DRAKE.1',
+                        'Not quite, try again.');
                 }
             break;
             case 1:
-                if (event.context.correct == true) {                
-                    action.tutorAction.message.id = 'ITS.SUBMITTED.CORRECT.DRAKE.2';
-                    action.tutorAction.message.text = 'Well done!';
+                if (event.context.correct == true) {      
+                    dialogMessage = new GuideProtocol.Text(          
+                        'ITS.SUBMITTED.CORRECT.DRAKE.2',
+                        'Well done!');
                 }
                 else {
-                    action.tutorAction.message.id = 'ITS.SUBMITTED.INCORRECT.DRAKE.2';
-                    action.tutorAction.message.text = 'Keep working at it!';
+                    dialogMessage = new GuideProtocol.Text(
+                        'ITS.SUBMITTED.INCORRECT.DRAKE.2',
+                        'Keep working at it!');
                 }
             break;
             case 2:
                 if (event.context.correct == true) {
-                    action.tutorAction.message.id = 'ITS.SUBMITTED.CORRECT.DRAKE.3';
-                    action.tutorAction.message.text = 'Huzzah!';
+                    dialogMessage = new GuideProtocol.Text(                    
+                        'ITS.SUBMITTED.CORRECT.DRAKE.3',
+                        'Huzzah!');
                 }
                 else {
-                    action.tutorAction.message.id = 'ITS.SUBMITTED.INCORRECT.DRAKE.3';
-                    action.tutorAction.message.text = 'That\'s not quite right.';
+                    dialogMessage = new GuideProtocol.Text(                    
+                        'ITS.SUBMITTED.INCORRECT.DRAKE.3',
+                        'That\'s not quite right.');
                 }
             break;          
             default:
@@ -169,7 +176,12 @@ function createTutorAction(student, session, event) {
         }
     });         
   
-  return action;
+  if (dialogMessage) {
+      return new GuideProtocol.TutorDialog(dialogMessage);
+  } else {
+      // Do nothing
+      return null;
+  }
 }
 
 function isMatch(event, actor, action, target) {

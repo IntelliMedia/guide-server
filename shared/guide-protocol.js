@@ -17,20 +17,22 @@ if (typeof exports === 'undefined') {
      * Message - string object with named substitution variables. 
      * NOTE: Requires mustache.js (https://github.com/janl/mustache.js/)
      */
-    GuideProtocol.Message = function(id, text, args) {
+    GuideProtocol.Text = function(id, text, args) {
         this.id = id;
         this.text = text;
         this.args = (args ? args : {});        
     }
 
-    GuideProtocol.Message.prototype.asString = function() {
+    GuideProtocol.Text.prototype.asString = function() {
         return this.text ? Mustache.render(this.text, this.args) : "";
     }      
 
     /**
-     * Event message
+     * Event
      */
     GuideProtocol.Event = function(username, session, sequence, actor, action, target, context, time) {
+        const Channel = 'Event';
+
         this.username = username;
         this.session = session;
         this.sequence = sequence;
@@ -65,39 +67,67 @@ if (typeof exports === 'undefined') {
     }
 
     /**
-     * TutorAction message
+     * TutorDialog
      */
-    GuideProtocol.TutorAction = function(type, message, time) {
+    GuideProtocol.TutorDialog = function(message, time) {
+        const Channel = 'TutorDialog';
 
-        // Tutor Action Types
-        const Dialog = "Dialog";
-        const Popup = "Popup";
-
-        this.type = type;
-        if (message instanceof GuideProtocol.Message) {
+        if (message instanceof GuideProtocol.Text) {
             this.message = message;
         } else {
-            this.message = new GuideProtocol.Message(null, message);
+            this.message = new GuideProtocol.Text(null, message);
         }
         this.time = (time == null ? Date.now() : time);        
     }
 
-    GuideProtocol.TutorAction.prototype.toJson = function() {
+    GuideProtocol.TutorDialog.prototype.toJson = function() {
         return JSON.stringify(this);
     }    
 
-    GuideProtocol.TutorAction.fromJson = function(json) {
+    GuideProtocol.TutorDialog.fromJson = function(json) {
         var obj = JSON.parse(json);
-        return new GuideProtocol.Event(
-            obj.type, 
+        return new GuideProtocol.TutorDialog(
             obj.message, 
             obj.time);
     }
 
-    GuideProtocol.TutorAction.fromJsonAsync = function(json) {
+    GuideProtocol.TutorDialog.fromJsonAsync = function(json) {
         return new Promise((resolve, reject) => {
-            resolve(GuideProtocol.TutorAction.fromJson(json));
+            resolve(GuideProtocol.TutorDialog.fromJson(json));
         });
+    } 
+
+    /**
+     * Alert - used for system-level information, warning, and error messages
+     */
+    GuideProtocol.Alert = function(type, message, time) {
+        const Channel = 'Alert';
+
+        const Error = 'Error';
+        const Warning = 'Warning';
+        const Info = 'Info';
+
+        this.type = type;
+        this.message = message;
+        this.time = (time == null ? Date.now() : time);        
+    }
+
+    GuideProtocol.Alert.prototype.toJson = function() {
+        return JSON.stringify(this);
     }    
+
+    GuideProtocol.Alert.fromJson = function(json) {
+        var obj = JSON.parse(json);
+        return new GuideProtocol.Alert(
+            obj.type,
+            obj.message, 
+            obj.time);
+    }
+
+    GuideProtocol.Alert.fromJsonAsync = function(json) {
+        return new Promise((resolve, reject) => {
+            resolve(GuideProtocol.Alert.fromJson(json));
+        });
+    }        
 
 }).call(this);
