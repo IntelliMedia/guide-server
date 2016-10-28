@@ -70,12 +70,12 @@ if (typeof exports === 'undefined') {
      * TutorDialog - used by the ITS to send a message to the student
      */
     GuideProtocol.TutorDialog = function(message, time) {
-        
+
         if (message instanceof GuideProtocol.Text) {
            this.message = message;
         } else if (message instanceof String) {
             this.message = new GuideProtocol.Text(null, message);  
-        } else if (message.hasProperty('id') && message.hasProperty('text') && message.hasProperty('args')) {
+        } else if (message.hasOwnProperty('id') && message.hasOwnProperty('text') && message.hasOwnProperty('args')) {
             this.message = new GuideProtocol.Text(message.id, message.text, message.args);
         }
 
