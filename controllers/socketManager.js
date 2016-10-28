@@ -32,7 +32,7 @@ function  initializeV2(server) {
             handleDisconnect(socket);
         });       
  
-        socket.on('event', function(data) {      
+        socket.on(GuideProtocol.Event.Channel, function(data) {      
             handleEvent(socket, data);      
         });
     });      

@@ -28,11 +28,9 @@ if (typeof exports === 'undefined') {
     }      
 
     /**
-     * Event
+     * Event - information sent by the client (Geniverse) to the GUIDE ITS
      */
     GuideProtocol.Event = function(username, session, sequence, actor, action, target, context, time) {
-        const Channel = 'Event';
-
         this.username = username;
         this.session = session;
         this.sequence = sequence;
@@ -42,6 +40,8 @@ if (typeof exports === 'undefined') {
         this.context = context;
         this.time = (time == null ? Date.now() : time);        
     }
+
+    GuideProtocol.Event.Channel = 'Event';    
 
     GuideProtocol.Event.prototype.toJson = function() {
         return JSON.stringify(this);
@@ -67,11 +67,9 @@ if (typeof exports === 'undefined') {
     }
 
     /**
-     * TutorDialog
+     * TutorDialog - used by the ITS to send a message to the student
      */
     GuideProtocol.TutorDialog = function(message, time) {
-        const Channel = 'TutorDialog';
-
         if (message instanceof GuideProtocol.Text) {
             this.message = message;
         } else {
@@ -79,6 +77,8 @@ if (typeof exports === 'undefined') {
         }
         this.time = (time == null ? Date.now() : time);        
     }
+
+    GuideProtocol.TutorDialog.Channel = 'TutorDialog';     
 
     GuideProtocol.TutorDialog.prototype.toJson = function() {
         return JSON.stringify(this);
@@ -101,16 +101,16 @@ if (typeof exports === 'undefined') {
      * Alert - used for system-level information, warning, and error messages
      */
     GuideProtocol.Alert = function(type, message, time) {
-        const Channel = 'Alert';
-
-        const Error = 'Error';
-        const Warning = 'Warning';
-        const Info = 'Info';
-
         this.type = type;
         this.message = message;
         this.time = (time == null ? Date.now() : time);        
-    }
+    } 
+
+    GuideProtocol.Alert.Channel = 'Alert';
+
+    GuideProtocol.Alert.Error = 'Error';
+    GuideProtocol.Alert.Warning = 'Warning';
+    GuideProtocol.Alert.Info = 'Info';    
 
     GuideProtocol.Alert.prototype.toJson = function() {
         return JSON.stringify(this);
