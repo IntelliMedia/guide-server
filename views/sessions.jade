@@ -19,7 +19,10 @@ block content
               a(href='/session/#{session.id}') #{session.id}          
             td #{session.studentId}
             td #{new Date(session.startTime)}
+          if session.events  
             td #{session.events.length}
+          else
+            td No events
 
   div
      h3 Inactive  
@@ -37,4 +40,7 @@ block content
               a(href='/session/#{session.id}') #{session.id}          
             td #{session.studentId}
             td #{new Date(session.startTime)}
-            td #{session.events.length}
+            if session.events  
+              td #{session.events.length}
+            else
+              td No events
