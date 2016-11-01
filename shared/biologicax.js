@@ -58,9 +58,9 @@ if (typeof exports === 'undefined') {
         return randomAllele;
     }
 
-    BiologicaX.replaceAllele = function(gene, alleles, newAllele) {
+    BiologicaX.replaceAllele = function(species, gene, alleles, newAllele) {
         var side = BiologicaX.getSide(newAllele);
-        return alleles.replace(BiologicaX.findAllele(alleles, side, gene), newAllele);
+        return alleles.replace(BiologicaX.findAllele(species, alleles, side, gene), newAllele);
     }
 
     BiologicaX.getSide = function(allele) {
