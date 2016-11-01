@@ -1,3 +1,4 @@
+const consolex = require('../utilities/consolex');
 const async = require('async');
 const crypto = require('crypto');
 const nodemailer = require('nodemailer');

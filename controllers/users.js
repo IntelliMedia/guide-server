@@ -1,3 +1,4 @@
+const consolex = require('../utilities/consolex');
 const User = require('../models/User');
 const authz = require('./authorization');
 

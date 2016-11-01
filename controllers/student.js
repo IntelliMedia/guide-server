@@ -1,3 +1,4 @@
+const consolex = require('../utilities/consolex');
 const Student = require('../models/Student');
 
 /**

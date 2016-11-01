@@ -1,3 +1,4 @@
+const consolex = require('../utilities/consolex');
 const sessionRepository = require('./sessionRepository');
 
 /**

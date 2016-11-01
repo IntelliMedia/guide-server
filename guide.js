@@ -1,4 +1,5 @@
 "use strict";
+const consolex = require('./utilities/consolex');
 
 /**
  * Module dependencies.

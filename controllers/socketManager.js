@@ -1,3 +1,4 @@
+const consolex = require('../utilities/consolex');
 const http = require('http');
 const socketio = require('socket.io');
 const WebSocketServer = require('websocket').server;
