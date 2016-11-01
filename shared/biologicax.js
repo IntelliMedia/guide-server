@@ -31,8 +31,9 @@ if (typeof exports === 'undefined') {
         for (var i = 0; i < allelesToRandomizeLength; i++) {
             var originalAllele = allelesToRandomize[i];
             var randomAllele = BiologicaX.getRandomAllele(
-                BiologicaX.getGene(originalAllele),
-                BiologicaX.getSide(originalAllele),
+                species,
+                BiologicaX.getGene(species, originalAllele),
+                BiologicaX.getSide(species, originalAllele),
                 [originalAllele]);
             alleles = alleles.replace(originalAllele, randomAllele);
             ++totalRandomizedAlleles;
