@@ -59,6 +59,7 @@ function handleDisconnect(socket) {
 }
 
 function handleEvent(socket, data) {
+
     var receivedEvent = null;
     GuideProtocol.Event.fromJsonAsync(data).then((event) => {
         receivedEvent = event;
@@ -68,7 +69,7 @@ function handleEvent(socket, data) {
         return tutor.processEvent(receivedEvent, session);
     })        
     .catch((err) => {
-        console.error('Failed to process event: ' + err);
+        consolex.exception(err);
 
         const newAlert = Alert();
         newAlert.type = 'error';
@@ -112,6 +113,7 @@ function findSession(socket, studentId, sessionId) {
                 resolve(session);
             })
             .catch((err) => {
+                consolex.exception(err);
                 sessionRepository.create(sessionId).then((session) => {
                     session.studentId = studentId;
                     socketMap[socket] = session;
@@ -119,6 +121,7 @@ function findSession(socket, studentId, sessionId) {
                     resolve(session);
                 })
                 .catch((err) => {
+                    consolex.exception(err);
                     reject(err);
                 })
             });

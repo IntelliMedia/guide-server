@@ -25,6 +25,7 @@ exports.index = (req, res) => {
       })
       .catch((err) =>
       {
+        consolex.exception(err);
         if (err) throw err;
       }); 
   });    

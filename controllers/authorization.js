@@ -44,6 +44,7 @@ exports.getIsAllowed = (user, cb) => {
   })
   .catch((err) =>
   {
+    consolex.exception(err);
     cb(null, err);
   })
 };

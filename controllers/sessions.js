@@ -17,6 +17,7 @@ exports.index = (req, res) => {
       inactiveSessions: inactiveSessions
     });
   }).catch((err) => {
+    consolex.exception(err);
     req.flash('errors', { msg: err });
   });
 };

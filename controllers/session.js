@@ -16,7 +16,8 @@ exports.index = (req, res) => {
       session: session
     });
   })
-  .catch((erro) => {
+  .catch((err) => {
+    consolex.exception(erro);
     req.flash('errors', { msg: 'Session with ID is not active: ' + sessionId});
     return res.redirect('/sessions');
   });
@@ -37,6 +38,7 @@ exports.event = (req, res) => {
     });
   })
   .catch((err) => {
+      consolex.exception(err);
       req.flash('errors', { msg: 'Session with ID is not active: ' + sessionId});
       return res.redirect('/sessions');
   });
@@ -57,6 +59,7 @@ exports.action = (req, res) => {
     });
   })
   .catch((err) => {
+      consolex.exception(err);
       req.flash('errors', { msg: 'Session with ID is not active: ' + sessionId});
       return res.redirect('/sessions');
   });  

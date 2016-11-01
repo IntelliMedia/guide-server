@@ -122,7 +122,7 @@ tutor.initialize().then(() => {
   console.info('Tutor initialized');
 })
 .catch((err) => {
-  console.error('Tutor initialization failed: ' + err);
+  consolex.exception(err);
 });
 
 /**

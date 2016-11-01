@@ -138,6 +138,7 @@ exports.createUser = (user, cb) => {
     cb(user);
   })
   .catch((err) => {
+    consolex.exception(err);
     cb(null, err);
   });
 };
@@ -270,6 +271,7 @@ exports.postUpdateRoles = (req, res, next) => {
     res.redirect('/account/' + userInfo.url);
   })
   .catch((err) => {
+    consolex.exception(err);
     next(err);
   });
 };
@@ -335,6 +337,7 @@ exports.postDeleteAccount = (req, res, next) => {
   })
   .catch((err) =>
   {
+    consolex.exception(err);
     next(err);
   });
 };

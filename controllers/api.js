@@ -19,6 +19,7 @@ const paypal = require('paypal-rest-sdk');
 const lob = require('lob')(process.env.LOB_KEY);
 const ig = require('instagram-node').instagram();
 const Y = require('yui/yql');
+const consolex = require('../utilities/consolex');
 const foursquare = require('node-foursquare')({
   secrets: {
     clientId: process.env.FOURSQUARE_ID,
@@ -89,7 +90,8 @@ exports.getStudent = (req, res) => {
       res.end(JSON.stringify(student));
     }
   })
-  .catch((erro) => {
+  .catch((err) => {
+    consolex.exception(err);
     req.flash('errors', { msg: 'Student with ID is not found: ' + studentId});
     return res.redirect('/');
   });

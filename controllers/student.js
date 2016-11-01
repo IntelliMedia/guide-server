@@ -18,7 +18,8 @@ exports.index = (req, res) => {
       student: student
     });
   })
-  .catch((erro) => {
+  .catch((err) => {
+    consolex.exception(err);
     req.flash('errors', { msg: 'Student with ID is not found: ' + studentId});
     return res.redirect('/students');
   });
