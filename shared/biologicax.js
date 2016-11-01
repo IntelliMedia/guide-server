@@ -13,14 +13,14 @@ if (typeof exports === 'undefined') {
     BiologicaX = {};
     exports.BiologicaX = BiologicaX;
 
-    BiologicaX.randomizeAlleles = function(genes, alleles) {
+    BiologicaX.randomizeAlleles = function(species, genes, alleles) {
 
         var allelesToRandomize = [];
         var genesLength = genes.length;
         for (var i = 0; i < genesLength; i++) {
             var gene = genes[i];
-            allelesToRandomize.push(BiologicaX.findAllele(alleles, 'a', gene));
-            allelesToRandomize.push(BiologicaX.findAllele(alleles, 'b', gene));
+            allelesToRandomize.push(BiologicaX.findAllele(species, alleles, 'a', gene));
+            allelesToRandomize.push(BiologicaX.findAllele(species, alleles, 'b', gene));
         }
         var allelesToRandomize = shuffle(allelesToRandomize);
 
@@ -44,12 +44,12 @@ if (typeof exports === 'undefined') {
         return alleles;
     }
 
-    BiologicaX.getRandomAllele = function(gene, side, excluding) {
+    BiologicaX.getRandomAllele = function(species, gene, side, excluding) {
         var randomAllele = null;
-        var allelesLength = targetSpecies.geneList[gene].alleles.length;
+        var allelesLength = species.geneList[gene].alleles.length;
         var i = ExtMath.randomInt(allelesLength);
         while (randomAllele == null || excluding.includes(randomAllele)) {
-            randomAllele = side + ':' + targetSpecies.geneList[gene].alleles[i];
+            randomAllele = side + ':' + species.geneList[gene].alleles[i];
             if (++i >= allelesLength) {
                 i = 0;
             }
@@ -66,12 +66,12 @@ if (typeof exports === 'undefined') {
         return allele.match(/[a-b]/);
     }
 
-    BiologicaX.getGene = function(allele) {
+    BiologicaX.getGene = function(species, allele) {
         var geneName = null;
         var alleleWithoutSide = allele.replace(/.+:/, "");
 
-        Object.keys(targetSpecies.geneList).forEach(function (key, index) {
-            if (targetSpecies.geneList[key].alleles.includes(alleleWithoutSide)) {
+        Object.keys(species.geneList).forEach(function (key, index) {
+            if (species.geneList[key].alleles.includes(alleleWithoutSide)) {
                 geneName = key;
                 return false;
             }
@@ -79,15 +79,15 @@ if (typeof exports === 'undefined') {
         return geneName;
     }
 
-    BiologicaX.findAllele = function(speciesName, alleles, side, gene) {
-        var allOptions = '(?:' + BioLogica.Species[speciesName].geneList[gene].alleles.join('|') + ')';
+    BiologicaX.findAllele = function(species, alleles, side, gene) {
+        var allOptions = '(?:' + species.geneList[gene].alleles.join('|') + ')';
         var regex = new RegExp(side + ':' + allOptions, '');
         return alleles.match(regex).toString();
     }
 
-    BiologicaX.getAlleleAsInheritancePattern = function(speciesName, alleles, gene) {
-        var sideA = BiologicaX.findAllele(speciesName, alleles, 'a', gene).replace('a:', '');
-        var sideB = BiologicaX.findAllele(speciesName, alleles, 'b', gene).replace('b:', '');
+    BiologicaX.getAlleleAsInheritancePattern = function(species, alleles, gene) {
+        var sideA = BiologicaX.findAllele(species, alleles, 'a', gene).replace('a:', '');
+        var sideB = BiologicaX.findAllele(species, alleles, 'b', gene).replace('b:', '');
 
         // NOTE: This function assusmes that capital letter in the allele indicates
         // present while a lowercase letter indicates the gene is not present.

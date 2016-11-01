@@ -4,17 +4,18 @@ const moveEvaluator = require('../controllers/moveEvaluator.js');
 const concept = require('../models/Concept');
 
 var EcdRules = module.exports = {
-  updateStudentModel: function(student, caseId, challenegeId, editableGenes, species, initialAlleles, currentAlleles, targetAlleles, targetSex) {
+  updateStudentModel: function(student, caseId, challenegeId, editableGenes, speciesName, initialAlleles, currentAlleles, targetAlleles, targetSex) {
 
-    var targetOrganism = new BioLogica.Organism(biologica.BioLogica.Species.Drake, targetAlleles, targetSex);
+    var targetSpecies = BioLogica.Species[speciesName];
+    var targetOrganism = new BioLogica.Organism(targetSpecies, targetAlleles, targetSex);
     console.log('targetOrganism alleles: ' + targetOrganism.getAlleleString());
     console.log('targetOrganism : ' + targetOrganism.getAlleleString());
 
     var genesLength = editableGenes.length;
     for (var i = 0; i < genesLength; ++i) {
       var gene = editableGenes[i];
-      var initial = BiologicaX.getAlleleAsInheritancePattern(species, initialAlleles, gene);
-      var selected = BiologicaX.getAlleleAsInheritancePattern(species, currentAlleles, gene);
+      var initial = BiologicaX.getAlleleAsInheritancePattern(targetSpecies, initialAlleles, gene);
+      var selected = BiologicaX.getAlleleAsInheritancePattern(targetSpecies, currentAlleles, gene);
 
       var concepts = concept.all();
       var conceptIds = Object.keys(concepts);
