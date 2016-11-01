@@ -73,10 +73,10 @@ function handleEvent(socket, data) {
         const newAlert = Alert();
         newAlert.type = 'error';
         newAlert.timestamp = Date.now();
-        newAlert.message = err;
+        newAlert.message = err.message;
         newAlert.save();
         
-        var alert = new GuideProtocol.Alert(GuideProtocol.Alert.Error, err);
+        var alert = new GuideProtocol.Alert(GuideProtocol.Alert.Error, err.message);
         socket.emit(GuideProtocol.Alert.Channel, alert.toJson());
     });
 }

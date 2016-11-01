@@ -117,11 +117,24 @@ function createTutorAction(student, session, event) {
 
         ecdRules.updateStudentModel(
             student, 
-            event.case, 
-            event.challenge,
-            event.editableGenes, 
-            event.initialAlleles, 
-            event.selectedAlleles);
+            event.context.case, 
+            event.context.challenge,
+            event.context.editableGenes, 
+            event.context.species,            
+            event.context.initialAlleles, 
+            event.context.selectedAlleles,
+            event.context.targetAlleles,
+            event.context.targetSex);
+
+        if (!event.context.correct) {
+            var concepts = student.conceptStates.toObject();
+            var keysSorted = Object.keys(concepts).sort(function(a,b){return concepts[a].value-concepts[b].value});
+            console.log('sorted concepts: ' + keysSorted);
+
+            dialogMessage = new GuideProtocol.Text(            
+                'ITS.CONCEPT.FEEDBACK',
+                "Heres a hint for concept " + concepts[keysSorted[0]].id);            
+        }
 
     } else if (isMatch(event, 'USER', 'SUBMITTED', 'DRAKE')) {        
         switch(Math.floor(Math.random() * 3)) {

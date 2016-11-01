@@ -1,28 +1,30 @@
 const biologica = require('../shared/biologica.js');
 const biologicaX = require('../shared/biologicax.js');
+const moveEvaluator = require('../controllers/moveEvaluator.js');
+const concept = require('../models/Concept');
 
 var EcdRules = module.exports = {
-  rules: {
-    'PC 3-B.1' : {
-      'description': 'It only takes one dominant allele to result in dominant trait (wW or WW --> Dominant Phenotype)'
-    },
-    'PC 3-B.1-a' : {
-      'description': 'A dominant allele will mask the presence of the recessive allele in the external phenotype, resulting in dominant phenotype (wW --> Dominant Phenotype)'
-    },
-    'PC 3-B.1-b' : {
-      'description': 'If both alleles are dominant, this will result in a dominant phenotype (WW --> Dominant Phenotype)'
-    },
-    'PC 3-B.3' : {
-      'description': 'Recessive trait can only occur with two recessive alleles (ww --> Recessive Phenotype)'
-    }            
-  },
-  updateStudentModel: function(student, caseId, challenegeId, editableGenes, initialAlleles, currentAlleles) {
+  updateStudentModel: function(student, caseId, challenegeId, editableGenes, species, initialAlleles, currentAlleles, targetAlleles, targetSex) {
 
-    var targetOrganism = new BioLogica.Organism(biologica.BioLogica.Species.Drake, "", 0);
-    console.log('targetOrganism: ' + targetOrganism.getAlleleString());
+    var targetOrganism = new BioLogica.Organism(biologica.BioLogica.Species.Drake, targetAlleles, targetSex);
+    console.log('targetOrganism alleles: ' + targetOrganism.getAlleleString());
+    console.log('targetOrganism : ' + targetOrganism.getAlleleString());
 
-    var conceptState = student.conceptState('PC 3-B.1-b');
-    conceptState.value++;
+    var genesLength = editableGenes.length;
+    for (var i = 0; i < genesLength; ++i) {
+      var gene = editableGenes[i];
+      var initial = BiologicaX.getAlleleAsInheritancePattern(species, initialAlleles, gene);
+      var selected = BiologicaX.getAlleleAsInheritancePattern(species, currentAlleles, gene);
 
+      var concepts = concept.all();
+      var conceptIds = Object.keys(concepts);
+      conceptIds.forEach(function (conceptId) {
+        var targetInheritancePattern = BiologicaX.getInheritancePatternForGene(targetOrganism, gene);
+        var adjustment = moveEvaluator.getConceptAdjustment(targetInheritancePattern, initial, selected, conceptId);
+        console.log('Adjust concept "' + conceptId + '" by ' + adjustment);            
+        var conceptState = student.conceptState(conceptId);
+        conceptState.value += adjustment;        
+      });      
+    }
   }
 }

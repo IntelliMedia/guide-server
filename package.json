@@ -21,6 +21,7 @@
     "compression": "^1.6.2",
     "connect-mongo": "^1.1.0",
     "cors": "^2.7.1",
+    "csv-parse": "^1.1.7",
     "dotenv": "^2.0.0",
     "errorhandler": "^1.4.3",
     "express": "^4.13.4",
