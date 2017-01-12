@@ -24,6 +24,7 @@
     "csv-parse": "^1.1.7",
     "dotenv": "^2.0.0",
     "errorhandler": "^1.4.3",
+    "es6-promise": "^4.0.5",
     "express": "^4.13.4",
     "express-flash": "^0.0.2",
     "express-session": "^1.13.0",

@@ -1,4 +1,10 @@
 "use strict";
+
+/**
+ * Setup global promise lib
+ */
+require('es6-promise').polyfill();
+
 const consolex = require('./utilities/consolex');
 
 /**
@@ -16,6 +22,7 @@ const MongoStore = require('connect-mongo')(session);
 const flash = require('express-flash');
 const path = require('path');
 const mongoose = require('mongoose');
+mongoose.Promise = global.Promise;
 const passport = require('passport');
 const expressValidator = require('express-validator');
 const sass = require('node-sass-middleware');

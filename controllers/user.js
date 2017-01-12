@@ -138,6 +138,7 @@ exports.createUser = (user, cb) => {
   .then(() => {
     cb(user);
   })
+  .exec()
   .catch((err) => {
     consolex.exception(err);
     cb(null, err);
