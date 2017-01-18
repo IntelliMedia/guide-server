@@ -1,5 +1,5 @@
 const consolex = require('../utilities/consolex');
-const sessionRepository = require('./sessionRepository');
+const Session = require('../models/Session');
 const moment = require('moment');
 
 /**
@@ -8,9 +8,9 @@ const moment = require('moment');
  */
 exports.index = (req, res) => {
   var activeSessions = [];
-  sessionRepository.getAllActiveSessions().then((sessions) => {
+  Session.getAllActiveSessions().then((sessions) => {
     activeSessions = sessions;
-    return sessionRepository.getAllInactiveSessions();
+    return Session.getAllInactiveSessions();
   }).then((inactiveSessions) => {
     res.render('sessions', {
       title: 'Sessions',

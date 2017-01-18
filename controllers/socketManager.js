@@ -2,7 +2,7 @@ const consolex = require('../utilities/consolex');
 const http = require('http');
 const socketio = require('socket.io');
 const WebSocketServer = require('websocket').server;
-const sessionRepository = require('./sessionRepository');
+const Session = require('../models/Session');
 const tutor = require('./tutor');
 const Alert = require('../models/Alert');
 const guideProtocol = require('../shared/guide-protocol.js');
@@ -107,25 +107,18 @@ function findSession(socket, studentId, sessionId) {
             initializeSessionSocket(socketMap[socket], socket)
             return resolve(socketMap[socket]);
         }
+        
         if (sessionId) {
-            sessionRepository.findById(sessionId).then((session) => {
+
+            Session.createOrFind(sessionId).then((session) => {
                 socketMap[socket] = session;
                 initializeSessionSocket(session, socket);
-                resolve(session);
-            })
-            .catch((err) => {
+                resolve(session);         
+            }).catch((err) => {
                 consolex.exception(err);
-                sessionRepository.create(sessionId).then((session) => {
-                    session.studentId = studentId;
-                    socketMap[socket] = session;
-                    initializeSessionSocket(session, socket);
-                    resolve(session);
-                })
-                .catch((err) => {
-                    consolex.exception(err);
-                    reject(err);
-                })
-            });
+                reject(err);                
+            });            
+
         } else {
             reject('Unable to find session with id: ' + sessionId);
         }
