@@ -50,7 +50,14 @@ module.exports.createOrFind = (sessionId) => {
         session = new Session();
         session.id = sessionId;
         //session.startTime = Date.now;
+      }
+
+      // Initialize empty collections
+      if (session.events == null) {
         session.events = [];
+      }
+
+      if (session.actions == null) {
         session.actions = [];
       }
 
