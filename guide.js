@@ -61,7 +61,6 @@ const contactController = require('./controllers/contact');
 const socketManager = require('./controllers/socketManager');
 const authz = require('./controllers/authorization');
 
-const sessionRepository = require('./controllers/sessionRepository');
 const tutor = require('./controllers/tutor');
 
 /**
@@ -74,13 +73,6 @@ const passportConfig = require('./config/passport');
  */
 const app = express();
 app.locals.moment = require('moment');
-
-/**
- * Initialize Session In-Memory Repo
- */
-sessionRepository.initialize((err) => {
-  console.log('Session Repository Initialized');
-});
 
 /**
  * Connect to MongoDB.

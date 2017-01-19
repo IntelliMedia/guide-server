@@ -1,5 +1,5 @@
 const consolex = require('../utilities/consolex');
-const sessionRepository = require('./sessionRepository');
+const Session = require('../models/Session');
 
 /**
  * GET /
@@ -11,17 +11,20 @@ exports.index = (req, res) => {
     return res.redirect('/sessions');
   }
 
-  sessionRepository.findById(sessionId).then((session) => {
+  Session.findOne({ 'id': sessionId }, (err, session) => {
+    if (err) { return next(err); }
+
     res.render('session', {
       title: 'Session',
       session: session
     });
   })
+  .exec()
   .catch((err) => {
-    consolex.exception(erro);
-    req.flash('errors', { msg: 'Session with ID is not active: ' + sessionId});
+    consolex.exception(err);
+    req.flash('errors', { msg: 'Session with ID is not found: ' + studentId});
     return res.redirect('/sessions');
-  });
+  }); 
 };
 
 exports.event = (req, res) => {
@@ -31,18 +34,21 @@ exports.event = (req, res) => {
     return res.redirect('/sessions');
   }
 
-  sessionRepository.findById(sessionId).then((session) => {
+  Session.findOne({ 'id': sessionId }, (err, session) => {
+    if (err) { return next(err); }
+
     res.render('event', {
       title: 'Event',
       session: session,
       eventStr: JSON.stringify(session.events[eventIndex], undefined, 2)
     });
   })
+  .exec()
   .catch((err) => {
-      consolex.exception(err);
-      req.flash('errors', { msg: 'Session with ID is not active: ' + sessionId});
-      return res.redirect('/sessions');
-  });
+    consolex.exception(err);
+    req.flash('errors', { msg: 'Session with ID is not found: ' + studentId});
+    return res.redirect('/sessions');
+  });   
 };
 
 exports.action = (req, res) => {
@@ -52,16 +58,19 @@ exports.action = (req, res) => {
     return res.redirect('/sessions');
   }
 
-  sessionRepository.findById(sessionId).then((session) => {
+  Session.findOne({ 'id': sessionId }, (err, session) => {
+    if (err) { return next(err); }
+
     res.render('action', {
       title: 'Action',
       session: session,
       actionStr: JSON.stringify(session.actions[actionIndex], undefined, 2)
     });
   })
+  .exec()
   .catch((err) => {
-      consolex.exception(err);
-      req.flash('errors', { msg: 'Session with ID is not active: ' + sessionId});
-      return res.redirect('/sessions');
-  });  
+    consolex.exception(err);
+    req.flash('errors', { msg: 'Session with ID is not found: ' + studentId});
+    return res.redirect('/sessions');
+  });   
 };

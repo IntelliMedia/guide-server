@@ -1,4 +1,3 @@
-const sessionRepository = require('./sessionRepository');
 const students = require('./students');
 const ecdRules = require('../models/EcdRules');
 const await = require('asyncawait/await');
@@ -182,11 +181,18 @@ function createTutorAction(student, session, event) {
         action = null;
     }
 
-    student.save((err) => {
+    session.save((err) => {
         if (err) {
-            console.error('Unable to save student info for: ' + currentStudent.id);
+            console.error('Unable to save session info for: ' + currentStudent.id);
             throw err;
         }
+
+        student.save((err) => {
+            if (err) {
+                console.error('Unable to save student info for: ' + currentStudent.id);
+                throw err;
+            }
+        });         
     });         
   
   if (dialogMessage) {
