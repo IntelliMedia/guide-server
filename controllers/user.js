@@ -114,7 +114,7 @@ exports.postSignup = (req, res, next) => {
 exports.createUser = (user, cb) => {
 
   // Does the user already exist in database?
-  User.findOne({ email: user.email }).then((existingUser) => {
+  User.findOne({ email: user.email }).exec().then((existingUser) => {
     if (existingUser) {
       throw 'Account with that email address already exists.';
     }    
@@ -138,7 +138,6 @@ exports.createUser = (user, cb) => {
   .then(() => {
     cb(user);
   })
-  .exec()
   .catch((err) => {
     consolex.exception(err);
     cb(null, err);

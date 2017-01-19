@@ -3,7 +3,7 @@
 /**
  * Setup global promise lib
  */
-require('es6-promise').polyfill();
+require('bluebird');
 
 const consolex = require('./utilities/consolex');
 
