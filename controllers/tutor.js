@@ -1,5 +1,6 @@
 const students = require('./students');
 const ecdRules = require('../models/EcdRules');
+const Hint = require('../models/Hint');
 const await = require('asyncawait/await');
 const guideProtocol = require('../shared/guide-protocol.js');
 
@@ -114,7 +115,7 @@ function createTutorAction(student, session, event) {
         // TODO    
     } else if (isMatch(event, 'USER', 'SUBMITTED', 'ORGANISM')) {    
 
-        ecdRules.updateStudentModel(
+        var conceptIdToGenes = ecdRules.updateStudentModel(
             student, 
             event.context.case, 
             event.context.challenge,
@@ -125,14 +126,36 @@ function createTutorAction(student, session, event) {
             event.context.targetAlleles,
             event.context.targetSex);
 
-        if (!event.context.correct) {
+        if (event.context.correct) {
+            student.resetAllHintLevels();
+        } else {
             var concepts = student.conceptStates.toObject();
-            var keysSorted = Object.keys(concepts).sort(function(a,b){return concepts[a].value-concepts[b].value});
-            console.log('sorted concepts: ' + keysSorted);
+            if (concepts == null || concepts.length == 0) {
+                console.error("Student (" + student.id + ") doesn't have any concepts defined");
+            } else {
+                var keysSorted = Object.keys(concepts).sort(function(a,b){return concepts[a].value-concepts[b].value});
+                console.log('sorted concepts: ' + keysSorted);
 
-            dialogMessage = new GuideProtocol.Text(            
-                'ITS.CONCEPT.FEEDBACK',
-                "Heres a hint for concept " + concepts[keysSorted[0]].id);            
+                var lowestConceptId = concepts[keysSorted[0]].id;
+                var conceptHintLevel = concepts[keysSorted[0]].hintLevel;
+
+                var hint = Hint.getHint(lowestConceptId, conceptHintLevel);
+                if (hint != null) {
+                    student.conceptState(lowestConceptId).hintLevel = hint.level;
+
+                    var trait = "unknown";
+                    if (conceptIdToGenes.hasOwnProperty(lowestConceptId)) {
+                        trait = conceptIdToGenes[lowestConceptId].trait;
+                    }
+
+                    dialogMessage = new GuideProtocol.Text(            
+                        'ITS.CONCEPT.FEEDBACK',
+                        hint.message);   
+                    dialogMessage.args.trait = trait; 
+                } else {
+                    console.warn("No hint available for " + lowestConceptId + " level=" + conceptHintLevel);
+                }
+            }         
         }
 
     } else if (isMatch(event, 'USER', 'SUBMITTED', 'DRAKE')) {        

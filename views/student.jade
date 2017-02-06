@@ -20,3 +20,14 @@ block content
             updateChart();
             //setInterval(updateChart, 5000);
         });
+  div
+    table.table.table-striped
+        thead
+            tr
+            th Id          
+            th Description
+        tbody
+            for concept in concepts
+                tr
+                    td #{concept.Id}                                  
+                    td #{concept.Description}

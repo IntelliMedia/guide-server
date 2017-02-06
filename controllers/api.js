@@ -32,13 +32,12 @@ const Student = require('../models/Student');
 const concept = require('../models/Concept');
 
 function createConceptChart(student) {
-    var concepts = concept.all();
-
-    var conceptIds = Object.keys(concepts);
+    var concepts = concept.getAll();
+    var conceptIds = concepts.map(function(a) {return a.Id;});
     var conceptStateValues = [];
 
-    conceptIds.forEach(function (id) {
-      var state = student.conceptState(id);
+    concepts.forEach(function (concept) {
+      var state = student.conceptState(concept.Id);
       var value = (state != null ? state.value : 0);
              
       conceptStateValues.push(value);

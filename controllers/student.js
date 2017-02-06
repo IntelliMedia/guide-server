@@ -1,5 +1,6 @@
 const consolex = require('../utilities/consolex');
 const Student = require('../models/Student');
+const Concept = require('../models/Concept');
 
 /**
  * GET /
@@ -16,7 +17,8 @@ exports.index = (req, res) => {
 
     res.render('student', {
       title: 'Student',
-      student: student
+      student: student,
+      concepts: Concept.getAll()
     });
   })
   .exec()
