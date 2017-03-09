@@ -13,7 +13,10 @@
       ul.nav.navbar-nav
         if isAllowed('students','get')
           li(class=(title == 'Students') ? 'active' : undefined)
-            a(href='/students') Students          
+            a(href='/students') Students   
+        if isAllowed('groups','get')
+          li(class=(title == 'Groups') ? 'active' : undefined)
+            a(href='/groups') Groups
         if isAllowed('sessions','get')
           li(class=(title == 'Sessions') ? 'active' : undefined)
             a(href='/sessions') Sessions        

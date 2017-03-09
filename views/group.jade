@@ -1,0 +1,33 @@
+extends layout
+
+block content
+  h1 Group 
+  h3 #{group.id}
+
+  div#container(style="min-width: 500px; height: 500px; margin: 0 auto")
+    script.
+        $(function() {
+            var myChart = null;   
+            
+            function updateChart() {
+                $.getJSON("/api/group/#{group.id}?view=concept-chart", function(options) {
+                    if (myChart != null) {
+                        myChart.destroy();
+                    }            
+                    myChart = Highcharts.chart('container', options);
+                });
+            }
+            updateChart();
+            //setInterval(updateChart, 5000);
+        });
+  div
+    table.table.table-striped
+        thead
+            tr
+            th Id          
+            th Description
+        tbody
+            for concept in concepts
+                tr
+                    td #{concept.Id}                                  
+                    td #{concept.Description}

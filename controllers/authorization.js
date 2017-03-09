@@ -64,12 +64,14 @@ function initializeRoles() {
           allows:[
               {resources:['/users','users'], permissions:['get', 'post']},
               {resources:['/account/roles','roles'], permissions:['get', 'post']},
+              {resources:['/groups','/group','groups', 'group'], permissions:['get', 'post']},
               {resources:['/sessions','sessions','/session','session','/alerts', '/alerts/clear','alerts','/students','students','/student','student','/api','api'], permissions:['get', 'post']}
           ]
       },
       {
           roles:['researcher'],
           allows:[
+              {resources:['/groups','/group','groups', 'group'], permissions:['get']},
               {resources:['/sessions','sessions','/session','session','/alerts','alerts','/students','students','/student','student','/api','api'], permissions:['get']}
           ]
       }

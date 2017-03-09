@@ -53,6 +53,8 @@ const sessionsController = require('./controllers/sessions');
 const sessionController = require('./controllers/session');
 const studentsController = require('./controllers/students');
 const studentController = require('./controllers/student');
+const groupsController = require('./controllers/groups');
+const groupController = require('./controllers/group');
 const alertsController = require('./controllers/alerts');
 const usersController = require('./controllers/users');
 const userController = require('./controllers/user');
@@ -222,6 +224,9 @@ app.get('/session/:sessionId/action/:actionIndex', authz.Middleware(1), sessionC
 app.get('/students', authz.Middleware(1), studentsController.index);
 app.post('/students/modify', authz.Middleware(1), studentsController.modify);
 app.get('/student/:studentId', authz.Middleware(1), studentController.index);
+app.get('/groups', authz.Middleware(1), groupsController.index);
+app.post('/groups/modify', authz.Middleware(1), groupsController.modify);
+app.get('/group/:studentId', authz.Middleware(1), groupController.index);
 app.get('/alerts', authz.Middleware(), alertsController.index);
 app.post('/alerts/clear', authz.Middleware(1), alertsController.clear);
 app.get('/users', usersController.index);
