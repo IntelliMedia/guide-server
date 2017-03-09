@@ -4,7 +4,18 @@ block content
   h1 Sessions
 
   div
-     h3 Active  
+     h3 Active
+      if isAllowed('sessions', 'post')     
+        div.pull-right
+          form.form-horizontal(action='/sessions/modify', method='POST')
+            .form-group.floatLeft
+              input(type='hidden', name='_csrf', value=_csrf)
+              button.btn.btn-warning(type='submit' name='action' value='deactivateAll' style='margin-right: 5px;')
+                i.fa.fa-hourglass-end
+                | Deactivate all  
+              button.btn.btn-danger(type='submit' name='action' value='deleteAll')
+                i.fa.fa-trash
+                | Delete all                
      table.table.table-striped
       thead
         tr

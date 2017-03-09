@@ -71,3 +71,12 @@ exports.updateSessionInfo = (studentId, timestamp) => {
     });
   });
 };
+
+exports.modify = (req, res) => {
+  if (req.body.action == 'deleteAll') {
+    console.info("Delete all students.");
+    Student.remove({}, (err) => {
+      return res.redirect('/students');
+    });
+  }
+};

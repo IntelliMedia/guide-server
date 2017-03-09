@@ -53,8 +53,7 @@ function handleDisconnect(socket) {
     console.log('Disconnected from ' + address);
     findSessionBySocket(socket).then((session) => {
         if (session && session.active) {
-            session.active = false;
-            session.endTime = Date.now();
+            Session.deactivate(session);
         }
     })            
 }

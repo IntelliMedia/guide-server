@@ -4,12 +4,13 @@ block content
   h1 Alerts
 
   div.pull-right
-    form.form-horizontal(action='/alerts/clear', method='POST')
-      .form-group
-        input(type='hidden', name='_csrf', value=_csrf)
-        button.btn.btn-danger(type='submit')
-          i.fa.fa-trash
-          | Clear all
+    if isAllowed('alerts', 'post')      
+      form.form-horizontal(action='/alerts/clear', method='POST')
+        .form-group
+          input(type='hidden', name='_csrf', value=_csrf)
+          button.btn.btn-danger(type='submit')
+            i.fa.fa-trash
+            | Clear all
 
   div
      table.table.table-striped

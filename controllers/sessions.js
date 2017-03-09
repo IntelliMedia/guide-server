@@ -18,7 +18,28 @@ exports.index = (req, res) => {
       inactiveSessions: inactiveSessions
     });
   }).catch((err) => {
-    consolex.exception(err);
+    console.error(err);
     req.flash('errors', { msg: err });
   });
+};
+
+exports.modify = (req, res) => {
+  if (req.body.action == 'deleteAll') {
+    console.info("Delete all sessions.");
+    Session.remove({}, (err) => {
+      return res.redirect('/sessions');
+    });
+  }
+  else if (req.body.action == 'deactivateAll') {
+    console.info("Deactivate all sessions.");
+    Session.getAllActiveSessions().then((sessions) => {
+      for (let session of sessions) {
+        Session.deactivate(session);
+      }
+      return res.redirect('/sessions');
+    }).catch((err) => {
+      console.error(err);
+      req.flash('errors', { msg: err });
+    });
+  }
 };

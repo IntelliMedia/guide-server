@@ -2,7 +2,14 @@ extends layout
 
 block content
   h1 Students
-
+    if isAllowed('students', 'post')     
+      div.pull-right
+        form.form-horizontal(action='/students/modify', method='POST')
+          .form-group.floatLeft
+            input(type='hidden', name='_csrf', value=_csrf)
+            button.btn.btn-danger(type='submit' name='action' value='deleteAll')
+              i.fa.fa-trash
+              | Delete all  
   div
      table.table.table-striped
       thead

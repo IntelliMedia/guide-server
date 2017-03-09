@@ -70,4 +70,14 @@ module.exports.createOrFind = (sessionId) => {
       });
     });
   });
-};
+}
+
+module.exports.deactivate = (session) => {
+    session.active = false;
+    session.endTime = Date.now();
+    session.save((err) => { 
+        if (err) {
+            console.error('Unable to save session for: ' + session.id);
+        }
+    });
+  }

@@ -4,6 +4,7 @@ const nodeAcl = require('acl');
 /**
  * Access Control List
  * Initialized after database connection is established.
+ * See https://github.com/OptimalBits/node_acl
  */
 exports.acl = null;
 
@@ -61,15 +62,15 @@ function initializeRoles() {
       {
           roles:['administrator'],
           allows:[
-              {resources:['/users','users'], permissions:'*'},
-              {resources:['/account/roles','roles'], permissions:'*'},
-              {resources:['/sessions','sessions','/session','session','/alerts','alerts','/students','students','/student','student','/api','api'], permissions:'*'}
+              {resources:['/users','users'], permissions:['get', 'post']},
+              {resources:['/account/roles','roles'], permissions:['get', 'post']},
+              {resources:['/sessions','sessions','/session','session','/alerts', '/alerts/clear','alerts','/students','students','/student','student','/api','api'], permissions:['get', 'post']}
           ]
       },
       {
           roles:['researcher'],
           allows:[
-              {resources:['/sessions','sessions','/session','session','/alerts','alerts','/students','students','/student','student','/api','api'], permissions:'*'}
+              {resources:['/sessions','sessions','/session','session','/alerts','alerts','/students','students','/student','student','/api','api'], permissions:['get']}
           ]
       }
     ], (err) => {
