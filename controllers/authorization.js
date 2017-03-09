@@ -22,7 +22,7 @@ exports.getIsAllowed = (user, cb) => {
       return false;
     }, null);
 
-    return;
+    return null;
   }
 
   // Get all roles this user has
@@ -42,12 +42,16 @@ exports.getIsAllowed = (user, cb) => {
     }
 
     cb(isAllowedFunc, null);
+    return null;
   })
   .catch((err) =>
   {
     consolex.exception(err);
     cb(null, err);
-  })
+  });
+
+  // isAllowed function is returned via callback
+  return null;
 };
 
 function initializeRoles() {
