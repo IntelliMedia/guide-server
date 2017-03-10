@@ -91,9 +91,13 @@ function initializeRoles() {
  */
 exports.Middleware = (numPathComponents, userId, actions) => {
   return function(req, res, next) {
-    if (!userId) {
-      userId = req.user.id;
+    if (!req.hasOwnProperty("user")) {
+      res.status(403);
+      next('Permission denied: User not signed in.');
+      return;
     }
+
+    var userId = req.user.id;
 
     var handler;
     if (actions) {
