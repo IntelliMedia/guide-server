@@ -9,42 +9,18 @@ exports.index = (req, res) => {
   Group.find({}, (err, groups) => {
     res.render('groups', {
       title: 'Groups',
-      groups: groups.sort(compareId)
+      groups: groups.sort(compareName)
     });
   });
 };
 
-function compareId(a,b) {
-  if (a.id < b.id)
+function compareName(a,b) {
+  if (a.name < b.name)
     return -1;
-  if (a.id > b.id)
+  if (a.name > b.name)
     return 1;
   return 0;
 }
-
-exports.createOrFind = (groupId) => {
-  return new Promise((resolve, reject) => {
-    Group.findOne({ 'id': groupId }, (err, group) => {
-      if (err) {
-        reject(err);
-      }
-
-      if (!group) {
-        group = new Group();
-        group.id = groupId;
-        group.totalSessions = 0;
-      }
-
-      group.save((err) => {
-        if (err) {
-          reject(err);
-        } else {
-          resolve(group);
-        }
-      });
-    });
-  });
-};
 
 exports.updateSessionInfo = (groupId, timestamp) => {
   return new Promise((resolve, reject) => {
@@ -72,8 +48,28 @@ exports.updateSessionInfo = (groupId, timestamp) => {
   });
 };
 
+exports.create = (name) => {
+  return new Promise((resolve, reject) => {
+      group = Group.create(name);
+
+      group.save((err) => {
+        if (err) {
+          reject(err);
+        } else {
+          resolve(group);
+        }
+      });
+    });
+};
+
 exports.modify = (req, res) => {
-  if (req.body.action == 'deleteAll') {
+  if (req.body.action == 'addNew') {
+    console.info("Add new group.");
+    exports.create("New Group").then((group) => {
+      return res.redirect('/group/' + group.id);
+    });
+  }
+  else if (req.body.action == 'deleteAll') {
     console.info("Delete all groups.");
     Group.remove({}, (err) => {
       return res.redirect('/groups');

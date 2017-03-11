@@ -1,33 +1,54 @@
 extends layout
 
-block content
-  h1 Group 
-  h3 #{group.id}
+block extraHeader
+    link(rel='stylesheet', href='https://ajax.googleapis.com/ajax/libs/jqueryui/1.11.2/themes/smoothness/jquery-ui.css')
+    link(rel='stylesheet', href='/css/group-editor.css')
+    script(src='https://cdnjs.cloudflare.com/ajax/libs/jquery/2.1.3/jquery.min.js') 
+    script(src='https://ajax.googleapis.com/ajax/libs/jqueryui/1.11.2/jquery-ui.min.js') 
+    script(src='https://cdnjs.cloudflare.com/ajax/libs/underscore.js/1.6.0/underscore.js') 
+    script(src='/js/group-editor.js') 
 
-  div#container(style="min-width: 500px; height: 500px; margin: 0 auto")
-    script.
-        $(function() {
-            var myChart = null;   
-            
-            function updateChart() {
-                $.getJSON("/api/group/#{group.id}?view=concept-chart", function(options) {
-                    if (myChart != null) {
-                        myChart.destroy();
-                    }            
-                    myChart = Highcharts.chart('container', options);
-                });
-            }
-            updateChart();
-            //setInterval(updateChart, 5000);
-        });
-  div
-    table.table.table-striped
-        thead
-            tr
-            th Id          
-            th Description
-        tbody
-            for concept in concepts
+block content
+    span.hide(id="csrf")
+        | #{_csrf}
+    h1 Group 
+    div.pull-right
+        button.btn.btn-primary(id="save-btn" style='margin-right: 5px;')
+            | Save
+        button.btn.btn-info(id="duplicate-btn" style='margin-right: 5px;')
+            | Duplicate
+        if isAllowed('groups', 'delete')  
+            button.btn.btn-danger(id="delete-btn" style='margin-right: 5px;')
+                | Delete
+        button.btn.btn-default(id="cancel-btn")
+            | Cancel
+    h3.hide(id="id")
+        | #{group.id}
+    h3(id="name" contenteditable="true" style="width:50%")     
+        | #{group.name}
+    div
+    div.table-editable(id="table")
+        table.table
+            thead
                 tr
-                    td #{concept.Id}                                  
-                    td #{concept.Description}
+                th ChallengeId          
+                th ECD Matrix URL
+                th
+                    span.table-add.fa.fa-plus
+            tbody
+                for challenge in group.challenges
+                    tr
+                        td.hide td #{challenge.id} 
+                        td(contenteditable="true") #{challenge.challengeId}                                  
+                        td(contenteditable="true") #{challenge.ecdUrl}
+                        td
+                            span.table-remove.fa.fa-times
+                tr.hide
+                    td.hide
+                        | new
+                    td(contenteditable="true")
+                        | NewId
+                    td(contenteditable="true")
+                        | NewUrl
+                    td
+                        span.table-remove.fa.fa-times
