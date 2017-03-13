@@ -29,8 +29,8 @@ function extractGroup() {
             modifiedChallenges.push(
                 {
                     id: $td.eq(0).text().trim(),
-                    challengeId: $td.eq(1).text().trim(),
-                    ecdUrl: $td.eq(2).text().trim(),
+                    guideId: $td.eq(1).text().trim(),
+                    googleEcdMatrixId: $td.eq(2).text().trim(),
                 }
             );
         }

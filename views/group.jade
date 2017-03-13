@@ -31,16 +31,16 @@ block content
         table.table
             thead
                 tr
-                th ChallengeId          
-                th ECD Matrix URL
+                th Guide ID          
+                th ECD Matrix Google Spreadsheet ID
                 th
                     span.table-add.fa.fa-plus
             tbody
                 for challenge in group.challenges
                     tr
                         td.hide #{challenge.id} 
-                        td(contenteditable="true") #{challenge.challengeId}                                  
-                        td(contenteditable="true") #{challenge.ecdUrl}
+                        td(contenteditable="true") #{challenge.guideId}                                  
+                        td(contenteditable="true") #{challenge.googleEcdMatrixId}
                         td
                             span.table-remove.fa.fa-times
                 tr.hide

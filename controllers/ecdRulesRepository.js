@@ -51,7 +51,7 @@ class EcdRulesRepository {
                 }
 
                 var matchingChallenges = group.challenges.filter(function( challenge ) {
-                    return challenge.challengeId == guideId;
+                    return challenge.guideId == guideId;
                 });
 
                 if (matchingChallenges.length > 1) {
@@ -59,7 +59,7 @@ class EcdRulesRepository {
                 }
                 
                 if (matchingChallenges.length > 0) {
-                    resolve(matchingChallenges[0].ecdUrl);
+                    resolve(matchingChallenges[0].googleEcdMatrixId);
                     return;
                 }
 

@@ -21,6 +21,7 @@ block content
         tr
           th Session ID
           th Student ID
+          th Group
           th Start Time
           th Total Events
       tbody
@@ -29,6 +30,7 @@ block content
             td 
               a(href='/session/#{session.id}') #{session.id}          
             td #{session.studentId}
+            td #{session.groupId}
             td #{new Date(session.startTime)}
           if session.events  
             td #{session.events.length}
@@ -42,6 +44,7 @@ block content
         tr
           th Session ID
           th Student ID
+          th Group
           th Start Time
           th Total Events
       tbody
@@ -50,6 +53,7 @@ block content
             td 
               a(href='/session/#{session.id}') #{session.id}          
             td #{session.studentId}
+            td #{session.groupId}
             td #{new Date(session.startTime)}
             if session.events  
               td #{session.events.length}

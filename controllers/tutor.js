@@ -37,6 +37,7 @@ function createTutorAction(student, session, event) {
 
         student.lastSignIn = new Date(event.time);
         student.totalSessions += 1;           
+        session.groupId = event.context.group;
                   
         switch(Math.floor(Math.random() * 3)) {
             case 0:
@@ -117,8 +118,7 @@ function createTutorAction(student, session, event) {
 
         var conceptIdToGenes = ecdRules.updateStudentModel(
             student, 
-            event.context.case, 
-            event.context.challenge,
+            event.context.guideId,
             event.context.editableGenes, 
             event.context.species,            
             event.context.initialAlleles, 

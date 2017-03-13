@@ -26,7 +26,7 @@ repo.findEcdMatrix("dev", "1").then(ecdMatrix => {
 });
 
 var EcdRules = module.exports = {
-  updateStudentModel: function(student, caseId, challenegeId, editableGenes, speciesName, initialAlleles, currentAlleles, targetAlleles, targetSex) {
+  updateStudentModel: function(student, guideId, editableGenes, speciesName, initialAlleles, currentAlleles, targetAlleles, targetSex) {
 
     var targetSpecies = BioLogica.Species[speciesName];
     var targetOrganism = new BioLogica.Organism(targetSpecies, targetAlleles, targetSex);
