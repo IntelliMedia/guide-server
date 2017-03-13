@@ -28,9 +28,9 @@ function extractGroup() {
         if ($td.length == 4) {
             modifiedChallenges.push(
                 {
-                    id: $td.eq(0).text(),
-                    challengeId: $td.eq(1).text(),
-                    ecdUrl: $td.eq(2).text(),
+                    id: $td.eq(0).text().trim(),
+                    challengeId: $td.eq(1).text().trim(),
+                    ecdUrl: $td.eq(2).text().trim(),
                 }
             );
         }

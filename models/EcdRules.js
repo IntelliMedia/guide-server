@@ -1,9 +1,9 @@
 const biologica = require('../shared/biologica.js');
 const biologicaX = require('../shared/biologicax.js');
 const concept = require('../models/Concept');
-var rp = require('request-promise');
 const parse = require('csv-parse');
 const fs = require('fs');
+const EcdRulesRepository = require("../controllers/EcdRulesRepository");
 
 // Load Rules from CSV file during initialization
 var conceptMatrix = null;
@@ -17,23 +17,13 @@ var conceptMatrix = null;
 //     });    
 // });
 
-var options = {
-    uri: 'https://docs.google.com/spreadsheets/d/1rE4n7S-pwI05fogmogvxMsUIWaeMD3n2kLOplpPhGv4/export?format=csv',
-    headers: {
-        'User-Agent': 'Request-Promise'
-    } 
-};
- 
-rp(options)
-    .then(function (response) {
-        //console.log('Response: ', response);
-        parse(response, {comment: '#'}, function(err, output){
-                 conceptMatrix = output;
-        });
-    })
-    .catch(function (err) {
-        console.error("Unable to download rules.", err);
-    });
+var repo = new EcdRulesRepository();
+repo.findEcdMatrix("dev", "1").then(ecdMatrix => {
+    console.info("Loaded: " + ecdMatrix);
+    conceptMatrix = ecdMatrix;
+}).catch(err => {
+    console.error(err);
+});
 
 var EcdRules = module.exports = {
   updateStudentModel: function(student, caseId, challenegeId, editableGenes, speciesName, initialAlleles, currentAlleles, targetAlleles, targetSex) {
