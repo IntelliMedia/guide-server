@@ -1,20 +1,39 @@
 const biologica = require('../shared/biologica.js');
 const biologicaX = require('../shared/biologicax.js');
 const concept = require('../models/Concept');
+var rp = require('request-promise');
 const parse = require('csv-parse');
 const fs = require('fs');
 
 // Load Rules from CSV file during initialization
 var conceptMatrix = null;
-fs.readFile('data/ECD-Dominant-Rules.csv', 'utf8', function (err,data) {
-    if (err) {
-        return console.log(err);
-    }
-    parse(data, {comment: '#'}, function(err, output){
-        conceptMatrix = output;
-        //console.log(conceptMatrix);        
-    });    
-});
+// fs.readFile('data/ECD-Dominant-Rules.csv', 'utf8', function (err,data) {
+//     if (err) {
+//         return console.log(err);
+//     }
+//     parse(data, {comment: '#'}, function(err, output){
+//         conceptMatrix = output;
+//         //console.log(conceptMatrix);        
+//     });    
+// });
+
+var options = {
+    uri: 'https://docs.google.com/spreadsheets/d/1rE4n7S-pwI05fogmogvxMsUIWaeMD3n2kLOplpPhGv4/export?format=csv',
+    headers: {
+        'User-Agent': 'Request-Promise'
+    } 
+};
+ 
+rp(options)
+    .then(function (response) {
+        //console.log('Response: ', response);
+        parse(response, {comment: '#'}, function(err, output){
+                 conceptMatrix = output;
+        });
+    })
+    .catch(function (err) {
+        console.error("Unable to download rules.", err);
+    });
 
 var EcdRules = module.exports = {
   updateStudentModel: function(student, caseId, challenegeId, editableGenes, speciesName, initialAlleles, currentAlleles, targetAlleles, targetSex) {
