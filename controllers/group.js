@@ -47,18 +47,26 @@ exports.delete = (req, res) => {
 
 exports.duplicate = (req, res) => {
   if (req.body.hasOwnProperty("id")) {
-    var originalGroupId = req.body.id;
-    console.info("Duplicate group: " + originalGroupId);
-    Group.findOne({ 'id': originalGroupId }, (err, group) => {
-      if (err) { return next(err); }
-
-      var newGroup = group.clone();
-
-      newGroup.save((err) => {
+    var modifiedGroup = req.body;
+    console.info("Duplicate group: " + modifiedGroup.id);
+    Group.findOne({ 'id': modifiedGroup.id }, (err, group) => {
+      if (err) { 
+        return next(err); 
+      }
+      console.info("Update group: " + group.id);
+      group.replace(modifiedGroup);
+      group.save((err) => {
         if (err) {
-          next(err);
+          return next(err);
         } else {
-          return res.send({redirect: '/group/' + newGroup.id});
+          var duplicateGroup = group.clone();
+          duplicateGroup.save((err) => {
+            if (err) {
+              return next(err);
+            } else {
+              return res.send({redirect: '/group/' + duplicateGroup.id});
+            }
+          });
         }
       });
     })
