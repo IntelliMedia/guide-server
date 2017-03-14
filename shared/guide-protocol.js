@@ -43,9 +43,19 @@ if (typeof exports === 'undefined') {
 
     GuideProtocol.Event.Channel = 'Event';    
 
+   GuideProtocol.Event.prototype.isMatch = function(actor, action, target) {
+        return ((!actor || actor == '*' || actor == this.actor)
+            && (!action || action == '*' || action == this.action)
+            && (!target || target == '*' || target == this.target));
+    }
+
+    GuideProtocol.Event.prototype.toString = function() {
+        return this.actor + "-" + this.action + "-" + this.target;
+    } 
+
     GuideProtocol.Event.prototype.toJson = function() {
         return JSON.stringify(this);
-    }    
+    }   
 
     GuideProtocol.Event.fromJson = function(json) {
         var obj = JSON.parse(json);
@@ -64,7 +74,7 @@ if (typeof exports === 'undefined') {
         return new Promise((resolve, reject) => {
             resolve(GuideProtocol.Event.fromJson(json));
         });
-    }
+    } 
 
     /**
      * TutorDialog - used by the ITS to send a message to the student

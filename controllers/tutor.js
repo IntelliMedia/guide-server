@@ -4,40 +4,90 @@ const Hint = require('../models/Hint');
 const await = require('asyncawait/await');
 const guideProtocol = require('../shared/guide-protocol.js');
 
+class EventToFunction {
+    constructor(actor, action, target, handler) {
+        this.actor = actor;
+        this.action = action;
+        this.target = target;
+        this.handler = handler;
+    }
+};
+
+var eventRoutes = [
+    new EventToFunction('SYSTEM', 'STARTED', 'SESSION', handleSystemStartedSessionAsync),
+    new EventToFunction('SYSTEM', 'ENDED', 'SESSION', handleSystemEndedSessionAsync),
+    new EventToFunction('USER', 'NAVIGATED', 'CHALLENGE', handleUserNavigatedChallengeAsync),
+    new EventToFunction('USER', 'CHANGED', 'ALLELE', handleUserChangedAlleleAsync),
+    new EventToFunction('USER', 'SUBMITTED', 'ORGANISM', handleUserSubmittedOrganismAsync)
+];
+
 exports.initialize = () => {
     return Promise.resolve(true);
 }
 
-exports.processEvent = (event, session) => {
+exports.processEventAsync = (event, session) => {
 
     // Is this the beginning of the session?
-    if (isMatch(event, 'SYSTEM', 'STARTED', 'SESSION')) { 
+    if (event.isMatch("SYSTEM", "STARTED", "SESSION")) { 
         session.studentId =  event.username;
         session.active = true;
         session.startTime = event.time;       
     }
 
     return students.createOrFind(session.studentId).then((student) => {
-        console.log('Tutor processing student: ' + student.id);
         session.events.unshift(event);
         
-        var tutorDialog = createTutorAction(student, session, event);
-        if (tutorDialog) {
-            session.actions.unshift(tutorDialog);
-            session.emit(GuideProtocol.TutorDialog.Channel, tutorDialog.toJson());
-        }           
+        // Tutor interprets the event
+        return handleEventAsync(student, session, event);
+    })
+    .then((response) => {
+        // If the tutor has a response message, record it and send it to the client
+        if (response) {
+            session.actions.unshift(response);
+            session.emit(GuideProtocol.TutorDialog.Channel, response.toJson());
+        }          
     });
 }
 
-function createTutorAction(student, session, event) {
+function handleEventAsync(student, session, event) {
         
-    var dialogMessage = null;
+    var eventRouters = eventRoutes.filter((route) => {
+        return event.isMatch(route.actor, route.action, route.target);
+    });
 
-    if (isMatch(event, 'SYSTEM', 'STARTED', 'SESSION')) { 
+    if (eventRouters.length > 0) {
+        if (eventRouters.length > 1) {
+            console.error("Multiple handlers were defined for the same event: " + event.toString())
+        }
 
+        console.info("Tutor - handling: " + event.toString() + " user=" + event.username);
+        return eventRouters[0].handler(student, session, event);
+    }
+
+    console.warn("Tutor - unhandled: " + event.toString() + " user=" + event.username);    
+    return new Promise((resolve, reject) => {
+        resolve(null);
+    });
+}
+
+/**
+ * Returns promise for saving both session and student
+ * @param {*} session 
+ * @param {*} student 
+ */
+function saveAsync(session, student) {
+    return session.save().then( () => {
+        return student.save();
+    });
+}
+
+function handleSystemStartedSessionAsync(student, session, event) {
+    return new Promise((resolve, reject) => {
         student.lastSignIn = new Date(event.time);
         student.totalSessions += 1;           
         session.groupId = event.context.group;
+
+        var dialogMessage = null;
                   
         switch(Math.floor(Math.random() * 3)) {
             case 0:
@@ -55,15 +105,29 @@ function createTutorAction(student, session, event) {
                 dialogMessage = new GuideProtocol.Text(
                     'ITS.HELLO.3',
                     'Let\'s get started!');
-            break;          
-            default:
-                action = null;
-        }         
-    } else if (isMatch(event, 'SYSTEM', 'ENDED', 'SESSION')) {
+        }   
+
+        resolve(saveAsync(session, student).then(() => {
+            return new GuideProtocol.TutorDialog(dialogMessage);
+        }));
+    });
+}
+
+function handleSystemEndedSessionAsync(student, session, event) {
+    return new Promise((resolve, reject) => {
         session.active = false;
         session.endTime = event.time;
-        action = null;
-    } else if (isMatch(event, 'USER', 'NAVIGATED', 'CHALLENGE')) {             
+        
+        resolve(saveAsync(session, student).then(() => {
+            return null;
+        }));
+    });
+}
+
+function handleUserNavigatedChallengeAsync(student, session, event) {
+    return new Promise((resolve, reject) => {
+        var dialogMessage = null;
+
         switch(Math.floor(Math.random() * 3)) {
             case 0:
                 dialogMessage = new GuideProtocol.Text(            
@@ -83,11 +147,17 @@ function createTutorAction(student, session, event) {
                 dialogMessage = new GuideProtocol.Text(            
                     'ITS.CHALLENGE.INTRO.3',
                     'I\'m sure you\'re up to the \'challenge\' :-). See what I did there?');                
-            break;          
-            default:
-            action = null;
-        }          
-    } else if (isMatch(event, 'USER', 'CHANGED', 'ALLELE')) {       
+            break;
+        } 
+
+        resolve(dialogMessage ? new GuideProtocol.TutorDialog(dialogMessage) : null);
+    });
+}
+
+function handleUserChangedAlleleAsync(student, session, event) {
+    return new Promise((resolve, reject) => {
+        var dialogMessage = null;
+
         switch(Math.floor(Math.random() * 6)) {
             case 0:
                 dialogMessage = new GuideProtocol.Text(            
@@ -109,126 +179,59 @@ function createTutorAction(student, session, event) {
                     'ITS.ALLELE.FEEDBACK.4',
                     'Perhaps you should review the info on recessive genes?');
             break;            
-            default:
-            action = null;
-        }       
-    } else if (isMatch(event, 'USER', 'ADVANCED', 'TRIAL')) {
-        // TODO    
-    } else if (isMatch(event, 'USER', 'SUBMITTED', 'ORGANISM')) {    
+        }     
 
-        var conceptIdToGenes = ecdRules.updateStudentModel(
-            student, 
-            session.groupId,
-            event.context.guideId,
-            event.context.editableGenes, 
-            event.context.species,            
-            event.context.initialAlleles, 
-            event.context.selectedAlleles,
-            event.context.targetAlleles,
-            event.context.targetSex);
-
-        if (event.context.correct) {
-            student.resetAllHintLevels();
-        } else {
-            var concepts = student.conceptStates.toObject();
-            if (concepts == null || concepts.length == 0) {
-                console.error("Student (" + student.id + ") doesn't have any concepts defined");
-            } else {
-                var keysSorted = Object.keys(concepts).sort(function(a,b){return concepts[a].value-concepts[b].value});
-                console.log('sorted concepts: ' + keysSorted);
-
-                var lowestConceptId = concepts[keysSorted[0]].id;
-                var conceptHintLevel = concepts[keysSorted[0]].hintLevel;
-
-                var hint = Hint.getHint(lowestConceptId, conceptHintLevel);
-                if (hint != null) {
-                    student.conceptState(lowestConceptId).hintLevel = hint.level;
-
-                    var trait = "unknown";
-                    if (conceptIdToGenes.hasOwnProperty(lowestConceptId)) {
-                        trait = conceptIdToGenes[lowestConceptId].trait;
-                    }
-
-                    dialogMessage = new GuideProtocol.Text(            
-                        'ITS.CONCEPT.FEEDBACK',
-                        hint.message);   
-                    dialogMessage.args.trait = trait; 
-                } else {
-                    console.warn("No hint available for " + lowestConceptId + " level=" + conceptHintLevel);
-                }
-            }         
-        }
-
-    } else if (isMatch(event, 'USER', 'SUBMITTED', 'DRAKE')) {        
-        switch(Math.floor(Math.random() * 3)) {
-            case 0:
-                if (event.context.correct == true) {        
-                    dialogMessage = new GuideProtocol.Text(                    
-                        'ITS.SUBMITTED.CORRECT.DRAKE.1',
-                        'Good work! I knew you could do it.');
-                }
-                else {
-                    dialogMessage = new GuideProtocol.Text(                    
-                        'ITS.SUBMITTED.INCORRECT.DRAKE.1',
-                        'Not quite, try again.');
-                }
-            break;
-            case 1:
-                if (event.context.correct == true) {      
-                    dialogMessage = new GuideProtocol.Text(          
-                        'ITS.SUBMITTED.CORRECT.DRAKE.2',
-                        'Well done!');
-                }
-                else {
-                    dialogMessage = new GuideProtocol.Text(
-                        'ITS.SUBMITTED.INCORRECT.DRAKE.2',
-                        'Keep working at it!');
-                }
-            break;
-            case 2:
-                if (event.context.correct == true) {
-                    dialogMessage = new GuideProtocol.Text(                    
-                        'ITS.SUBMITTED.CORRECT.DRAKE.3',
-                        'Huzzah!');
-                }
-                else {
-                    dialogMessage = new GuideProtocol.Text(                    
-                        'ITS.SUBMITTED.INCORRECT.DRAKE.3',
-                        'That\'s not quite right.');
-                }
-            break;          
-            default:
-            action = null;
-        }       
-    } else {
-        // Do nothing
-        action = null;
-    }
-
-    session.save((err) => {
-        if (err) {
-            console.error('Unable to save session info for: ' + currentStudent.id);
-            throw err;
-        }
-
-        student.save((err) => {
-            if (err) {
-                console.error('Unable to save student info for: ' + currentStudent.id);
-                throw err;
-            }
-        });         
-    });         
-  
-  if (dialogMessage) {
-      return new GuideProtocol.TutorDialog(dialogMessage);
-  } else {
-      // Do nothing
-      return null;
-  }
+        resolve(dialogMessage ? new GuideProtocol.TutorDialog(dialogMessage) : null);
+    });
 }
 
-function isMatch(event, actor, action, target) {
-    return ((!actor || actor == '*' || actor == event.actor)
-        && (!action || action == '*' || action == event.action)
-        && (!target || target == '*' || target == event.target));
+function handleUserSubmittedOrganismAsync(student, session, event) {
+    return ecdRules.updateStudentModel(
+        student, 
+        session.groupId,
+        event.context.guideId,
+        event.context.editableGenes, 
+        event.context.species,            
+        event.context.initialAlleles, 
+        event.context.selectedAlleles,
+        event.context.targetAlleles,
+        event.context.targetSex).then(hints => {
+
+            var dialogMessage = null;
+
+            if (event.context.correct) {
+                student.resetAllHintLevels();
+            } else {
+                var concepts = student.conceptStates.toObject();
+                if (concepts == null || concepts.length == 0) {
+                    console.error("Student (" + student.id + ") doesn't have any concepts defined");
+                } else {
+                    var keysSorted = Object.keys(concepts).sort(function(a,b){return concepts[a].value-concepts[b].value});
+                    console.log('sorted concepts: ' + keysSorted);
+
+                    var lowestConceptId = concepts[keysSorted[0]].id;
+                    var conceptHintLevel = concepts[keysSorted[0]].hintLevel + 1;
+
+                    //var hint = Hint.getHint(lowestConceptId, conceptHintLevel);
+                    var hint = hints.length > 0 && hints.length > conceptHintLevel ? hints[conceptHintLevel] : null;
+                    if (hint) {
+                        student.conceptState(lowestConceptId).hintLevel = conceptHintLevel;
+
+                        var trait = "unknown";
+                        // if (conceptIdToGenes.hasOwnProperty(lowestConceptId)) {
+                        //     trait = conceptIdToGenes[lowestConceptId].trait;
+                        // }
+
+                        dialogMessage = new GuideProtocol.Text(            
+                            'ITS.CONCEPT.FEEDBACK',
+                            hint);   
+                        dialogMessage.args.trait = trait; 
+                    } else {
+                        console.warn("No hint available for " + lowestConceptId + " level=" + conceptHintLevel);
+                    }
+                }         
+            }
+
+            return (dialogMessage ? new GuideProtocol.TutorDialog(dialogMessage) : null); 
+    });
 }
