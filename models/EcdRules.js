@@ -84,15 +84,21 @@ function getConceptAdjustment(targetCharacteristic, alleleA, alleleB, conceptId)
     var columnCount = conceptMatrix[0].length;
     for (var i = 0; i < columnCount; ++i) {
         var header = conceptMatrix[0][i];
-        if (header == 'Target') {
+        if (header.toLowerCase() == 'InheritancePattern'.toLowerCase()) {
+            // Ignore
+        } else if (header.toLowerCase() == 'Target'.toLowerCase()) {
             targetCharacteristicIndex = i;
         }
-        else if (header == 'Allele-A') {
+        else if (header.toLowerCase() == 'Allele-A'.toLowerCase()) {
             alleleAIndex = i;
         }
-        else if (header == 'Allele-B') {
+        else if (header.toLowerCase() == 'Allele-B'.toLowerCase()) {
             alleleBIndex = i;
+        }   
+        else if (header.toLowerCase().includes("hint")) {
+            // Ignore hints during model update
         }    
+        // If the heading isn't one of the previous headings, it must be a concept 
         else if (header == conceptId) {
             conceptIdIndex = i;
         }                    
