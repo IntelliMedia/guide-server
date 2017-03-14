@@ -26,25 +26,32 @@ repo.findEcdMatrix("dev", "1").then(ecdMatrix => {
 });
 
 var EcdRules = module.exports = {
-  updateStudentModel: function(student, guideId, editableGenes, speciesName, initialAlleles, currentAlleles, targetAlleles, targetSex) {
+  updateStudentModel: function(student, groupId, guideId, editableGenes, speciesName, initialAlleles, currentAlleles, targetAlleles, targetSex) {
 
+    console.info("Update student model for: %s (%s | %s)", student.id, groupId, guideId);
     var targetSpecies = BioLogica.Species[speciesName];
     var targetOrganism = new BioLogica.Organism(targetSpecies, targetAlleles, targetSex);
-    console.log('targetOrganism alleles: ' + targetOrganism.getAlleleString());
-    console.log('targetOrganism : ' + targetOrganism.getAlleleString());
+    //console.log('targetOrganism alleles: ' + targetOrganism.getAlleleString());
+    //console.log('targetOrganism : ' + targetOrganism.getAlleleString());
 
+    // Iterate over the genes that are editable by the student in the UI
     var conceptIdToTrait = {};
     var genesLength = editableGenes.length;
     for (var i = 0; i < genesLength; ++i) {
       var gene = editableGenes[i];
-      var initial = BiologicaX.getAlleleAsInheritancePattern(targetSpecies, initialAlleles, gene);
-      var selected = BiologicaX.getAlleleAsInheritancePattern(targetSpecies, currentAlleles, gene);
+      var alleleA = BiologicaX.findAllele(targetSpecies, currentAlleles, 'a', gene).replace('a:', '');
+      var alleleB = BiologicaX.findAllele(targetSpecies, currentAlleles, 'b', gene).replace('b:', '');
+      var targetCharacteristic = BiologicaX.getCharacteristicForGene(targetOrganism, gene);
 
+      // Iterate over the global list of concepts and update the student model based on 
+      // there allele selection and the target characterisitic. E.g., they're trying to 
+      // produce wings, what did they they set the alleles to? What does this imply 
+      // in terms of the student's knowledge of concepts?
       var concepts = concept.getAll();
       var conceptIds = concepts.map(function(a) {return a.Id;});
       conceptIds.forEach(function (conceptId) {
-        var targetInheritancePattern = BiologicaX.getInheritancePatternForGene(targetOrganism, gene);
-        var adjustment = getConceptAdjustment(targetInheritancePattern, initial, selected, conceptId);
+       
+        var adjustment = getConceptAdjustment(targetCharacteristic, alleleA, alleleB, conceptId);
         console.log('Adjust concept "' + conceptId + '" by ' + adjustment);            
         var conceptState = student.conceptState(conceptId);
         conceptState.value += adjustment;   
@@ -66,25 +73,25 @@ var EcdRules = module.exports = {
   }
 }
 
-function getConceptAdjustment(inheritancePattern, initial, selected, conceptId) {
+function getConceptAdjustment(targetCharacteristic, alleleA, alleleB, conceptId) {
     
-    //console.log('inheritancePattern:' + inheritancePattern + '  initial:' + initial + '  selected:' + selected + '  conceptId:' + conceptId);
+    console.log('targetCharacteristic:' + targetCharacteristic + '  alleleA:' + alleleA + '  alleleB:' + alleleB + '  conceptId:' + conceptId);
 
-    var inheritancePatternIndex = -1;
-    var initialIndex = -1;
-    var selectedIndex = -1;
+    var targetCharacteristicIndex = -1;
+    var alleleAIndex = -1;
+    var alleleBIndex = -1;
     var conceptIdIndex = -1;
     var columnCount = conceptMatrix[0].length;
     for (var i = 0; i < columnCount; ++i) {
         var header = conceptMatrix[0][i];
-        if (header == 'InheritancePattern') {
-            inheritancePatternIndex = i;
+        if (header == 'Target') {
+            targetCharacteristicIndex = i;
         }
-        else if (header == 'InitialAllele') {
-            initialIndex = i;
+        else if (header == 'Allele-A') {
+            alleleAIndex = i;
         }
-        else if (header == 'Move') {
-            selectedIndex = i;
+        else if (header == 'Allele-B') {
+            alleleBIndex = i;
         }    
         else if (header == conceptId) {
             conceptIdIndex = i;
@@ -99,9 +106,9 @@ function getConceptAdjustment(inheritancePattern, initial, selected, conceptId) 
     var rowCount = conceptMatrix.length;
     for (var i = 1; i < rowCount; ++i) {
         var row = conceptMatrix[i];
-        if (row[inheritancePatternIndex] == inheritancePattern 
-            && row[initialIndex] == initial
-            && row[selectedIndex] == selected) {
+        if (row[targetCharacteristicIndex].toLowerCase() == targetCharacteristic.toLowerCase()
+            && row[alleleAIndex] == alleleA
+            && row[alleleBIndex] == alleleB) {
                 return (row[conceptIdIndex] ? Number(row[conceptIdIndex]) : 0);
             }
     }

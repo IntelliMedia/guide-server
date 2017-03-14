@@ -86,6 +86,9 @@ if (typeof exports === 'undefined') {
         return alleles.match(regex).toString();
     }
 
+    // Returns generic allele pattern for a given gene. For example: 
+    //   a:W b:w returns H-h
+    //   a:Hl b:Hl returns H-H
     BiologicaX.getAlleleAsInheritancePattern = function(species, alleles, gene) {
         var sideA = BiologicaX.findAllele(species, alleles, 'a', gene).replace('a:', '');
         var sideB = BiologicaX.findAllele(species, alleles, 'b', gene).replace('b:', '');
@@ -99,22 +102,8 @@ if (typeof exports === 'undefined') {
     }    
 
     BiologicaX.getInheritancePatternForGene = function(organism, gene) {
-        var characteristic = null; 
-        if (gene == 'metallic') {
-            characteristic = organism.getCharacteristic('color');
-            if (characteristic == 'Steel'
-                || characteristic == 'Copper'
-                || characteristic == 'Silver'
-                || characteristic == 'Gold') {
-                    characteristic = 'Metallic';
-                } else {
-                    characteristic = 'Nonmetallic';
-                }
-        } else {
-            characteristic = organism.getCharacteristic(gene);
-        }
 
-        console.log('characteristic=' + characteristic);
+        var characteristic = BiologicaX.getCharacteristicForGene(organism, gene);
 
         var pattern = null;
         var alleleLabelMap = organism.species.alleleLabelMap;
@@ -133,5 +122,24 @@ if (typeof exports === 'undefined') {
 
         return pattern;
     }      
+
+    BiologicaX.getCharacteristicForGene = function(organism, gene) {
+        var characteristic = null; 
+        if (gene == 'metallic') {
+            characteristic = organism.getCharacteristic('color');
+            if (characteristic == 'Steel'
+                || characteristic == 'Copper'
+                || characteristic == 'Silver'
+                || characteristic == 'Gold') {
+                    characteristic = 'Metallic';
+                } else {
+                    characteristic = 'Nonmetallic';
+                }
+        } else {
+            characteristic = organism.getCharacteristic(gene);
+        }
+
+        return characteristic;
+    }
 
 }).call(this);

@@ -118,6 +118,7 @@ function createTutorAction(student, session, event) {
 
         var conceptIdToGenes = ecdRules.updateStudentModel(
             student, 
+            session.groupId,
             event.context.guideId,
             event.context.editableGenes, 
             event.context.species,            
