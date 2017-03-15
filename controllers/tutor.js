@@ -189,8 +189,8 @@ function handleUserChangedAlleleAsync(student, session, event) {
 function handleUserSubmittedOrganismAsync(student, session, event) {
     return ecdRules.evaluateOrganismSubmission(
         student,
-        //event.context.groupId,
-        session.groupId,
+        event.context.groupId,
+        //session.groupId,
         event.context.challengeId,
         event.context.correct,
         event.context.editableGenes,
