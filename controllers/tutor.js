@@ -189,6 +189,7 @@ function handleUserChangedAlleleAsync(student, session, event) {
 function handleUserSubmittedOrganismAsync(student, session, event) {
     return ecdRules.evaluateOrganismSubmission(
         student,
+        //event.context.groupId,
         session.groupId,
         event.context.challengeId,
         event.context.correct,
@@ -197,7 +198,7 @@ function handleUserSubmittedOrganismAsync(student, session, event) {
         event.context.correctPhenotype,
         event.context.initialAlleles,
         event.context.selectedAlleles,
-        event.context.targetSex).then(responseDialog => {
+        event.context.targetSex).then(text => {
 
             // var dialogMessage = null;
 
@@ -234,6 +235,14 @@ function handleUserSubmittedOrganismAsync(student, session, event) {
             //     }
             // }
 
-            return (responseDialog ? new GuideProtocol.TutorDialog(responseDialog) : null);
+            var dialogMessage = null;
+            
+            if (text) {
+            dialogMessage = new GuideProtocol.Text(
+                             'ITS.CONCEPT.FEEDBACK',
+                             text);
+            }
+
+            return (dialogMessage ? new GuideProtocol.TutorDialog(dialogMessage) : null);
         });
 }

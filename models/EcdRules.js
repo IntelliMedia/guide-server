@@ -47,6 +47,8 @@ var EcdRules = module.exports = {
 
             console.info("Update: " + targetCharacteristic);
 
+            //updateStudentModel(conceptMatrix, targetCharacteristic, alleleA, alleleB, student);
+
             //var conceptState = student.conceptState(targetCharacteristic, conceptId);
 
             // Iterate over the global list of concepts and update the student model based on 
@@ -84,13 +86,13 @@ var EcdRules = module.exports = {
             //});
         }
 
-        return "Hello World!";
+        return !correct ? "Let's look at the metallic gene. What alleles must be added to the parents' gametes so that the offspring drake is metallic?" : null;
     });
 }
 }
 
 
-function getConceptAdjustment(conceptMatrix, targetCharacteristic, alleleA, alleleB, conceptId) {
+function updateStudentModel(conceptMatrix, targetCharacteristic, alleleA, alleleB, student) {
     
     console.log('targetCharacteristic:' + targetCharacteristic + '  alleleA:' + alleleA + '  alleleB:' + alleleB + '  conceptId:' + conceptId);
 
@@ -98,7 +100,11 @@ function getConceptAdjustment(conceptMatrix, targetCharacteristic, alleleA, alle
     var alleleAIndex = -1;
     var alleleBIndex = -1;
     var hint1Index = -1;
-    var conceptIdIndex = -1;
+    var hint2Index = -1;
+    var hint3Index = -1;
+    var conceptIds = [];
+    var conceptIndexes = [];
+
     var columnCount = conceptMatrix[0].length;
     for (var i = 0; i < columnCount; ++i) {
         var header = conceptMatrix[0][i];
@@ -115,28 +121,18 @@ function getConceptAdjustment(conceptMatrix, targetCharacteristic, alleleA, alle
         }   
         else if (header.toLowerCase() == 'Hint-1'.toLowerCase()) {
             hint1Index = i;
-        }    
-        else if (header.toLowerCase().includes('hint')) {
-            // Ignore
-        } 
-        // If the heading isn't one of the previous headings, it must be a concept 
-        else if (header == conceptId) {
-            conceptIdIndex = i;
-        }                    
+        }  
+        else if (header.toLowerCase() == 'Hint-2'.toLowerCase()) {
+            hint2Index = i;
+        }
+        else if (header.toLowerCase() == 'Hint-3'.toLowerCase()) {
+            hint3Index = i;
+        }      
+        else {
+            conceptIds.push(header);
+            conceptIndexes.push(i);
+        }                   
     }
-
-    var conceptAdjustmentAndHints = {   
-        adjustment: 0,
-        hints: []
-    };
-
-    if (conceptIdIndex < 0) {
-        console.warn('No adjustment defined for: ' + conceptId);
-        return conceptAdjustmentAndHints;
-    }
-
-    var adjustment = 0;
-    var hints = [];
 
     var rowCount = conceptMatrix.length;
     for (var i = 1; i < rowCount; ++i) {
@@ -144,23 +140,15 @@ function getConceptAdjustment(conceptMatrix, targetCharacteristic, alleleA, alle
         if (row[targetCharacteristicIndex].toLowerCase() == targetCharacteristic.toLowerCase()
             && row[alleleAIndex] == alleleA
             && row[alleleBIndex] == alleleB) {
-                conceptAdjustmentAndHints.adjustment = (row[conceptIdIndex] ? Number(row[conceptIdIndex]) : 0);
-                if (hint1Index >= 0) {
-                    conceptAdjustmentAndHints.hints = [
-                        row[hint1Index],
-                        row[hint1Index + 1],
-                        row[hint1Index + 2]
+                for (var j = 0; conceptIds.length; ++j) {
+                    student.conceptState(targetCharacteristic, conceptIds[j]).value += row[conceptIndexes[j]] ? Number(row[conceptIndexes[j]]) : 0;
+                    student.conceptState(targetCharacteristic, conceptIds[j]).hints = [
+                        row[hint1Index], 
+                        row[hint2Index], 
+                        row[hint3Index]
                     ];
                 }
-                else {
-                    conceptAdjustmentAndHints = [];
-                }
-                return conceptAdjustmentAndHints;
+                break;
             }
     }
-
-    return {   
-        adjustment: 0,
-        hints: []
-    };
 }
