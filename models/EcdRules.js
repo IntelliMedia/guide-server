@@ -3,7 +3,7 @@ const biologicaX = require('../shared/biologicax.js');
 const concept = require('../models/Concept');
 const parse = require('csv-parse');
 const fs = require('fs');
-const EcdRulesRepository = require("../controllers/EcdRulesRepository");
+const EcdRulesRepository = require("../controllers/ecdRulesRepository");
 
 var EcdRules = module.exports = {
   evaluateOrganismSubmission: function(
