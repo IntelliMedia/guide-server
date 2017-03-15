@@ -43,29 +43,24 @@ class EcdRulesRepository {
     }
 
     getEcdMatrixId(groupName, guideId) {
-        return new Promise((resolve, reject) => {
-            Group.findOne({ "name": groupName }, (err, group) => {
-                if (err) {
-                    console.error("ERROR: Can't find group: " + groupName, err);
-                    throw new Error("Unable to find group with name: " + groupName);
-                }
+        return Group.findOne({ "name": groupName }).then((group) => {
+            if (!group) {
+                throw new Error("Unable to find group with name: " + groupName);
+            }
 
-                var matchingChallenges = group.challenges.filter(function( challenge ) {
-                    return challenge.guideId == guideId;
-                });
-
-                if (matchingChallenges.length > 1) {
-                    console.warn("More than one challenge with id=" + guideId + " defined for group: " + groupName);
-                }
-                
-                if (matchingChallenges.length > 0) {
-                    resolve(matchingChallenges[0].googleEcdMatrixId);
-                    return;
-                }
-
-                console.error("ERROR: Can't find challenge id=" + guideId + " in group: " + groupName);
-                throw new Error("Unable to find  challenge id=" + guideId + " group: " + groupName);            
+            var matchingChallenges = group.challenges.filter(function( challenge ) {
+                return challenge.guideId == guideId;
             });
+
+            if (matchingChallenges.length > 1) {
+                console.warn("More than one challenge with id=" + guideId + " defined for group: " + groupName);
+            }
+            
+            if (matchingChallenges.length > 0) {
+                return matchingChallenges[0].googleEcdMatrixId;
+            }
+
+            throw new Error("Unable to find  challenge id=" + guideId + " group: " + groupName);      
         });
     }
 }

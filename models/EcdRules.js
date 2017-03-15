@@ -6,18 +6,31 @@ const fs = require('fs');
 const EcdRulesRepository = require("../controllers/EcdRulesRepository");
 
 var EcdRules = module.exports = {
-  updateStudentModel: function(student, groupId, guideId, editableGenes, speciesName, initialAlleles, currentAlleles, targetAlleles, targetSex) {
+  evaluateOrganismSubmission: function(
+        student,
+        groupId,
+        challengeId,
+        correct,
+        editableGenes,
+        speciesName,
+        correctPhenotype,
+        initialAlleles,
+        selectedAlleles,
+        targetSex) {
 
-    console.info("Update student model for: %s (%s | %s)", student.id, groupId, guideId);
+    console.info("Update student model for: %s (%s | %s)", student.id, groupId, challengeId);
     var repo = new EcdRulesRepository();
-    return repo.findEcdMatrix("dev", "1").then(ecdMatrix => {
+    return repo.findEcdMatrix(groupId, challengeId).then((ecdMatrix) => { 
+        if (!ecdMatrix) {
+            throw new Error("Unable to find group (" + groupId + ") or challenge (" + challengeId + ")");
+        }
         console.info("Loaded: " + ecdMatrix);
         conceptMatrix = ecdMatrix;
 
         var hints = [];
 
         var targetSpecies = BioLogica.Species[speciesName];
-        var targetOrganism = new BioLogica.Organism(targetSpecies, targetAlleles, targetSex);
+        //var targetOrganism = new BioLogica.Organism(targetSpecies, targetAlleles, targetSex);
         //console.log('targetOrganism alleles: ' + targetOrganism.getAlleleString());
         //console.log('targetOrganism : ' + targetOrganism.getAlleleString());
 
@@ -28,29 +41,34 @@ var EcdRules = module.exports = {
         var genesLength = editableGenes.length;
         for (var i = 0; i < genesLength; ++i) {
             var gene = editableGenes[i];
-            var alleleA = BiologicaX.findAllele(targetSpecies, currentAlleles, 'a', gene).replace('a:', '');
-            var alleleB = BiologicaX.findAllele(targetSpecies, currentAlleles, 'b', gene).replace('b:', '');
-            var targetCharacteristic = BiologicaX.getCharacteristicForGene(targetOrganism, gene);
+            var alleleA = BiologicaX.findAllele(targetSpecies, selectedAlleles, 'a', gene).replace('a:', '');
+            var alleleB = BiologicaX.findAllele(targetSpecies, selectedAlleles, 'b', gene).replace('b:', '');
+            var targetCharacteristic = BiologicaX.getCharacteristicFromPhenotype(correctPhenotype, gene);
+
+            console.info("Update: " + targetCharacteristic);
+
+            //var conceptState = student.conceptState(targetCharacteristic, conceptId);
 
             // Iterate over the global list of concepts and update the student model based on 
             // there allele selection and the target characterisitic. E.g., they're trying to 
             // produce wings, what did they they set the alleles to? What does this imply 
             // in terms of the student's knowledge of concepts?
-            var concepts = concept.getAll();
-            var conceptIds = concepts.map(function(a) {return a.Id;});
-            conceptIds.forEach(function (conceptId) {
+            // var concepts = concept.getAll();
+            // var conceptIds = concepts.map(function(a) {return a.Id;});
+            // conceptIds.forEach(function (conceptId) {
             
-                var conceptAdjustAndHints = getConceptAdjustment(conceptMatrix, targetCharacteristic, alleleA, alleleB, conceptId);
-                console.log('Adjust concept "' + conceptId + '" by ' + conceptAdjustAndHints.adjustment);            
-                var conceptState = student.conceptState(conceptId);
-                conceptState.value += conceptAdjustAndHints.adjustment;  
-                console.info("Concept: " + conceptId + " = " + conceptState.value);
-                if (conceptAdjustAndHints.adjustment < minConceptValue) {
-                    minConceptValue = conceptAdjustAndHints.adjustment;
-                    if (conceptAdjustAndHints.hints.length > 0) {
-                        hints = conceptAdjustAndHints.hints;
-                    }
-                }
+            //     var conceptAdjustAndHints = getConceptAdjustment(conceptMatrix, targetCharacteristic, alleleA, alleleB, conceptId);
+            //     console.log('Adjust concept "' + conceptId + '" by ' + conceptAdjustAndHints.adjustment);   
+
+            //     var conceptState = student.conceptState(conceptId);
+            //     conceptState.value += conceptAdjustAndHints.adjustment;  
+            //     console.info("Concept: " + conceptId + " = " + conceptState.value);
+            //     if (conceptAdjustAndHints.adjustment < minConceptValue) {
+            //         minConceptValue = conceptAdjustAndHints.adjustment;
+            //         if (conceptAdjustAndHints.hints.length > 0) {
+            //             hints = conceptAdjustAndHints.hints;
+            //         }
+            //     }
 
                 // if (adjustment != null && adjustment < 0) {
                 //   if (!conceptIdToTrait.hasOwnProperty(conceptId)) {
@@ -63,10 +81,10 @@ var EcdRules = module.exports = {
                 //     conceptIdToTrait[conceptId].adjustment = adjustment;
                 //   }
                 // }
-            });
+            //});
         }
 
-        return hints;
+        return "Hello World!";
     });
 }
 }

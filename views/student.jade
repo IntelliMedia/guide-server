@@ -1,5 +1,10 @@
 extends layout
 
+block extraHeader
+    script(type='text/javascript', src="https://code.highcharts.com/highcharts.js")
+    script(type='text/javascript', src="https://code.highcharts.com/modules/heatmap.js")
+    script(type='text/javascript', src="https://code.highcharts.com/modules/exporting.js") 
+
 block content
   h1 Student 
   h3 #{student.id}
@@ -10,7 +15,7 @@ block content
             var myChart = null;   
             
             function updateChart() {
-                $.getJSON("/api/student/#{student.id}?view=concept-chart", function(options) {
+                $.getJSON("/api/student/#{student.id}?view=concept-heatmap", function(options) {
                     if (myChart != null) {
                         myChart.destroy();
                     }            
@@ -18,7 +23,6 @@ block content
                 });
             }
             updateChart();
-            //setInterval(updateChart, 5000);
         });
   div
     table.table.table-striped

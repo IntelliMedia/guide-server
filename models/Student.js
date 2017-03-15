@@ -2,35 +2,58 @@ const mongoose = require('mongoose');
 
 const conceptStateSchema = new mongoose.Schema({
   id: String,
-  value: Number,
-  hintLevel: Number
+  value: Number
+});
+
+const characteristicSchema = new mongoose.Schema({
+  name: String,
+  concepts: [conceptStateSchema]
 });
 
 const studentSchema = new mongoose.Schema({
   id: String,
   lastSignIn: Date,
   totalSessions: Number,
-  conceptStates: [conceptStateSchema]
+  characteristics: [characteristicSchema]
 }, { timestamps: true });
 
-studentSchema.methods.conceptState = function (id) {
+studentSchema.methods.conceptState = function (characteristicName, conceptId) {
+  var characteristic = null;
   var conceptState = null;
-  var coneptStatesLength = this.conceptStates.length;
-  for (var i = 0; i < coneptStatesLength; i++) {
-    if (this.conceptStates[i].id == id) {
-       conceptState = this.conceptStates[i];
-       break;
+
+  // Finding existing conceptState
+  for (let ccm of this.characteristics) {
+    if (ccm.name == characteristicName) {
+       for (let concept of ccm.concepts) {
+          if (concept.id = conceptId) {
+            characteristic = ccm;
+            conceptState = concept;
+            break;
+          }
+       }
     }
   }   
+
+  // Add new characteristic, if it doesn't already exist
+  if (characteristic == null) {
+    characteristic = {
+      name: characteristicName,
+      concepts: []
+    };
+    this.characteristics.push(characteristic);
+    characteristic = this.characteristics[this.characteristics.length-1];
+  }
+
+  // Add new concept, if it doesn't already exist
   if (conceptState == null) {
     conceptState = {
-      id: id,
-      value: 0,
-      hintLevel: -1
+      id: conceptId,
+      value: 0
     };
-    this.conceptStates.push(conceptState);
-    conceptState = this.conceptStates[this.conceptStates.length-1];
+    characteristic.concepts.push(conceptState);
+    conceptState = characteristic.concepts[characteristic.concepts.length-1];
   }
+  
   return conceptState;
 };
 

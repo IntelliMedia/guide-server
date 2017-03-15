@@ -142,4 +142,23 @@ if (typeof exports === 'undefined') {
         return characteristic;
     }
 
+    BiologicaX.getCharacteristicFromPhenotype = function(phenotype, gene) {
+        var characteristic = null; 
+        if (gene == 'metallic') {
+            characteristic = phenotype['color'];
+            if (characteristic == 'Steel'
+                || characteristic == 'Copper'
+                || characteristic == 'Silver'
+                || characteristic == 'Gold') {
+                    characteristic = 'Metallic';
+                } else {
+                    characteristic = 'Nonmetallic';
+                }
+        } else {
+            characteristic = phenotype[gene];
+        }
+
+        return characteristic;
+    }
+
 }).call(this);
