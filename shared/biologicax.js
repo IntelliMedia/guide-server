@@ -86,6 +86,23 @@ if (typeof exports === 'undefined') {
         return alleles.match(regex).toString();
     }
 
+    BiologicaX.findAlleleForCharacteristic = function(species, alleles, side, characteristic) {
+        var gene = null;
+
+        var normalizedCharacteristic = characteristic.toLowerCase();
+        if (normalizedCharacteristic.includes("metallic")) {
+            gene = "metallic";
+        } else if (normalizedCharacteristic.includes("wings")) {
+            gene = "wings";
+        } else if (normalizedCharacteristic.includes("forelimbs")) {
+            gene = "forelimbs";
+        } else if (normalizedCharacteristic.includes("hindlimbs")) {
+            gene = "hindlimbs";
+        }
+
+        return BiologicaX.findAllele(species, alleles, side, gene);
+    }
+
     // Returns generic allele pattern for a given gene. For example: 
     //   a:W b:w returns H-h
     //   a:Hl b:Hl returns H-H

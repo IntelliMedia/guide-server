@@ -88,8 +88,8 @@ class EcdRulesEvaluator {
             var hintDelivered = student.mostRecentHint(event.context.challengeId);
             if (hintDelivered != null 
                 && student.conceptState(hintDelivered.characteristic, hintDelivered.conceptId).value < 0 ) {
-                var alleleA = BiologicaX.findAllele(targetSpecies, event.context.selectedAlleles, 'a', gene).replace('a:', '');
-                var alleleB = BiologicaX.findAllele(targetSpecies, event.context.selectedAlleles, 'b', gene).replace('b:', '');
+                var alleleA = BiologicaX.findAlleleForCharacteristic(targetSpecies, event.context.selectedAlleles, 'a', hintDelivered.characteristic).replace('a:', '');
+                var alleleB = BiologicaX.findAlleleForCharacteristic(targetSpecies, event.context.selectedAlleles, 'b', hintDelivered.characteristic).replace('b:', '');
                 var rule = this.findRule(hintDelivered.characteristic, alleleA, alleleB);
                 if (rule && rule.conceptModifiers.hasOwnProperty(hintDelivered.conceptId)) {      
                     if (rule.conceptModifiers[hintDelivered.conceptId] < 0 && rule.hints.length > 0  && rule.hints[0]) {
@@ -110,10 +110,10 @@ class EcdRulesEvaluator {
                     if (conceptState.value >= 0) {
                         break;
                     }
-                    var gene = conceptState.characteristic.toLowerCase();
-                    if (event.context.editableGenes.indexOf(gene) >= 0) {
-                        var alleleA = BiologicaX.findAllele(targetSpecies, event.context.selectedAlleles, 'a', gene).replace('a:', '');
-                        var alleleB = BiologicaX.findAllele(targetSpecies, event.context.selectedAlleles, 'b', gene).replace('b:', '');
+                    if (this.isCharacteristicEditable(event.context.editableGenes, conceptState.characteristic)) {
+
+                        var alleleA = BiologicaX.findAlleleForCharacteristic(targetSpecies, event.context.selectedAlleles, 'a', conceptState.characteristic).replace('a:', '');
+                        var alleleB = BiologicaX.findAlleleForCharacteristic(targetSpecies, event.context.selectedAlleles, 'b', conceptState.characteristic).replace('b:', '');
                         var rule = this.findRule(conceptState.characteristic, alleleA, alleleB);
                         if (rule && rule.conceptModifiers.hasOwnProperty(conceptState.id)) {      
                             if (rule.conceptModifiers[conceptState.id] < 0) {
@@ -131,7 +131,7 @@ class EcdRulesEvaluator {
                                     break;
                                 } else {
                                     console.warn("No hint available for: %s - %s [%s|%s]",
-                                        event.context.challengeId, gene, alleleA, alleleB);
+                                        event.context.challengeId, conceptState.characteristic, alleleA, alleleB);
                                 }
                             }
                         }
@@ -144,7 +144,7 @@ class EcdRulesEvaluator {
                 student.hintHistory.push({
                     challengeId: event.context.challengeId,
                     characteristic: hintCharacteristic, 
-                    conceptId: String,
+                    conceptId: hintConceptId,
                     hintLevel: hintLevel,
                     timestamp: new Date()
                 });
@@ -156,6 +156,16 @@ class EcdRulesEvaluator {
 
             resolve(dialogMessage);
         });
+    }
+
+    isCharacteristicEditable(editableGenes, characteristic) {
+        for (let editableGene of editableGenes) {
+            if (characteristic.includes(editableGene)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     convertCsvToRules(csv) {
