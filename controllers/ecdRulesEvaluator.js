@@ -71,10 +71,10 @@ class EcdRulesEvaluator {
 
             console.info("Find hint for: %s (%s | %s)", student.id, session.groupId, event.context.challengeId);
 
-            var editableCharacteristics = [];
+            var targetCharacteristics = [];
             event.context.editableGenes.forEach((gene) =>
             {
-                editableCharacteristics.push(BiologicaX.getCharacteristicFromPhenotype(event.context.correctPhenotype, gene));
+                targetCharacteristics.push(BiologicaX.getCharacteristicFromPhenotype(event.context.correctPhenotype, gene));
             });
 
             var targetSpecies = BioLogica.Species[event.context.species];
@@ -87,6 +87,7 @@ class EcdRulesEvaluator {
             // Find hint based on what was previously hinted
             var hintDelivered = student.mostRecentHint(event.context.challengeId);
             if (hintDelivered != null 
+                && targetCharacteristics.indexOf(hintDelivered.characteristic) >= 0
                 && student.conceptState(hintDelivered.characteristic, hintDelivered.conceptId).value < 0 ) {
                 var alleleA = BiologicaX.findAlleleForCharacteristic(targetSpecies, event.context.selectedAlleles, 'a', hintDelivered.characteristic).replace('a:', '');
                 var alleleB = BiologicaX.findAlleleForCharacteristic(targetSpecies, event.context.selectedAlleles, 'b', hintDelivered.characteristic).replace('b:', '');
@@ -110,7 +111,7 @@ class EcdRulesEvaluator {
                     if (conceptState.value >= 0) {
                         break;
                     }
-                    if (this.isCharacteristicEditable(event.context.editableGenes, conceptState.characteristic)) {
+                    if (targetCharacteristics.indexOf(conceptState.characteristic) >= 0) {
 
                         var alleleA = BiologicaX.findAlleleForCharacteristic(targetSpecies, event.context.selectedAlleles, 'a', conceptState.characteristic).replace('a:', '');
                         var alleleB = BiologicaX.findAlleleForCharacteristic(targetSpecies, event.context.selectedAlleles, 'b', conceptState.characteristic).replace('b:', '');
@@ -151,7 +152,7 @@ class EcdRulesEvaluator {
                 dialogMessage = new GuideProtocol.Text(
                     'ITS.CONCEPT.FEEDBACK',
                     hints[hintLevel]);
-                dialogMessage.args.trait = hintCharacteristic;
+                dialogMessage.args.trait = BiologicaX.findTraitForCharacteristic(hintCharacteristic);
             }
 
             resolve(dialogMessage);

@@ -87,21 +87,28 @@ if (typeof exports === 'undefined') {
     }
 
     BiologicaX.findAlleleForCharacteristic = function(species, alleles, side, characteristic) {
-        var gene = null;
-
-        var normalizedCharacteristic = characteristic.toLowerCase();
-        if (normalizedCharacteristic.includes("metallic")) {
-            gene = "metallic";
-        } else if (normalizedCharacteristic.includes("wings")) {
-            gene = "wings";
-        } else if (normalizedCharacteristic.includes("forelimbs")) {
-            gene = "forelimbs";
-        } else if (normalizedCharacteristic.includes("hindlimbs")) {
-            gene = "hindlimbs";
-        }
+        var gene = BiologicaX.findTraitForCharacteristic(characteristic);
 
         return BiologicaX.findAllele(species, alleles, side, gene);
     }
+
+    BiologicaX.findTraitForCharacteristic = function(characteristic) {
+        var trait = null;
+
+        var normalizedCharacteristic = characteristic.toLowerCase();
+        if (normalizedCharacteristic.includes("metallic")) {
+            trait = "metallic";
+        } else if (normalizedCharacteristic.includes("wings")) {
+            trait = "wings";
+        } else if (normalizedCharacteristic.includes("forelimbs")) {
+            trait = "forelimbs";
+        } else if (normalizedCharacteristic.includes("hindlimbs")) {
+            trait = "hindlimbs";
+        }
+
+        return trait;
+    }
+
 
     // Returns generic allele pattern for a given gene. For example: 
     //   a:W b:w returns H-h
