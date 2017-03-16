@@ -19,6 +19,7 @@ class EcdRulesEvaluator {
     updateStudentModelAsync(student, session, event) {
         return new Promise((resolve, reject) => {
             console.info("Update student model for: %s (%s | %s)", student.id, session.groupId, event.context.challengeId);
+            console.info("Event: " + JSON.stringify(event, null, '\t'));
             var targetSpecies = BioLogica.Species[event.context.species];
 
             // Iterate over the genes that are editable by the student in the UI
@@ -64,6 +65,11 @@ class EcdRulesEvaluator {
 
     getHintAsync(student, session, event) {
         return new Promise((resolve, reject) => {
+            if (event.context.correct) {
+                console.info("No need to send hint, organism is correct: %s ", event.context.challengeId);
+                return null;
+            }
+
             console.info("Find hint for: %s (%s | %s)", student.id, session.groupId, event.context.challengeId);
 
             var editableCharacteristics = [];
@@ -75,24 +81,60 @@ class EcdRulesEvaluator {
             var targetSpecies = BioLogica.Species[event.context.species];
 
             var hintCharacteristic = null;
+            var hintConceptId = null;
+            var hintLevel = 0;
             var hints = null;
 
-            var lowestToHighestConceptStates = student.sortedConceptStatesByValue();
-            console.info("Scores: " + JSON.stringify(lowestToHighestConceptStates));
-            for (let conceptState of lowestToHighestConceptStates) {
-                if (conceptState.value >= 0) {
-                    break;
+            // Find hint based on what was previously hinted
+            var hintDelivered = student.mostRecentHint(event.context.challengeId);
+            if (hintDelivered != null 
+                && student.conceptState(hintDelivered.characteristic, hintDelivered.conceptId).value < 0 ) {
+                var alleleA = BiologicaX.findAllele(targetSpecies, event.context.selectedAlleles, 'a', gene).replace('a:', '');
+                var alleleB = BiologicaX.findAllele(targetSpecies, event.context.selectedAlleles, 'b', gene).replace('b:', '');
+                var rule = this.findRule(hintDelivered.characteristic, alleleA, alleleB);
+                if (rule && rule.conceptModifiers.hasOwnProperty(hintDelivered.conceptId)) {      
+                    if (rule.conceptModifiers[hintDelivered.conceptId] < 0 && rule.hints.length > 0  && rule.hints[0]) {
+                        console.info("Select hint based on sticking with characteristic: " + hintDelivered.characteristic);
+                        hintConceptId = hintDelivered.conceptId;
+                        hintCharacteristic = hintDelivered.characteristic;
+                        hintLevel = Math.min(hintDelivered.hintLevel + 1, rule.hints.length - 1);
+                        hints = rule.hints;
+                    }
                 }
-                var gene = conceptState.characteristic.toLowerCase();
-                if (event.context.editableGenes.indexOf(gene) >= 0) {
-                    var alleleA = BiologicaX.findAllele(targetSpecies, event.context.selectedAlleles, 'a', gene).replace('a:', '');
-                    var alleleB = BiologicaX.findAllele(targetSpecies, event.context.selectedAlleles, 'b', gene).replace('b:', '');
-                    var rule = this.findRule(conceptState.characteristic, alleleA, alleleB);
-                    if (rule && rule.conceptModifiers.hasOwnProperty(conceptState.id)) {      
-                        if (rule.conceptModifiers[conceptState.id] < 0 && rule.hints.length > 0  && rule.hints[0]) {
-                            hintCharacteristic = conceptState.characteristic;
-                            hints = rule.hints;
-                            break;
+            }
+
+            if (hints == null) {
+                // Find hint based on lowest concept score of editable characteristic
+                var lowestToHighestConceptStates = student.sortedConceptStatesByValue();
+                console.info("Scores: " + JSON.stringify(lowestToHighestConceptStates));
+                for (let conceptState of lowestToHighestConceptStates) {
+                    if (conceptState.value >= 0) {
+                        break;
+                    }
+                    var gene = conceptState.characteristic.toLowerCase();
+                    if (event.context.editableGenes.indexOf(gene) >= 0) {
+                        var alleleA = BiologicaX.findAllele(targetSpecies, event.context.selectedAlleles, 'a', gene).replace('a:', '');
+                        var alleleB = BiologicaX.findAllele(targetSpecies, event.context.selectedAlleles, 'b', gene).replace('b:', '');
+                        var rule = this.findRule(conceptState.characteristic, alleleA, alleleB);
+                        if (rule && rule.conceptModifiers.hasOwnProperty(conceptState.id)) {      
+                            if (rule.conceptModifiers[conceptState.id] < 0) {
+                                if (rule.hints.length > 0  && rule.hints[0]) {
+                                    console.info("Select hint based on lowest concept score: " + conceptState.characteristic); 
+                                    hintConceptId = conceptState.id;
+                                    hintCharacteristic = conceptState.characteristic;
+                                    hints = rule.hints;
+                                    var hintDelivered = student.mostRecentHint(event.context.challengeId, hintCharacteristic);
+                                    if (hintDelivered != null) {
+                                        hintLevel = Math.min(hintDelivered.hintLevel + 1, rule.hints.length - 1);
+                                    } else {
+                                        hintLevel = 0;
+                                    }
+                                    break;
+                                } else {
+                                    console.warn("No hint available for: %s - %s [%s|%s]",
+                                        event.context.challengeId, gene, alleleA, alleleB);
+                                }
+                            }
                         }
                     }
                 }
@@ -100,9 +142,16 @@ class EcdRulesEvaluator {
 
             var dialogMessage = null;
             if (hints) {
+                student.hintHistory.push({
+                    challengeId: event.context.challengeId,
+                    characteristic: hintCharacteristic, 
+                    conceptId: String,
+                    hintLevel: hintLevel,
+                    timestamp: new Date()
+                });
                 dialogMessage = new GuideProtocol.Text(
                     'ITS.CONCEPT.FEEDBACK',
-                    hints[0]);
+                    hints[hintLevel]);
                 dialogMessage.args.trait = hintCharacteristic;
             }
 

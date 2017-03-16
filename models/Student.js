@@ -6,11 +6,22 @@ const conceptStateSchema = new mongoose.Schema({
   value: Number
 });
 
+const hintDelivered = new mongoose.Schema({
+  challengeId: String,
+  characteristic: String, 
+  alleleA: String,
+  alleleB: String,
+  conceptId: String,
+  hintLevel: Number,
+  timestamp: Date
+}, { timestamps: true });
+
 const studentSchema = new mongoose.Schema({
   id: String,
   lastSignIn: Date,
   totalSessions: Number,
-  concepts: [conceptStateSchema]
+  concepts: [conceptStateSchema],
+  hintHistory: [hintDelivered]
 }, { timestamps: true });
 
 studentSchema.methods.conceptState = function (characteristicName, conceptId) {
@@ -50,6 +61,19 @@ studentSchema.methods.sortedConceptStatesByValue = function () {
     return 0;
   });
 }
+
+studentSchema.methods.mostRecentHint = function (challengeId, characteristic) {
+  for (var i = this.hintHistory.length-1; i >= 0; --i) {
+    var hintDelivered = this.hintHistory[i];
+    if (hintDelivered.challengeId == challengeId
+      && (!characteristic || hintDelivered.characteristic == characteristic)) {
+      return hintDelivered;
+    }
+  }
+
+  return null;
+}
+
 
 studentSchema.methods.resetAllHintLevels = function () {
   var coneptStatesLength = this.conceptStates.length;

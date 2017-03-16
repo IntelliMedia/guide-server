@@ -16,9 +16,8 @@ class EventToFunction {
 
 var eventRoutes = [
     new EventToFunction('SYSTEM', 'STARTED', 'SESSION', handleSystemStartedSessionAsync),
-    new EventToFunction('USER', 'NAVIGATED', 'CHALLENGE', handleSystemStartedSessionAsync),
     new EventToFunction('SYSTEM', 'ENDED', 'SESSION', handleSystemEndedSessionAsync),
-//    new EventToFunction('USER', 'NAVIGATED', 'CHALLENGE', handleUserNavigatedChallengeAsync),
+    new EventToFunction('USER', 'NAVIGATED', 'CHALLENGE', handleUserNavigatedChallengeAsync),
 //    new EventToFunction('USER', 'CHANGED', 'ALLELE', handleUserChangedAlleleAsync),
     new EventToFunction('USER', 'SUBMITTED', 'ORGANISM', handleUserSubmittedOrganismAsync)
 ];
@@ -129,30 +128,33 @@ function handleSystemEndedSessionAsync(student, session, event) {
 function handleUserNavigatedChallengeAsync(student, session, event) {
     return new Promise((resolve, reject) => {
         var dialogMessage = null;
+        session.groupId = event.context.group;
 
-        switch (Math.floor(Math.random() * 3)) {
-            case 0:
-                dialogMessage = new GuideProtocol.Text(
-                    'ITS.CHALLENGE.INTRO.1',
-                    'I can help you with Case {{case}} Challenge {{challenge}}.');
-                dialogMessage.args.case = event.context.case;
-                dialogMessage.args.challenge = event.context.challenge;
-                break;
-            case 1:
-                dialogMessage = new GuideProtocol.Text(
-                    'ITS.CHALLENGE.INTRO.2',
-                    'Ok! Let\'s get to work on Case {{case}} Challenge {{challenge}}.');
-                dialogMessage.args.case = event.context.case;
-                dialogMessage.args.challenge = event.context.challenge;
-                break;
-            case 2:
-                dialogMessage = new GuideProtocol.Text(
-                    'ITS.CHALLENGE.INTRO.3',
-                    'I\'m sure you\'re up to the \'challenge\' :-). See what I did there?');
-                break;
-        }
+        // switch (Math.floor(Math.random() * 3)) {
+        //     case 0:
+        //         dialogMessage = new GuideProtocol.Text(
+        //             'ITS.CHALLENGE.INTRO.1',
+        //             'I can help you with Case {{case}} Challenge {{challenge}}.');
+        //         dialogMessage.args.case = event.context.case;
+        //         dialogMessage.args.challenge = event.context.challenge;
+        //         break;
+        //     case 1:
+        //         dialogMessage = new GuideProtocol.Text(
+        //             'ITS.CHALLENGE.INTRO.2',
+        //             'Ok! Let\'s get to work on Case {{case}} Challenge {{challenge}}.');
+        //         dialogMessage.args.case = event.context.case;
+        //         dialogMessage.args.challenge = event.context.challenge;
+        //         break;
+        //     case 2:
+        //         dialogMessage = new GuideProtocol.Text(
+        //             'ITS.CHALLENGE.INTRO.3',
+        //             'I\'m sure you\'re up to the \'challenge\' :-). See what I did there?');
+        //         break;
+        // }
 
-        resolve(dialogMessage ? new GuideProtocol.TutorDialog(dialogMessage) : null);
+        resolve(saveAsync(session, student).then(() => {
+            return (dialogMessage ? new GuideProtocol.TutorDialog(dialogMessage) : null);
+        }));
     });
 }
 
