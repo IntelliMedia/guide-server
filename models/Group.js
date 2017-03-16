@@ -2,7 +2,7 @@ const mongoose = require('mongoose');
 
 const challengeSchema = new mongoose.Schema({
   id: String,
-  guideId: String,
+  challengeId: String,
   googleEcdMatrixId: String
 });
 
@@ -41,7 +41,7 @@ groupSchema.methods.clone = function() {
       for (let challenge of this.challenges) {
         newGroup.challenges.push({
           id: mongoose.Types.ObjectId(),
-          guideId: challenge.guideId,
+          challengeId: challenge.challengeId,
           googleEcdMatrixId: challenge.googleEcdMatrixId
         });
       }
