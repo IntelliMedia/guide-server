@@ -197,6 +197,8 @@ function handleUserSubmittedOrganismAsync(student, session, event) {
         return evaluator.getHintAsync(student, session, event);
     })
     .then((hintText) => {
-        return (hintText ? new GuideProtocol.TutorDialog(hintText) : null);
+        return saveAsync(session, student).then(() => {
+            return (hintText ? new GuideProtocol.TutorDialog(hintText) : null);
+        });
     });
 }

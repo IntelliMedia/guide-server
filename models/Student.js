@@ -1,61 +1,55 @@
 const mongoose = require('mongoose');
 
 const conceptStateSchema = new mongoose.Schema({
+  characteristic: String,
   id: String,
   value: Number
-});
-
-const characteristicSchema = new mongoose.Schema({
-  name: String,
-  concepts: [conceptStateSchema]
 });
 
 const studentSchema = new mongoose.Schema({
   id: String,
   lastSignIn: Date,
   totalSessions: Number,
-  characteristics: [characteristicSchema]
+  concepts: [conceptStateSchema]
 }, { timestamps: true });
 
 studentSchema.methods.conceptState = function (characteristicName, conceptId) {
-  var characteristic = null;
   var conceptState = null;
 
   // Finding existing conceptState
-  for (let ccm of this.characteristics) {
-    if (ccm.name == characteristicName) {
-       for (let concept of ccm.concepts) {
-          if (concept.id = conceptId) {
-            characteristic = ccm;
-            conceptState = concept;
-            break;
-          }
-       }
+  for (let concept of this.concepts) {
+    if (concept.characteristic == characteristicName
+      && concept.id == conceptId) {
+      conceptState = concept;
+      break;
     }
   }   
-
-  // Add new characteristic, if it doesn't already exist
-  if (characteristic == null) {
-    characteristic = {
-      name: characteristicName,
-      concepts: []
-    };
-    this.characteristics.push(characteristic);
-    characteristic = this.characteristics[this.characteristics.length-1];
-  }
 
   // Add new concept, if it doesn't already exist
   if (conceptState == null) {
     conceptState = {
+      characteristic: characteristicName,
       id: conceptId,
       value: 0
     };
-    characteristic.concepts.push(conceptState);
-    conceptState = characteristic.concepts[characteristic.concepts.length-1];
+    this.concepts.push(conceptState);
+    conceptState = this.concepts[this.concepts.length-1];
   }
   
   return conceptState;
 };
+
+studentSchema.methods.sortedConceptStatesByValue = function () {
+  return this.concepts.sort(function(a, b) {
+    if (a.value < b.value) {
+      return -1;
+    }
+    if (a.value > b.value) {
+      return 1;
+    }
+    return 0;
+  });
+}
 
 studentSchema.methods.resetAllHintLevels = function () {
   var coneptStatesLength = this.conceptStates.length;

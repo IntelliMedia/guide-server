@@ -31,22 +31,80 @@ class EcdRulesEvaluator {
                 var targetCharacteristic = BiologicaX.getCharacteristicFromPhenotype(event.context.correctPhenotype, gene);
 
                 console.info("Update: " + targetCharacteristic);
-
-                //updateStudentModel(conceptMatrix, targetCharacteristic, alleleA, alleleB, student);
+                var rule = this.findRule(targetCharacteristic, alleleA, alleleB);
+                if (rule) {
+                    for (var conceptId in rule.conceptModifiers) {
+                        if (rule.conceptModifiers.hasOwnProperty(conceptId)) {
+                            var adjustment = rule.conceptModifiers[conceptId];
+                            student.conceptState(targetCharacteristic, conceptId).value += adjustment;
+                            console.info("Adjusted student model concept: " + conceptId + " adjustment=" + adjustment);
+                        }
+                    }
+                } else {
+                    console.warn("Could not find rule for: %s | %s |%s", targetCharacteristic, alleleA, alleleB);
+                }
             }
 
             resolve(this);
         });
     }
 
+    findRule(characteristic, alleleA, alleleB) {
+        var matches = this.rules.filter((rule) => {
+            return rule.target == characteristic
+                && rule["allele-a"] == alleleA
+                && rule["allele-b"] == alleleB;
+        });
+        if (matches.length > 1) {
+            console.warning("More than one rule matched: " + JSON.stringify(matches));
+        }
+
+        return (matches.length > 0 ? matches[0] : null);
+    }
+
     getHintAsync(student, session, event) {
         return new Promise((resolve, reject) => {
             console.info("Find hint for: %s (%s | %s)", student.id, session.groupId, event.context.challengeId);
-            var text =  "Let's look at the metallic gene. What alleles must be added to the parents' gametes so that the offspring drake is metallic?";
-            var dialogMessage = new GuideProtocol.Text(
-                'ITS.CONCEPT.FEEDBACK',
-                text);
-            //dialogMessage.args.trait = trait;
+
+            var editableCharacteristics = [];
+            event.context.editableGenes.forEach((gene) =>
+            {
+                editableCharacteristics.push(BiologicaX.getCharacteristicFromPhenotype(event.context.correctPhenotype, gene));
+            });
+
+            var targetSpecies = BioLogica.Species[event.context.species];
+
+            var hintCharacteristic = null;
+            var hints = null;
+
+            var lowestToHighestConceptStates = student.sortedConceptStatesByValue();
+            console.info("Scores: " + JSON.stringify(lowestToHighestConceptStates));
+            for (let conceptState of lowestToHighestConceptStates) {
+                if (conceptState.value >= 0) {
+                    break;
+                }
+                var gene = conceptState.characteristic.toLowerCase();
+                if (event.context.editableGenes.indexOf(gene) >= 0) {
+                    var alleleA = BiologicaX.findAllele(targetSpecies, event.context.selectedAlleles, 'a', gene).replace('a:', '');
+                    var alleleB = BiologicaX.findAllele(targetSpecies, event.context.selectedAlleles, 'b', gene).replace('b:', '');
+                    var rule = this.findRule(conceptState.characteristic, alleleA, alleleB);
+                    if (rule && rule.conceptModifiers.hasOwnProperty(conceptState.id)) {      
+                        if (rule.conceptModifiers[conceptState.id] < 0 && rule.hints.length > 0  && rule.hints[0]) {
+                            hintCharacteristic = conceptState.characteristic;
+                            hints = rule.hints;
+                            break;
+                        }
+                    }
+                }
+            }
+
+            var dialogMessage = null;
+            if (hints) {
+                dialogMessage = new GuideProtocol.Text(
+                    'ITS.CONCEPT.FEEDBACK',
+                    hints[0]);
+                dialogMessage.args.trait = hintCharacteristic;
+            }
 
             resolve(dialogMessage);
         });
