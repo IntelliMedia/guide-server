@@ -19,7 +19,6 @@ class EcdRulesEvaluator {
     updateStudentModelAsync(student, session, event) {
         return new Promise((resolve, reject) => {
             console.info("Update student model for: %s (%s | %s)", student.id, session.groupId, event.context.challengeId);
-            console.info("Event: " + JSON.stringify(event, null, '\t'));
             var targetSpecies = BioLogica.Species[event.context.species];
 
             // Iterate over the genes that are editable by the student in the UI
