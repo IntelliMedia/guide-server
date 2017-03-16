@@ -1,13 +1,15 @@
-function submit(path, action, group) {
+function submit(path, action, group, callback) {
     $.ajax({
             url: path,
             method: action,
             data: group,
             datatype: "json",
             success: function(data, textStatus) {
-                if (data.redirect) {
+                if (!callback && data.redirect) {
                     // data.redirect contains the string URL to redirect to
                     window.location.href = data.redirect;
+                } else if (callback) {
+                    callback(data);
                 }
                 console.info(textStatus);
             },
@@ -25,7 +27,7 @@ function extractGroup() {
       $rows.each(function () {
         var $td = $(this).find('td');
         
-        if ($td.length == 4) {
+        if ($td.length > 2) {
             modifiedChallenges.push(
                 {
                     id: $td.eq(0).text().trim(),
@@ -46,6 +48,15 @@ function extractGroup() {
 }
 
 window.onload = function() {
+
+    var e=document.getElementById("refreshed");
+	if(e.value=="no") {
+        e.value="yes";
+    } else {
+        e.value="no";
+        location.reload();
+    }
+
     var $TABLE = $('#table');
     var $SAVE_BTN = $('#save-btn');
     var $DUPLICATE_BTN = $('#duplicate-btn');
@@ -53,23 +64,30 @@ window.onload = function() {
     var $CANCEL_BTN = $('#cancel-btn');
 
     $('.table-add').click(function () {
-    var $clone = $TABLE.find('tr.hide').clone(true).removeClass('hide table-line');
-    $TABLE.find('table').append($clone);
+        var $clone = $TABLE.find('tr.hide').clone(true).removeClass('hide table-line');
+        $TABLE.find('table').append($clone);
     });
 
     $('.table-remove').click(function () {
-    $(this).parents('tr').detach();
+        $(this).parents('tr').detach();
+    });
+
+    $('.view-link').click(function () {
+        var googleDocId = $(this).parents('tr').find('td').eq(2).text().trim();
+        submit("/group/modify", "POST", extractGroup(), (response) => {
+            window.location.href = "https://docs.google.com/spreadsheets/d/" + googleDocId;
+        });
     });
 
     $('.table-up').click(function () {
-    var $row = $(this).parents('tr');
-    if ($row.index() === 1) return; // Don't go above the header
-    $row.prev().before($row.get(0));
+        var $row = $(this).parents('tr');
+        if ($row.index() === 1) return; // Don't go above the header
+        $row.prev().before($row.get(0));
     });
 
     $('.table-down').click(function () {
-    var $row = $(this).parents('tr');
-    $row.next().after($row.get(0));
+        var $row = $(this).parents('tr');
+        $row.next().after($row.get(0));
     });
 
     // A few jQuery helpers for exporting only

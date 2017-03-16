@@ -15,6 +15,15 @@
     color: #f00;
   }
 
+.table-link {
+  color: #14489e;
+  cursor: pointer;
+}
+
+.table-link:hover {
+  color: #5998ff;
+}
+
 .table-up, .table-down {
   color: #007;
   cursor: pointer;
