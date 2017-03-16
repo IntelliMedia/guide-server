@@ -193,10 +193,10 @@ function handleUserSubmittedOrganismAsync(student, session, event) {
 
     var repo = new EvaluatorRepository();
     return repo.findEvaluatorAsync(session.groupId, event.context.challengeId).then((evaluator) => { 
-        return evaluator.updateStudentModelAsync(student, session, event);
+        return (evaluator ? evaluator.updateStudentModelAsync(student, session, event) : null);
     })
     .then((evaluator) => {
-        return evaluator.getHintAsync(student, session, event);
+        return (evaluator ? evaluator.getHintAsync(student, session, event) : null);
     })
     .then((hintText) => {
         return saveAsync(session, student).then(() => {
