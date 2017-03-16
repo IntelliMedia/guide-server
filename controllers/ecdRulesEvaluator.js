@@ -160,7 +160,7 @@ class EcdRulesEvaluator {
 
     isCharacteristicEditable(editableGenes, characteristic) {
         for (let editableGene of editableGenes) {
-            if (characteristic.includes(editableGene)) {
+            if (characteristic.toLowerCase().includes(editableGene)) {
                 return true;
             }
         }
