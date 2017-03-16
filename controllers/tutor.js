@@ -86,7 +86,7 @@ function handleSystemStartedSessionAsync(student, session, event) {
     return new Promise((resolve, reject) => {
         student.lastSignIn = new Date(event.time);
         student.totalSessions += 1;
-        session.groupId = event.context.group;
+        session.groupId = event.context.groupId;
 
         var dialogMessage = null;
 
@@ -128,7 +128,7 @@ function handleSystemEndedSessionAsync(student, session, event) {
 function handleUserNavigatedChallengeAsync(student, session, event) {
     return new Promise((resolve, reject) => {
         var dialogMessage = null;
-        session.groupId = event.context.group;
+        session.groupId = event.context.groupId;
 
         // switch (Math.floor(Math.random() * 3)) {
         //     case 0:

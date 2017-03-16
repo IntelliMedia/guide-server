@@ -6,7 +6,7 @@ const Group = require('../models/Group');
 const EcdRulesEvaluator = require("./ecdRulesEvaluator");
 
 /**
- * This class retrieves rules based on group and guideId 
+ * This class retrieves rules based on group and challengeId 
  * to locate rules/hints for a specific GV2 challenge.
  */
 class EcdRulesRepository {
@@ -14,8 +14,8 @@ class EcdRulesRepository {
 
     }
 
-    findEvaluatorAsync(groupName, guideId) {
-        return this.getEcdMatrixIdAsync(groupName, guideId).then(matrixId => {
+    findEvaluatorAsync(groupName, challengeId) {
+        return this.getEcdMatrixIdAsync(groupName, challengeId).then(matrixId => {
             var options = {
                 method: "GET",
                 uri: "https://docs.google.com/spreadsheets/d/" + matrixId + "/export?format=csv",
@@ -48,25 +48,25 @@ class EcdRulesRepository {
         });  
     }
 
-    getEcdMatrixIdAsync(groupName, guideId) {
+    getEcdMatrixIdAsync(groupName, challengeId) {
         return Group.findOne({ "name": groupName }).then((group) => {
             if (!group) {
                 throw new Error("Unable to find group with name: " + groupName);
             }
 
             var matchingChallenges = group.challenges.filter(function( challenge ) {
-                return challenge.guideId == guideId;
+                return challenge.challengeId == challengeId;
             });
 
             if (matchingChallenges.length > 1) {
-                console.warn("More than one challenge with id=" + guideId + " defined for group: " + groupName);
+                console.warn("More than one challenge with id=" + challengeId + " defined for group: " + groupName);
             }
             
             if (matchingChallenges.length > 0) {
                 return matchingChallenges[0].googleEcdMatrixId;
             }
 
-            throw new Error("Unable to find  challenge id=" + guideId + " group: " + groupName);      
+            throw new Error("Unable to find  challenge id=" + challengeId + " group: " + groupName);      
         });
     }
 }
