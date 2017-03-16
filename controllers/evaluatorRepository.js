@@ -3,6 +3,7 @@
 const rp = require('request-promise');
 const parse = require('csv-parse');
 const Group = require('../models/Group');
+const EcdRulesEvaluator = require("./ecdRulesEvaluator");
 
 /**
  * This class retrieves rules based on group and guideId 
@@ -13,8 +14,8 @@ class EcdRulesRepository {
 
     }
 
-    findEcdMatrix(groupName, guideId) {
-        return this.getEcdMatrixId(groupName, guideId).then(matrixId => {
+    findEvaluatorAsync(groupName, guideId) {
+        return this.getEcdMatrixIdAsync(groupName, guideId).then(matrixId => {
             var options = {
                 method: "GET",
                 uri: "https://docs.google.com/spreadsheets/d/" + matrixId + "/export?format=csv",
@@ -27,22 +28,27 @@ class EcdRulesRepository {
             return rp(options);
         })
         .then( response => {
-            return this.parseCsv(response);
+            return this.parseCsvAsync(response);
+        })
+        .then (csv => {
+            // TODO determine which evaluator to instantiate, don't always assume
+            // ECD rules.
+            return new EcdRulesEvaluator(csv);
         })
         .catch(function (err) {
             console.error("Unable to download rules.", err);
         });
     }
 
-    parseCsv(csv) {
+    parseCsvAsync(text) {
         return new Promise((resolve, reject) => {
-            parse(csv, {comment: '#'}, function(err, output){
-                resolve(output);
+            parse(text, {comment: '#'}, function(err, csv){
+                resolve(csv);
             });
         });  
     }
 
-    getEcdMatrixId(groupName, guideId) {
+    getEcdMatrixIdAsync(groupName, guideId) {
         return Group.findOne({ "name": groupName }).then((group) => {
             if (!group) {
                 throw new Error("Unable to find group with name: " + groupName);

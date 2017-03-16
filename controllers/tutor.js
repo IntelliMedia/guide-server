@@ -1,8 +1,9 @@
 const students = require('./students');
-const ecdRules = require('../models/EcdRules');
 const Hint = require('../models/Hint');
 const await = require('asyncawait/await');
 const guideProtocol = require('../shared/guide-protocol.js');
+const EvaluatorRepository = require('./evaluatorRepository');
+const EcdRulesEvaluator = require("./ecdRulesEvaluator");
 
 class EventToFunction {
     constructor(actor, action, target, handler) {
@@ -187,62 +188,15 @@ function handleUserChangedAlleleAsync(student, session, event) {
 }
 
 function handleUserSubmittedOrganismAsync(student, session, event) {
-    return ecdRules.evaluateOrganismSubmission(
-        student,
-        event.context.groupId,
-        //session.groupId,
-        event.context.challengeId,
-        event.context.correct,
-        event.context.editableGenes,
-        event.context.species,
-        event.context.correctPhenotype,
-        event.context.initialAlleles,
-        event.context.selectedAlleles,
-        event.context.targetSex).then(text => {
 
-            // var dialogMessage = null;
-
-            // if (event.context.correct) {
-            //     student.resetAllHintLevels();
-            // } else {
-            //     var concepts = student.conceptStates.toObject();
-            //     if (concepts == null || concepts.length == 0) {
-            //         console.error("Student (" + student.id + ") doesn't have any concepts defined");
-            //     } else {
-            //         var keysSorted = Object.keys(concepts).sort(function (a, b) { return concepts[a].value - concepts[b].value });
-            //         console.log('sorted concepts: ' + keysSorted);
-
-            //         var lowestConceptId = concepts[keysSorted[0]].id;
-            //         var conceptHintLevel = concepts[keysSorted[0]].hintLevel + 1;
-
-            //         //var hint = Hint.getHint(lowestConceptId, conceptHintLevel);
-            //         var hint = hints.length > 0 && hints.length > conceptHintLevel ? hints[conceptHintLevel] : null;
-            //         if (hint) {
-            //             student.conceptState(lowestConceptId).hintLevel = conceptHintLevel;
-
-            //             var trait = "unknown";
-            //             // if (conceptIdToGenes.hasOwnProperty(lowestConceptId)) {
-            //             //     trait = conceptIdToGenes[lowestConceptId].trait;
-            //             // }
-
-            //             dialogMessage = new GuideProtocol.Text(
-            //                 'ITS.CONCEPT.FEEDBACK',
-            //                 hint);
-            //             dialogMessage.args.trait = trait;
-            //         } else {
-            //             console.warn("No hint available for " + lowestConceptId + " level=" + conceptHintLevel);
-            //         }
-            //     }
-            // }
-
-            var dialogMessage = null;
-            
-            if (text) {
-            dialogMessage = new GuideProtocol.Text(
-                             'ITS.CONCEPT.FEEDBACK',
-                             text);
-            }
-
-            return (dialogMessage ? new GuideProtocol.TutorDialog(dialogMessage) : null);
-        });
+    var repo = new EvaluatorRepository();
+    return repo.findEvaluatorAsync(session.groupId, event.context.challengeId).then((evaluator) => { 
+        return evaluator.updateStudentModelAsync(student, session, event);
+    })
+    .then((evaluator) => {
+        return evaluator.getHintAsync(student, session, event);
+    })
+    .then((hintText) => {
+        return (hintText ? new GuideProtocol.TutorDialog(hintText) : null);
+    });
 }
