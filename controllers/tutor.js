@@ -192,15 +192,12 @@ function handleUserChangedAlleleAsync(student, session, event) {
 function handleUserSubmittedOrganismAsync(student, session, event) {
 
     var repo = new EvaluatorRepository();
-    return repo.findEvaluatorAsync(session.groupId, event.context.challengeId).then((evaluator) => { 
-        return (evaluator ? evaluator.updateStudentModelAsync(student, session, event) : null);
+    return repo.findEvaluatorAsync(session.groupId, event.context.challengeId).then((evaluator) => {
+        return (evaluator ? evaluator.evaluateAsync(student, session, event) : null);
     })
-    .then((evaluator) => {
-        return (evaluator ? evaluator.getHintAsync(student, session, event) : null);
-    })
-    .then((hintText) => {
+    .then((action) => {
         return saveAsync(session, student).then(() => {
-            return (hintText ? new GuideProtocol.TutorDialog(hintText) : null);
+            return (action ? action : null);
         });
     });
 }

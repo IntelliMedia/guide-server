@@ -11,14 +11,15 @@ const EcdRulesEvaluator = require("./ecdRulesEvaluator");
  */
 class EcdRulesRepository {
     constructor() {
-
     }
 
     findEvaluatorAsync(groupName, challengeId) {
+        var docUrl = null;
         return this.getEcdMatrixIdAsync(groupName, challengeId).then(matrixId => {
+            docUrl = "https://docs.google.com/spreadsheets/d/" + matrixId + "/export?format=csv";
             var options = {
                 method: "GET",
-                uri: "https://docs.google.com/spreadsheets/d/" + matrixId + "/export?format=csv",
+                uri: docUrl,
                 headers: {
                     'User-Agent': 'Request-Promise'
                 } 
@@ -28,21 +29,21 @@ class EcdRulesRepository {
             return rp(options);
         })
         .then( response => {
-            return this.parseCsvAsync(response);
+            return this.parseCsvAsync(response, docUrl);
         })
         .then (csv => {
             // TODO determine which evaluator to instantiate, don't always assume
             // ECD rules.
             return new EcdRulesEvaluator(csv);
-        })
-        .catch(function (err) {
-            console.error("Unable to download rules.", err);
         });
     }
 
-    parseCsvAsync(text) {
+    parseCsvAsync(text, docUrl) {
         return new Promise((resolve, reject) => {
             parse(text, {comment: '#'}, function(err, csv){
+                if (err) {
+                    reject(new Error("Unable to parse ECD rules from " + docUrl + " . " + err.message));
+                }
                 resolve(csv);
             });
         });  

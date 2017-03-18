@@ -80,6 +80,70 @@ if (typeof exports === 'undefined') {
         return geneName;
     }
 
+     BiologicaX.getTrait = function(organism, characteristic) {
+         var isMetallicCharacteristic = false;
+         var targetCharacteristic = characteristic.toLowerCase();
+         if (targetCharacteristic.includes("metallic")) {
+             return "metallic";
+         }
+
+         var foundTrait = null;
+         for (var trait in organism.species.traitRules) {
+             if (!organism.species.traitRules.hasOwnProperty(trait)) {
+                 continue;
+             }
+             
+             for (var characteristic in organism.species.traitRules[trait]) {
+                if (!organism.species.traitRules[trait].hasOwnProperty(characteristic)) {
+                    continue;
+                }
+
+                if (characteristic.toLowerCase() == targetCharacteristic) {
+                    foundTrait = trait;
+                }
+             }
+             if (foundTrait) {
+                 break;
+             }
+         }
+
+         if (isMetallicCharacteristic) {
+            if (foundTrait == 'Steel'
+                || foundTrait == 'Copper'
+                || foundTrait == 'Silver'
+                || foundTrait == 'Gold') {
+                    foundTrait = 'Metallic';
+                } else {
+                    foundTrait = 'Nonmetallic';
+                }
+         }
+
+        return foundTrait;
+    }
+
+    BiologicaX.getCharacteristic = function(organism, trait) {
+        var characteristic = null; 
+        if (trait.includes("metallic")) {
+            characteristic = organism.getCharacteristic('color');
+            if (BiologicaX.isColorMetallic(characteristic)) {
+                    characteristic = 'Metallic';
+                } else {
+                    characteristic = 'Nonmetallic';
+                }
+        } else {
+            characteristic = organism.getCharacteristic(trait);
+        }
+
+        return characteristic;
+    }
+
+    BiologicaX.isColorMetallic = function(color) {
+        return (color == 'Steel'
+                || color == 'Copper'
+                || color == 'Silver'
+                || color == 'Gold');
+    }
+
     BiologicaX.findAllele = function(species, alleles, side, gene) {
         var allOptions = '(?:' + species.geneList[gene].alleles.join('|') + ')';
         var regex = new RegExp(side + ':' + allOptions, '');
@@ -127,7 +191,7 @@ if (typeof exports === 'undefined') {
 
     BiologicaX.getInheritancePatternForGene = function(organism, gene) {
 
-        var characteristic = BiologicaX.getCharacteristicForGene(organism, gene);
+        var characteristic = BiologicaX.getCharacteristic(organism, gene);
 
         var pattern = null;
         var alleleLabelMap = organism.species.alleleLabelMap;
@@ -146,25 +210,6 @@ if (typeof exports === 'undefined') {
 
         return pattern;
     }      
-
-    BiologicaX.getCharacteristicForGene = function(organism, gene) {
-        var characteristic = null; 
-        if (gene == 'metallic') {
-            characteristic = organism.getCharacteristic('color');
-            if (characteristic == 'Steel'
-                || characteristic == 'Copper'
-                || characteristic == 'Silver'
-                || characteristic == 'Gold') {
-                    characteristic = 'Metallic';
-                } else {
-                    characteristic = 'Nonmetallic';
-                }
-        } else {
-            characteristic = organism.getCharacteristic(gene);
-        }
-
-        return characteristic;
-    }
 
     BiologicaX.getCharacteristicFromPhenotype = function(phenotype, gene) {
         var characteristic = null; 
