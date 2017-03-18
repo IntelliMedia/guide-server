@@ -22,84 +22,138 @@ class EcdRulesEvaluator {
             var targetSpecies = BioLogica.Species[event.context.species];
             var organism = new BioLogica.Organism(targetSpecies, event.context.selectedAlleles, event.context.submittedSex);
             
-/*           
-            var trait1 = BiologicaX.getTrait(organism, "Metallic");
-            var trait2 = BiologicaX.getTrait(organism, "No Wings");
-            var trait3 = BiologicaX.getTrait(organism, "Charcoal");
+            var activatedRules = this.evaluateRules(
+                event.context.editableGenes,
+                event.context.correctPhenotype, 
+                event.context.targetSex, 
+                organism);
 
-            var alleles1 = organism.genetics.getAlleleStringForTrait(trait1);
-            var alleles2 = organism.genetics.getAlleleStringForTrait(trait2);
-            var alleles3 = organism.genetics.getAlleleStringForTrait(trait3);
+            var negativeConcepts = this.updateStudentModel(student, activatedRules);
 
+            var action = null;
+            if (!event.context.correct) {
+                action = this.selectHint(student, event.context.challengeId, negativeConcepts)
+            } else {
+                console.info("No need to send hint, organism is correct for user: %s", student.id);
+            }  
 
-            var testRule = Rule.create("Allele", "wings", "a:W,b:w", "concepts", "hints");
-            var active = testRule.evaluate(event.context.correctPhenotype, organism);
+            resolve(action);
+        });
+    }
 
-            var testRule2 = Rule.create("Allele", "wings", "a:W,b:W", "concepts", "hints");
-            var active2 = testRule2.evaluate(event.context.correctPhenotype, organism);
+    evaluateRules(editableTraits, correctPhenotype, correctSex, organism) {
+        var activatedRules = {
+            correct: [],
+            misconceptions: []
+        }
 
-            var testRule3 = Rule.create("Allele", "metallic", "a:M,b:M", "concepts", "hints");
-            var active3 = testRule3.evaluate(event.context.correctPhenotype, organism);
-*/
-            return null;
-
-            // Iterate over the genes that are editable by the student in the UI
-            var conceptIdToTrait = {};
-            var genesLength = event.context.editableGenes.length;
-            for (var i = 0; i < genesLength; ++i) {
-                var gene = event.context.editableGenes[i];
-                var alleleA = BiologicaX.findAllele(targetSpecies, event.context.selectedAlleles, 'a', gene).replace('a:', '');
-                var alleleB = BiologicaX.findAllele(targetSpecies, event.context.selectedAlleles, 'b', gene).replace('b:', '');
-                var targetCharacteristic = BiologicaX.getCharacteristicFromPhenotype(event.context.correctPhenotype, gene);
-
-                console.info("Update: " + targetCharacteristic);
-                var rule = this.findRule(targetCharacteristic, alleleA, alleleB);
-                if (rule) {
-                    for (var conceptId in rule.conceptModifiers) {
-                        if (rule.conceptModifiers.hasOwnProperty(conceptId)) {
-                            var adjustment = rule.conceptModifiers[conceptId];
-                            student.conceptState(targetCharacteristic, conceptId).value += adjustment;
-                            console.info("Adjusted student model concept: " + conceptId + " adjustment=" + adjustment);
-                        }
+        // Evaluate selectedAlleles
+        for (let trait of editableTraits) {
+            var correctCharacterisitic = BiologicaX.getCharacteristicFromPhenotype(correctPhenotype, trait);
+            for (let rule of this.rules) {
+                if (rule instanceof AlleleRule && rule.evaluate(correctCharacterisitic, organism)) {
+                    if (!rule.isMisconception) {
+                        activatedRules.correct.push(rule);
+                    } else {
+                       activatedRules.misconceptions.push(rule);
                     }
-                } else {
-                    console.warn("Could not find rule for: %s | %s |%s", targetCharacteristic, alleleA, alleleB);
                 }
             }
-
-            resolve(this.getHint(student, session, event));
-        });
-    }
-
-    evaluateRules(student, session, event) {
-        var positiveRules = [];
-        var negativeRules = [];
-
-        return {
-            positiveRules: positiveRules,
-            negativeRules: negativeRules
-        }
-    }
-
-    findRule(characteristic, alleleA, alleleB) {
-        var matches = this.rules.filter((rule) => {
-            return rule.target == characteristic
-                && rule["allele-a"] == alleleA
-                && rule["allele-b"] == alleleB;
-        });
-        if (matches.length > 1) {
-            console.warning("More than one rule matched: " + JSON.stringify(matches));
         }
 
-        return (matches.length > 0 ? matches[0] : null);
+        for (let rule of this.rules) {
+            if (rule instanceof SexRule && rule.evaluate(correctSex, organism)) {
+                if (!rule.isMisconception) {
+                    activatedRules.correct.push(rule);
+                } else {
+                    activatedRules.misconceptions.push(rule);
+                }
+            }
+        }
+
+        activatedRules.correct = this.sortRulesByPriority(activatedRules.correct);
+        activatedRules.misconceptions = this.sortRulesByPriority(activatedRules.misconceptions);
+
+        return activatedRules;
+    }
+
+    updateStudentModel(student, activatedRules) {
+        var negativeConcepts = [];
+
+        for (let rule of activatedRules.correct) {
+            for (var conceptId in rule.concepts) {
+                if (!rule.concepts.hasOwnProperty(conceptId)) {
+                    continue;
+                }
+                var adjustment = rule.concepts[conceptId];
+                student.conceptState(rule.target, conceptId).value += adjustment;
+                console.info("Adjusted student model concept: " + conceptId + " adjustment=" + adjustment);
+            }
+        }
+
+        for (let rule of activatedRules.misconceptions) {
+            for (var conceptId in rule.concepts) {
+                if (!rule.concepts.hasOwnProperty(conceptId)) {
+                    continue;
+                }
+                var adjustment = rule.concepts[conceptId];
+                var state = student.conceptState(rule.target, conceptId);
+                state.value += adjustment;
+                // TODO - only include negative concept state values?
+                if (state.value < 0) {
+                    negativeConcepts.push(new NegativeConcept(
+                        conceptId, 
+                        state.value, 
+                        rule)); 
+                }
+                console.info("Adjusted student model concept: " + conceptId + " adjustment=" + adjustment);
+            }
+        }
+
+        // Sort by priority (highest to lowest) and then concept score (lowest to highest)
+        return negativeConcepts.sort(function(a, b) {
+            if (b.rule.priority != a.rule.priority) {
+                return b.rule.priority - a.rule.priority;
+            } else {
+                return a.value - b.value;
+            }
+        });
+    } 
+
+    selectHint(student, challengeId, negativeConcepts) {
+        console.info("Select hint for: %s", student.id);
+        if (!negativeConcepts || negativeConcepts.length == 0) {
+            console.info("No need to hint. No negative concepts for user: " + student.id);
+        }
+
+        var hints = null;
+
+        // Prioritize the most recently hinted concept (don't jump around between hints)
+        var hintDelivered = student.mostRecentHint(challengeId);
+        for (let negativeConcept of negativeConcepts) {
+
+        }
+
+        var action = null;
+        if (hints) {
+            student.hintHistory.push({
+                challengeId: event.context.challengeId,
+                characteristic: hintCharacteristic, 
+                conceptId: hintConceptId,
+                hintLevel: hintLevel,
+                timestamp: new Date()
+            });
+            var dialogMessage = new GuideProtocol.Text(
+                'ITS.CONCEPT.FEEDBACK',
+                hints[hintLevel]);
+            dialogMessage.args.trait = BiologicaX.findTraitForCharacteristic(hintCharacteristic);
+            action = new GuideProtocol.TutorDialog(dialogMessage);
+        }
+
+        return action;
     }
 
     getHint(student, session, event) {
-        if (event.context.correct) {
-            console.info("No need to send hint, organism is correct: %s ", event.context.challengeId);
-            return null;
-        }
-
         console.info("Find hint for: %s (%s | %s)", student.id, session.groupId, event.context.challengeId);
 
         var targetCharacteristics = [];
@@ -228,9 +282,13 @@ class EcdRulesEvaluator {
                 this.extractHints(headerRow, currentRow)));
         }
 
+        return rules;
+    }
+
+    sortRulesByPriority(rules) {
         return rules.sort(function(a, b) {
             return b.priority - a.priority;
-        });;
+        });
     }
 
     asNumber(value) {
@@ -245,7 +303,7 @@ class EcdRulesEvaluator {
          for (var i = 0; i < headerRow.length; ++i) {
             if (this.isConceptId(headerRow[i])) {
                 var value = currentRow[i].trim();
-                concepts[currentRow[i]] = this.asNumber(value);
+                concepts[headerRow[i]] = this.asNumber(value);
             }
          }
          return concepts;
@@ -264,7 +322,8 @@ class EcdRulesEvaluator {
     isConceptId(text) {
         var target = text.toLowerCase();
 
-        if (target.includes("ruletype")
+        if (target.includes("priority")
+            || target.includes("ruletype")
             || target.includes("target")
             || target.includes("value")
             || target.includes("hint")
@@ -282,6 +341,14 @@ class EcdRulesEvaluator {
     }
 }
 
+class NegativeConcept {
+    constructor(conceptId, value, rule) {
+        this.conceptId = conceptId;
+        this.value = value;
+        this.rule = rule;
+    }
+}
+
 class Rule {   
     constructor(priority, target, value, concepts, hints) {
         this.priority = priority;
@@ -289,6 +356,15 @@ class Rule {
         this.value = value;
         this.concepts = concepts;
         this.hints = hints;
+
+        var totalAdjustment = 0;
+        for (var concept in this.concepts) {
+            if (!this.concepts.hasOwnProperty(concept)) {
+                continue;
+            }
+            totalAdjustment += this.concepts[concept];
+        }
+        this.isMisconception = totalAdjustment < 0;
     }
 
     static create(priority, type, target, value, concepts, hints) {
@@ -322,7 +398,7 @@ class AlleleRule extends Rule {
         this.alleles = value.replace(/\s/g,'')
     }
 
-    evaluate(correctPhenotype, organism) {
+    evaluate(correctCharacterisitic, organism) {
         var trait = BiologicaX.getTrait(organism, this.target);
         if (!trait) {
             throw new Error("Unable to find '" + this.target 
@@ -333,8 +409,6 @@ class AlleleRule extends Rule {
             throw new Error("Unable to alleles for '" + this.target 
                 + "' characteristic in '" + organism.species.name + "' species.")
         }
-
-        var correctCharacterisitic = BiologicaX.getCharacteristicFromPhenotype(correctPhenotype, trait);
 
         return this.target.toLowerCase() == correctCharacterisitic.toLowerCase() 
                 &&  alleles.includes(this.alleles);
@@ -346,25 +420,13 @@ class SexRule extends Rule {
         super(priority, target, value, concepts, hints);
         
         // Remove all whitespace (inner and outer)
-        this.alleles = value.replace(/\s/g,'')
+        this.targetSex = (this.target.toLowerCase() == "female" ? BioLogica.FEMALE : BioLogica.MALE);
+        this.sex = (this.value.toLowerCase() == "female" ? BioLogica.FEMALE : BioLogica.MALE);
     }
 
-    evaluate(correctPhenotype, organism) {
-        var trait = BiologicaX.getTrait(organism, this.target);
-        if (!trait) {
-            throw new Error("Unable to find '" + this.target 
-                + "' characteristic in '" + organism.species.name + "' species.")
-        }
-        var alleles = organism.genetics.getAlleleStringForTrait(trait);
-        if (!alleles) {
-            throw new Error("Unable to alleles for '" + this.target 
-                + "' characteristic in '" + organism.species.name + "' species.")
-        }
+    evaluate(correctSex, organism) {
 
-        var correctCharacterisitic = BiologicaX.getCharacteristicFromPhenotype(correctPhenotype, trait);
-
-        return this.target.toLowerCase() == correctCharacterisitic.toLowerCase() 
-                &&  alleles.includes(this.alleles);
+        return correctSex == this.targetSex && this.sex == organism.sex;
     }
 }
 
