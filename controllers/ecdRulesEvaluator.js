@@ -198,40 +198,67 @@ class EcdRulesEvaluator {
     }
 
     convertCsvToRules(csv) {
-        var rules = [];
+        var currentRowIndex = 0;
+        try { 
+            var rules = [];
 
-        var headerRow = csv[0];
-        var columnCount = csv[0].length;
-        var columnMap = {};
-        for (var i = 0; i < columnCount; ++i) {
-            columnMap[headerRow[i].toLowerCase().trim()] = i;
-        }
-
-        var rowCount = csv.length;
-        for (var i = 1; i < rowCount; ++i) {
-            var currentRow = csv[i];
-
-            // Empty row?
-            if (!currentRow[0].trim()) {
-                continue;
+            var headerRow = csv[0];
+            var columnCount = csv[0].length;
+            var columnMap = {};
+            for (var i = 0; i < columnCount; ++i) {
+                columnMap[headerRow[i].toLowerCase().trim()] = i;
             }
 
-            rules.push(Rule.create(
-                this.asNumber(currentRow[columnMap["priority"]].trim()),
-                currentRow[columnMap["ruletype"]].trim(),
-                currentRow[columnMap["target"]].trim(),
-                currentRow[columnMap["selected"]].trim(),
-                this.extractConcepts(headerRow, currentRow),
-                this.extractHints(headerRow, currentRow)));
-        }
+            var rowCount = csv.length;
+            for (var i = 1; i < rowCount; ++i) {
+                currentRowIndex = i;
+                var currentRow = csv[i];
 
-        return rules;
+                // Empty row?
+                if (!this.asText(currentRow[0])) {
+                    continue;
+                }
+
+                rules.push(Rule.create(
+                    this.asNumber(this.getCell(currentRow, columnMap, "priority")),
+                    this.asText(this.getCell(currentRow, columnMap, "ruletype")),
+                    this.asText(this.getCell(currentRow, columnMap, "target")),
+                    this.asText(this.getCell(currentRow, columnMap, "selected")),
+                    this.extractConcepts(headerRow, currentRow),
+                    this.extractHints(headerRow, currentRow)));
+            }
+
+            return rules;
+        } catch(err) {
+            var msg = "Unable to parse CSV row " + currentRowIndex + ". ";
+            err.message = msg + err.message;
+            throw err;
+        }
     }
 
     sortRulesByPriority(rules) {
         return rules.sort(function(a, b) {
             return b.priority - a.priority;
         });
+    }
+
+    getCell(currentRow, columnMap, columnName) {
+        if (!columnMap.hasOwnProperty(columnName) && columnMap[columnName] < currentRow.length) {
+            throw new Error("Unable to find column named: " + columnName);
+        }
+
+        var value = currentRow[columnMap[columnName]];
+        if (!value) {
+            throw new Error("Unable to find value for column: " + columnName);
+        }
+        return value;
+    }
+
+    asText(value) {
+        if (typeof value === "string") {
+            value = value.trim();
+        }
+        return value;
     }
 
     asNumber(value) {

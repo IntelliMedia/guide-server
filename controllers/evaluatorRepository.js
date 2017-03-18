@@ -34,7 +34,13 @@ class EcdRulesRepository {
         .then (csv => {
             // TODO determine which evaluator to instantiate, don't always assume
             // ECD rules.
-            return new EcdRulesEvaluator(csv);
+            try {
+                return new EcdRulesEvaluator(csv);
+            } catch(err) {
+                var msg = "Unable to parse '" + docUrl + "'. ";
+                err.message = msg + err.message;
+                throw err;
+            }
         });
     }
 
