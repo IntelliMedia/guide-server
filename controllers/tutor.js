@@ -89,13 +89,13 @@ function handleSystemStartedSessionAsync(student, session, event) {
         session.groupId = event.context.groupId;
 
         var dialogMessage = null;
-
+        var username = (event.username.toLowerCase().includes("test") ? "there" : event.username);
         switch (Math.floor(Math.random() * 3)) {
             case 0:
                 dialogMessage = new GuideProtocol.Text(
                     'ITS.HELLO.1',
                     'Hello {{username}}! I\'m ready to help you learn about genetics.')
-                dialogMessage.args.username = event.username;
+                dialogMessage.args.username = username;
                 break;
             case 1:
                 dialogMessage = new GuideProtocol.Text(
