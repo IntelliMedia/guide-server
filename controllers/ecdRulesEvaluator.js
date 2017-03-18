@@ -18,30 +18,35 @@ class EcdRulesEvaluator {
 
     evaluateAsync(student, session, event) {
         return new Promise((resolve, reject) => {
-            console.info("Update student model for: %s (%s | %s)", student.id, session.groupId, event.context.challengeId);
-            var targetSpecies = BioLogica.Species[event.context.species];
-            var organism = new BioLogica.Organism(targetSpecies, event.context.selectedAlleles, event.context.submittedSex);
-            
-            var activatedRules = this.evaluateRules(
-                event.context.editableGenes,
-                event.context.correctPhenotype, 
-                event.context.targetSex, 
-                organism);
+            try {
+                console.info("Update student model for: %s (%s | %s)", student.id, session.groupId, event.context.challengeId);
+                var targetSpecies = BioLogica.Species[event.context.species];
+                var organism = new BioLogica.Organism(targetSpecies, event.context.selectedAlleles, event.context.submittedSex);
+                
+                var activatedRules = this.evaluateRules(
+                    event.context.editableGenes,
+                    event.context.correctPhenotype, 
+                    event.context.targetSex, 
+                    organism);
 
-            var negativeConcepts = this.updateStudentModel(student, activatedRules);
+                var negativeConcepts = this.updateStudentModel(student, activatedRules);
 
-            var action = null;
-            if (!event.context.correct) {
-                action = this.selectHint(student, event.context.challengeId, negativeConcepts)
-            } else {
-                console.info("No need to send hint, organism is correct for user: %s", student.id);
-            }  
+                var action = null;
+                if (!event.context.correct) {
+                    action = this.selectHint(student, event.context.challengeId, negativeConcepts)
+                } else {
+                    console.info("No need to send hint, organism is correct for user: %s", student.id);
+                }  
 
-            resolve(action);
+                resolve(action);
+            } catch(err) {
+                reject(err);
+            }
         });
     }
 
     evaluateRules(editableTraits, correctPhenotype, correctSex, organism) {
+
         var activatedRules = {
             correct: [],
             misconceptions: []
@@ -78,6 +83,7 @@ class EcdRulesEvaluator {
     }
 
     updateStudentModel(student, activatedRules) {
+        console.info("Update student model for: %s", student.id);
         var negativeConcepts = [];
 
         for (let rule of activatedRules.correct) {
@@ -86,7 +92,8 @@ class EcdRulesEvaluator {
                     continue;
                 }
                 var adjustment = rule.concepts[conceptId];
-                student.conceptState(rule.target, conceptId).value += adjustment;
+                var state = student.conceptState(rule.target, conceptId);
+                state.score += adjustment;
                 console.info("Adjusted student model concept: " + conceptId + " adjustment=" + adjustment);
             }
         }
@@ -98,14 +105,14 @@ class EcdRulesEvaluator {
                 }
                 var adjustment = rule.concepts[conceptId];
                 var state = student.conceptState(rule.target, conceptId);
-                state.value += adjustment;
-                // TODO - only include negative concept state values?
-                if (state.value < 0) {
+                state.score += adjustment;
+                // TODO - only include negative concept state scores?
+                //if (state.score < 0) {
                     negativeConcepts.push(new NegativeConcept(
                         conceptId, 
-                        state.value, 
+                        state.score, 
                         rule)); 
-                }
+                //}
                 console.info("Adjusted student model concept: " + conceptId + " adjustment=" + adjustment);
             }
         }
@@ -115,143 +122,79 @@ class EcdRulesEvaluator {
             if (b.rule.priority != a.rule.priority) {
                 return b.rule.priority - a.rule.priority;
             } else {
-                return a.value - b.value;
+                return a.score - b.score;
             }
         });
     } 
 
     selectHint(student, challengeId, negativeConcepts) {
         console.info("Select hint for: %s", student.id);
+
         if (!negativeConcepts || negativeConcepts.length == 0) {
             console.info("No need to hint. No negative concepts for user: " + student.id);
         }
 
-        var hints = null;
+        var conceptToHint = null;
 
         // Prioritize the most recently hinted concept (don't jump around between hints)
-        var hintDelivered = student.mostRecentHint(challengeId);
-        for (let negativeConcept of negativeConcepts) {
-
-        }
-
-        var action = null;
-        if (hints) {
-            student.hintHistory.push({
-                challengeId: event.context.challengeId,
-                characteristic: hintCharacteristic, 
-                conceptId: hintConceptId,
-                hintLevel: hintLevel,
-                timestamp: new Date()
-            });
-            var dialogMessage = new GuideProtocol.Text(
-                'ITS.CONCEPT.FEEDBACK',
-                hints[hintLevel]);
-            dialogMessage.args.trait = BiologicaX.findTraitForCharacteristic(hintCharacteristic);
-            action = new GuideProtocol.TutorDialog(dialogMessage);
-        }
-
-        return action;
-    }
-
-    getHint(student, session, event) {
-        console.info("Find hint for: %s (%s | %s)", student.id, session.groupId, event.context.challengeId);
-
-        var targetCharacteristics = [];
-        event.context.editableGenes.forEach((gene) =>
-        {
-            targetCharacteristics.push(BiologicaX.getCharacteristicFromPhenotype(event.context.correctPhenotype, gene));
-        });
-
-        var targetSpecies = BioLogica.Species[event.context.species];
-
-        var hintCharacteristic = null;
-        var hintConceptId = null;
-        var hintLevel = 0;
-        var hints = null;
-
-        // Find hint based on what was previously hinted
-        var hintDelivered = student.mostRecentHint(event.context.challengeId);
-        if (hintDelivered != null 
-            && targetCharacteristics.indexOf(hintDelivered.characteristic) >= 0
-            && student.conceptState(hintDelivered.characteristic, hintDelivered.conceptId).value < 0 ) {
-            var alleleA = BiologicaX.findAlleleForCharacteristic(targetSpecies, event.context.selectedAlleles, 'a', hintDelivered.characteristic).replace('a:', '');
-            var alleleB = BiologicaX.findAlleleForCharacteristic(targetSpecies, event.context.selectedAlleles, 'b', hintDelivered.characteristic).replace('b:', '');
-            var rule = this.findRule(hintDelivered.characteristic, alleleA, alleleB);
-            if (rule && rule.conceptModifiers.hasOwnProperty(hintDelivered.conceptId)) {      
-                if (rule.conceptModifiers[hintDelivered.conceptId] < 0 && rule.hints.length > 0  && rule.hints[0]) {
-                    console.info("Select hint based on sticking with characteristic: " + hintDelivered.characteristic);
-                    hintConceptId = hintDelivered.conceptId;
-                    hintCharacteristic = hintDelivered.characteristic;
-                    hintLevel = Math.min(hintDelivered.hintLevel + 1, rule.hints.length - 1);
-                    hints = rule.hints;
-                }
-            }
-        }
-
-        if (hints == null) {
-            // Find hint based on lowest concept score of editable characteristic
-            var lowestToHighestConceptStates = student.sortedConceptStatesByValue();
-            console.info("Scores: " + JSON.stringify(lowestToHighestConceptStates));
-            for (let conceptState of lowestToHighestConceptStates) {
-                if (conceptState.value >= 0) {
-                    break;
-                }
-                if (targetCharacteristics.indexOf(conceptState.characteristic) >= 0) {
-
-                    var alleleA = BiologicaX.findAlleleForCharacteristic(targetSpecies, event.context.selectedAlleles, 'a', conceptState.characteristic).replace('a:', '');
-                    var alleleB = BiologicaX.findAlleleForCharacteristic(targetSpecies, event.context.selectedAlleles, 'b', conceptState.characteristic).replace('b:', '');
-                    var rule = this.findRule(conceptState.characteristic, alleleA, alleleB);
-                    if (rule && rule.conceptModifiers.hasOwnProperty(conceptState.id)) {      
-                        if (rule.conceptModifiers[conceptState.id] < 0) {
-                            if (rule.hints.length > 0  && rule.hints[0]) {
-                                console.info("Select hint based on lowest concept score: " + conceptState.characteristic); 
-                                hintConceptId = conceptState.id;
-                                hintCharacteristic = conceptState.characteristic;
-                                hints = rule.hints;
-                                var hintDelivered = student.mostRecentHint(event.context.challengeId, hintCharacteristic);
-                                if (hintDelivered != null) {
-                                    hintLevel = Math.min(hintDelivered.hintLevel + 1, rule.hints.length - 1);
-                                } else {
-                                    hintLevel = 0;
-                                }
-                                break;
-                            } else {
-                                console.warn("No hint available for: %s - %s [%s|%s]",
-                                    event.context.challengeId, conceptState.characteristic, alleleA, alleleB);
-                            }
-                        }
+        var mostRecentHint = student.mostRecentHint(challengeId);
+        if (mostRecentHint) {
+            for (let negativeConcept of negativeConcepts) {
+                if (negativeConcept.rule.target == mostRecentHint.ruleTarget
+                    && negativeConcept.rule.selected == mostRecentHint.ruleSelected) {
+                        conceptToHint = negativeConcept;
+                        break;
                     }
+            }
+        }
+
+        // If a hint wasn't previously given for the current concepts, select the
+        // highest priority concept.
+        if (conceptToHint == null) {
+            for (let negativeConcept of negativeConcepts) {
+                if (negativeConcept.rule.hints.length > 0) {
+                    conceptToHint = negativeConcept;
+                    break;
+                } else {
+                    console.warn("No hints available for %s | %s | %s", 
+                        challengeId,
+                        negativeConcept.rule.target,
+                        negativeConcept.rule.selected);
                 }
             }
         }
 
         var action = null;
-        if (hints) {
-            student.hintHistory.push({
-                challengeId: event.context.challengeId,
-                characteristic: hintCharacteristic, 
-                conceptId: hintConceptId,
-                hintLevel: hintLevel,
-                timestamp: new Date()
-            });
+        if (conceptToHint != null) {
+            var hintLevel = student.currentHintLevel(
+                    challengeId,
+                    conceptToHint.rule.target, 
+                    conceptToHint.rule.selected) + 1;
+
+            // Don't let hint level exceed the number of hints available
+            hintLevel = Math.min(conceptToHint.rule.hints.length, hintLevel);
+            var hintText = conceptToHint.rule.hints[hintLevel - 1];
+
+            student.addHintToHistory(
+                conceptToHint.conceptId, 
+                conceptToHint.conceptScore, 
+                challengeId, 
+                conceptToHint.rule.target, 
+                conceptToHint.rule.selected, 
+                hintLevel);
+
             var dialogMessage = new GuideProtocol.Text(
                 'ITS.CONCEPT.FEEDBACK',
-                hints[hintLevel]);
-            dialogMessage.args.trait = BiologicaX.findTraitForCharacteristic(hintCharacteristic);
+                hintText);
+            if (conceptToHint.rule instanceof AlleleRule) {
+                dialogMessage.args.trait = BiologicaX.findTraitForCharacteristic(conceptToHint.rule.target);
+            } else {
+                dialogMessage.args.trait = conceptToHint.rule.target;
+            }
             action = new GuideProtocol.TutorDialog(dialogMessage);
         }
 
         return action;
-    }
-
-    isCharacteristicEditable(editableGenes, characteristic) {
-        for (let editableGene of editableGenes) {
-            if (characteristic.toLowerCase().includes(editableGene)) {
-                return true;
-            }
-        }
-
-        return false;
     }
 
     convertCsvToRules(csv) {
@@ -277,7 +220,7 @@ class EcdRulesEvaluator {
                 this.asNumber(currentRow[columnMap["priority"]].trim()),
                 currentRow[columnMap["ruletype"]].trim(),
                 currentRow[columnMap["target"]].trim(),
-                currentRow[columnMap["value"]].trim(),
+                currentRow[columnMap["selected"]].trim(),
                 this.extractConcepts(headerRow, currentRow),
                 this.extractHints(headerRow, currentRow)));
         }
@@ -313,7 +256,10 @@ class EcdRulesEvaluator {
         var hints = [];
          for (var i = 0; i < headerRow.length; ++i) {
             if (this.isHint(headerRow[i])) {
-                hints.push(currentRow[i].trim());
+                var value = currentRow[i].trim();
+                if (value) {
+                    hints.push(value);
+                }
             }
          }
          return hints;
@@ -325,7 +271,7 @@ class EcdRulesEvaluator {
         if (target.includes("priority")
             || target.includes("ruletype")
             || target.includes("target")
-            || target.includes("value")
+            || target.includes("selected")
             || target.includes("hint")
             || target.includes("note")
             || target.includes("comment")) {
@@ -342,18 +288,18 @@ class EcdRulesEvaluator {
 }
 
 class NegativeConcept {
-    constructor(conceptId, value, rule) {
+    constructor(conceptId, conceptScore, rule) {
         this.conceptId = conceptId;
-        this.value = value;
+        this.conceptScore = conceptScore;
         this.rule = rule;
     }
 }
 
 class Rule {   
-    constructor(priority, target, value, concepts, hints) {
+    constructor(priority, target, selected, concepts, hints) {
         this.priority = priority;
         this.target = target;
-        this.value = value;
+        this.selected = selected;
         this.concepts = concepts;
         this.hints = hints;
 
@@ -367,15 +313,15 @@ class Rule {
         this.isMisconception = totalAdjustment < 0;
     }
 
-    static create(priority, type, target, value, concepts, hints) {
+    static create(priority, type, target, selected, concepts, hints) {
         var rule = null;
         switch(type.toLowerCase()) {
             case "allele":
-                rule = new AlleleRule(priority, target, value, concepts, hints);
+                rule = new AlleleRule(priority, target, selected, concepts, hints);
                 break;
 
             case "sex":
-                rule = new SexRule(priority, target, value, concepts, hints);
+                rule = new SexRule(priority, target, selected, concepts, hints);
                 break;
 
             default:
@@ -391,11 +337,11 @@ class Rule {
 }
 
 class AlleleRule extends Rule {
-    constructor(priority, target, value, concepts, hints) {
-        super(priority, target, value, concepts, hints);
+    constructor(priority, target, selected, concepts, hints) {
+        super(priority, target, selected, concepts, hints);
         
         // Remove all whitespace (inner and outer)
-        this.alleles = value.replace(/\s/g,'')
+        this.alleles = selected.replace(/\s/g,'')
     }
 
     evaluate(correctCharacterisitic, organism) {
@@ -416,17 +362,17 @@ class AlleleRule extends Rule {
 }
 
 class SexRule extends Rule {
-    constructor(priority, target, value, concepts, hints) {
-        super(priority, target, value, concepts, hints);
+    constructor(priority, target, selected, concepts, hints) {
+        super(priority, target, selected, concepts, hints);
         
         // Remove all whitespace (inner and outer)
         this.targetSex = (this.target.toLowerCase() == "female" ? BioLogica.FEMALE : BioLogica.MALE);
-        this.sex = (this.value.toLowerCase() == "female" ? BioLogica.FEMALE : BioLogica.MALE);
+        this.selectedSex = (this.selected.toLowerCase() == "female" ? BioLogica.FEMALE : BioLogica.MALE);
     }
 
     evaluate(correctSex, organism) {
 
-        return correctSex == this.targetSex && this.sex == organism.sex;
+        return correctSex == this.targetSex && this.selectedSex == organism.sex;
     }
 }
 

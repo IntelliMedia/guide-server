@@ -12,13 +12,6 @@ const groupSchema = new mongoose.Schema({
   challenges: [challengeSchema]
 }, { timestamps: true });
 
-groupSchema.methods.resetAllHintLevels = function () {
-  var challengesLength = this.challenges.length;
-  for (var i = 0; i < challengesLength; i++) {
-    this.challenges[i].hintLevel = -1;
-  }   
-};
-
 groupSchema.methods.replace = function(updatedGroup) {
       this.name = updatedGroup.name;
       if (updatedGroup.hasOwnProperty("challenges") && updatedGroup.challenges != null) {

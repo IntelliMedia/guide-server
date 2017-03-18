@@ -3,15 +3,15 @@ const mongoose = require('mongoose');
 const conceptStateSchema = new mongoose.Schema({
   characteristic: String,
   id: String,
-  value: Number
+  score: Number
 });
 
 const hintDelivered = new mongoose.Schema({
-  challengeId: String,
-  characteristic: String, 
-  alleleA: String,
-  alleleB: String,
   conceptId: String,
+  conceptScore: String,
+  challengeId: String,
+  ruleTarget: String, 
+  ruleSelected: String,
   hintLevel: Number,
   timestamp: Date
 }, { timestamps: true });
@@ -41,7 +41,7 @@ studentSchema.methods.conceptState = function (characteristicName, conceptId) {
     conceptState = {
       characteristic: characteristicName,
       id: conceptId,
-      value: 0
+      score: 0
     };
     this.concepts.push(conceptState);
     conceptState = this.concepts[this.concepts.length-1];
@@ -50,23 +50,37 @@ studentSchema.methods.conceptState = function (characteristicName, conceptId) {
   return conceptState;
 };
 
-studentSchema.methods.sortedConceptStatesByValue = function () {
+studentSchema.methods.sortedConceptStatesByScore = function () {
   return this.concepts.sort(function(a, b) {
-    if (a.value < b.value) {
+    if (a.score < b.score) {
       return -1;
     }
-    if (a.value > b.value) {
+    if (a.score > b.score) {
       return 1;
     }
     return 0;
   });
 }
 
-studentSchema.methods.mostRecentHint = function (challengeId, characteristic) {
+studentSchema.methods.addHintToHistory = function (conceptId, conceptScore, challengeId, ruleTarget, ruleSelected, hintLevel) {
+  var hintDelivered = {
+    conceptId: conceptId,
+    conceptScore: conceptScore,
+    challengeId: challengeId,
+    ruleTarget: ruleTarget,
+    ruleSelected: ruleSelected,
+    hintLevel: hintLevel,
+    timestamp: new Date()
+  }
+  this.hintHistory.push(hintDelivered);
+
+  return hintDelivered;
+}
+
+studentSchema.methods.mostRecentHint = function(challengeId) {
   for (var i = this.hintHistory.length-1; i >= 0; --i) {
     var hintDelivered = this.hintHistory[i];
-    if (hintDelivered.challengeId == challengeId
-      && (!characteristic || hintDelivered.characteristic == characteristic)) {
+    if (hintDelivered.challengeId == challengeId) {
       return hintDelivered;
     }
   }
@@ -74,13 +88,19 @@ studentSchema.methods.mostRecentHint = function (challengeId, characteristic) {
   return null;
 }
 
+studentSchema.methods.currentHintLevel = function (challengeId, target, selected) {
+  var hintLevel = 0;
+  for (var i = 0; i < this.hintHistory.length; ++i) {
+    var previousHint = this.hintHistory[i];
+    if (previousHint.challengeId == challengeId
+      && previousHint.ruleTarget == target
+      && previousHint.ruleSelected == selected) {
+        hintLevel = Math.max(hintLevel, previousHint.hintLevel);
+      }
+  }
 
-studentSchema.methods.resetAllHintLevels = function () {
-  var coneptStatesLength = this.conceptStates.length;
-  for (var i = 0; i < coneptStatesLength; i++) {
-    this.conceptStates[i].hintLevel = -1;
-  }   
-};
+  return hintLevel;
+}
 
 const Student = mongoose.model('Student', studentSchema);
 
