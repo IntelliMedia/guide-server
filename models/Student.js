@@ -1,14 +1,18 @@
 const mongoose = require('mongoose');
+const _ = require('lodash');
 
 const conceptStateSchema = new mongoose.Schema({
   characteristic: String,
   id: String,
-  score: Number
+  sumScore: Number,
+  totalCorrect: Number,
+  totalIncorrect: Number,
+  totalNeutral: Number
 });
 
 const hintDelivered = new mongoose.Schema({
   conceptId: String,
-  conceptScore: String,
+  scaledScore: String,
   challengeId: String,
   ruleTarget: String, 
   ruleSelected: String,
@@ -24,6 +28,43 @@ const studentSchema = new mongoose.Schema({
   hintHistory: [hintDelivered]
 }, { timestamps: true });
 
+studentSchema.methods.updateConceptState = function (characteristicName, conceptId, adjustment) {
+  var conceptState = this.conceptState(characteristicName, conceptId);
+  // Add new concept, if it doesn't already exist
+  if (conceptState == null) {
+    conceptState = {
+      characteristic: characteristicName,
+      id: conceptId,
+      scaledScore: 0,
+      sumScore: 0,
+      totalCorrect: 0,
+      totalIncorrect: 0,
+      totalNeutral: 0
+    };
+    this.concepts.push(conceptState);
+    conceptState = this.concepts[this.concepts.length-1];
+  }
+
+  conceptState.sumScore += adjustment;
+  if (adjustment > 0) {
+    conceptState.totalCorrect += 1;
+  } else if (adjustment < 0) {
+    conceptState.totalIncorrect += 1;
+  } else {
+    conceptState.totalNeutral += 1;
+  }
+}
+
+studentSchema.methods.conceptScaledScore = function (characteristicName, conceptId) {
+  var conceptState = this.conceptState(characteristicName, conceptId);
+  if (!conceptState) {
+    return undefined;
+  }
+
+  var total = (conceptState.totalCorrect + conceptState.totalIncorrect);
+  return  (total != 0 ? conceptState.totalCorrect/total : 0);
+}
+
 studentSchema.methods.conceptState = function (characteristicName, conceptId) {
   var conceptState = null;
 
@@ -35,37 +76,22 @@ studentSchema.methods.conceptState = function (characteristicName, conceptId) {
       break;
     }
   }   
-
-  // Add new concept, if it doesn't already exist
-  if (conceptState == null) {
-    conceptState = {
-      characteristic: characteristicName,
-      id: conceptId,
-      score: 0
-    };
-    this.concepts.push(conceptState);
-    conceptState = this.concepts[this.concepts.length-1];
-  }
   
   return conceptState;
 };
 
-studentSchema.methods.sortedConceptStatesByScore = function () {
-  return this.concepts.sort(function(a, b) {
-    if (a.score < b.score) {
-      return -1;
-    }
-    if (a.score > b.score) {
-      return 1;
-    }
-    return 0;
-  });
+studentSchema.methods.modelConceptIds = function () {
+  return _.uniq(this.concepts.map(function(a) {return a.id;})).sort();
 }
 
-studentSchema.methods.addHintToHistory = function (conceptId, conceptScore, challengeId, ruleTarget, ruleSelected, hintLevel) {
+studentSchema.methods.modelCharacterisitics = function () {
+  return _.uniq(this.concepts.map(function(a) {return a.characteristic;})).sort();
+}
+
+studentSchema.methods.addHintToHistory = function (conceptId, scaledScore, challengeId, ruleTarget, ruleSelected, hintLevel) {
   var hintDelivered = {
     conceptId: conceptId,
-    conceptScore: conceptScore,
+    scaledScore: scaledScore,
     challengeId: challengeId,
     ruleTarget: ruleTarget,
     ruleSelected: ruleSelected,

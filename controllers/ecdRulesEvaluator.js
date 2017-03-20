@@ -92,8 +92,7 @@ class EcdRulesEvaluator {
                     continue;
                 }
                 var adjustment = rule.concepts[conceptId];
-                var state = student.conceptState(rule.target, conceptId);
-                state.score += adjustment;
+                student.updateConceptState(rule.target, conceptId, adjustment);
                 console.info("Adjusted student model concept: " + conceptId + " adjustment=" + adjustment);
             }
         }
@@ -104,13 +103,13 @@ class EcdRulesEvaluator {
                     continue;
                 }
                 var adjustment = rule.concepts[conceptId];
-                var state = student.conceptState(rule.target, conceptId);
-                state.score += adjustment;
+                student.updateConceptState(rule.target, conceptId, adjustment);
+                var scaledScore = student.conceptScaledScore(rule.target, conceptId);
                 // TODO - only include negative concept state scores?
-                //if (state.score < 0) {
+                //if (state.scaledScore < 0) {
                     negativeConcepts.push(new NegativeConcept(
                         conceptId, 
-                        state.score, 
+                        scaledScore, 
                         rule)); 
                 //}
                 console.info("Adjusted student model concept: " + conceptId + " adjustment=" + adjustment);
@@ -122,7 +121,7 @@ class EcdRulesEvaluator {
             if (b.rule.priority != a.rule.priority) {
                 return b.rule.priority - a.rule.priority;
             } else {
-                return a.score - b.score;
+                return a.scaledScore - b.scaledScore;
             }
         });
     } 
@@ -177,7 +176,7 @@ class EcdRulesEvaluator {
 
             student.addHintToHistory(
                 conceptToHint.conceptId, 
-                conceptToHint.conceptScore, 
+                conceptToHint.scaledScore, 
                 challengeId, 
                 conceptToHint.rule.target, 
                 conceptToHint.rule.selected, 
@@ -273,7 +272,9 @@ class EcdRulesEvaluator {
          for (var i = 0; i < headerRow.length; ++i) {
             if (this.isConceptId(headerRow[i])) {
                 var value = currentRow[i].trim();
-                concepts[headerRow[i]] = this.asNumber(value);
+                if (value) {
+                    concepts[headerRow[i]] = this.asNumber(value);
+                }
             }
          }
          return concepts;
@@ -315,9 +316,9 @@ class EcdRulesEvaluator {
 }
 
 class NegativeConcept {
-    constructor(conceptId, conceptScore, rule) {
+    constructor(conceptId, scaledScore, rule) {
         this.conceptId = conceptId;
-        this.conceptScore = conceptScore;
+        this.scaledScore = scaledScore;
         this.rule = rule;
     }
 }
