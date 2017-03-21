@@ -78,6 +78,20 @@ studentSchema.methods.conceptScaledScore = function (characteristicName, concept
   return  (total != 0 ? conceptState.totalCorrect/total : 0);
 }
 
+studentSchema.methods.conceptScoreInfo = function (characteristicName, conceptId) {
+  var conceptState = this.conceptState(characteristicName, conceptId);
+  if (!conceptState) {
+    return undefined;
+  }
+
+  var total = (conceptState.totalCorrect + conceptState.totalIncorrect);
+  return {
+     scaledScore: (total != 0 ? conceptState.totalCorrect/total : 0),
+     correct: conceptState.totalCorrect,
+     total: total
+  };
+}
+
 studentSchema.methods.conceptState = function (characteristicName, conceptId) {
   var conceptState = null;
 

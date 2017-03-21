@@ -71,17 +71,22 @@ function createConceptHeatmap(student) {
   var yAxisLabels = student.modelConceptIds().reverse();
 
     var conceptScoreData = [];
+    var conceptScoreDetails = {};
 
     for (var x = 0; x < xAxisLabels.length; ++x) {
           for (var y = 0; y < yAxisLabels.length; ++y) {
-            var scaledScore = student.conceptScaledScore(xAxisLabels[x], yAxisLabels[y]);
-            scaledScore = Math.round( scaledScore * 10) / 10;
-            if (scaledScore) {
+            var score = student.conceptScoreInfo(xAxisLabels[x], yAxisLabels[y]);
+            if (score) {
+              var scaledScore = Math.round( score.scaledScore * 1000) / 10;
               conceptScoreData.push([
                 x,
                 y,
-                scaledScore * 100
+                scaledScore
               ]);
+              conceptScoreDetails[x + "," + y] = {
+                correct: score.correct,
+                total: score.total
+              };
             }
           }
     }
@@ -94,18 +99,22 @@ function createConceptHeatmap(student) {
         plotBorderWidth: 1
     },
 
+    tooltip: {
+      conceptScoreDetails: conceptScoreDetails
+    },
 
     title: {
         text: "Characteristics/Concept Heatmap"
     },
 
     xAxis: {
-        categories: xAxisLabels
+        categories: xAxisLabels,
+        title: "Characteristics"
     },
 
     yAxis: {
         categories: yAxisLabels,
-        title: null
+        title: "Concepts"
     },
 
     colorAxis: {
@@ -126,13 +135,6 @@ function createConceptHeatmap(student) {
         y: 25,
         symbolHeight: 280
     },
-
-    // tooltip: {
-    //     formatter: function () {
-    //         return '<b>' + this.series.xAxis.categories[this.point.x] + '</b> sold <br><b>' +
-    //             this.point.value + '</b> items on <br><b>' + this.series.yAxis.categories[this.point.y] + '</b>';
-    //     }
-    // },
 
     series: [{
         name: 'Concept Score',

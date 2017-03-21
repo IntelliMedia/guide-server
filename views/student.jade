@@ -20,7 +20,12 @@ block content
                 $.getJSON("/api/student/#{student.id}?view=concept-heatmap", function(options) {
                     if (myChart != null) {
                         myChart.destroy();
-                    }            
+                    }       
+                    options.tooltip.formatter = function () {
+                        var details = options.tooltip.conceptScoreDetails[this.point.x + "," + this.y];
+                            return 'Correct: <b>' + details.correct + '</b><br>'
+                                    + 'Total Attempts: <b>' + details.total + '</b>';
+                        };
                     myChart = Highcharts.chart('container', options);
                 });
             }
