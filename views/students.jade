@@ -1,5 +1,9 @@
 extends layout
 
+block extraHeader
+    link(rel='stylesheet', href='/css/status-indicators.css')
+    script(src='/js/status-indicators.js') 
+
 block content
   h1 Students
     if isAllowed('students', 'post')     
@@ -15,6 +19,7 @@ block content
       thead
         tr
           th Student ID
+          th Average Score
           th Last Sign In
           th Total Sessions
       tbody
@@ -22,5 +27,6 @@ block content
           tr
             td
               a(href='/student/#{student.id}') #{student.id}          
+            td.scoreBox #{Math.round(student.averageScaledScore() * 1000)/10}
             td #{student.lastSignIn}
             td #{student.totalSessions}

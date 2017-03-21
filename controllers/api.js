@@ -109,9 +109,8 @@ function createConceptHeatmap(student) {
     },
 
     colorAxis: {
-//        min: 0,
-        // minColor: '#aaaaaa',
-        // maxColor: '#00aa00'
+        min: 0,
+        max: 100,
         stops: [
             [0, '#aa0000'],
             [0.5, '#eeee00'],

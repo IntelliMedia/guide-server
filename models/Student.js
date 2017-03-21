@@ -55,6 +55,19 @@ studentSchema.methods.updateConceptState = function (characteristicName, concept
   }
 }
 
+studentSchema.methods.averageScaledScore = function () {
+
+  // Finding existing conceptState
+  var correct = 0;
+  var total = 0; 
+  for (let concept of this.concepts) {
+    correct += concept.totalCorrect;
+    total += (concept.totalCorrect + concept.totalIncorrect);
+  }   
+  
+  return  (total != 0 ? correct/total : 0);
+}
+
 studentSchema.methods.conceptScaledScore = function (characteristicName, conceptId) {
   var conceptState = this.conceptState(characteristicName, conceptId);
   if (!conceptState) {
