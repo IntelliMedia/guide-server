@@ -7,9 +7,13 @@ const sessionSchema = new mongoose.Schema({
       groupId: String,
       startTime: Date,
       endTime: Date,      
-      events: [],
-      actions: []  
+      sequenceNumber: Number,
+      events: []
 }, { timestamps: true });
+
+sessionSchema.methods.logEvent = function(event) {
+  this.events.push(event);
+}
 
 const Session = mongoose.model('Session', sessionSchema);
 module.exports = Session;
@@ -50,16 +54,13 @@ module.exports.createOrFind = (sessionId) => {
       if (!session) {
         session = new Session();
         session.id = sessionId;
+        session.sequenceNumber = 0;
         //session.startTime = Date.now;
       }
 
       // Initialize empty collections
       if (session.events == null) {
         session.events = [];
-      }
-
-      if (session.actions == null) {
-        session.actions = [];
       }
 
       session.save((err) => {
@@ -75,10 +76,15 @@ module.exports.createOrFind = (sessionId) => {
 
 module.exports.deactivate = (session) => {
     session.active = false;
-    session.endTime = Date.now();
+    if (session.events.length > 0) {
+      session.endTime = session.events[session.events.length-1].time;
+    } else {
+      session.endTime = Date.now();
+    }
     session.save((err) => { 
         if (err) {
             console.error('Unable to save session for: ' + session.id);
         }
     });
   }
+

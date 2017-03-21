@@ -220,7 +220,6 @@ app.get('/sessions', authz.Middleware(), sessionsController.index);
 app.post('/sessions/modify', authz.Middleware(1), sessionsController.modify);
 app.get('/session/:sessionId', authz.Middleware(1), sessionController.index);
 app.get('/session/:sessionId/event/:eventIndex', authz.Middleware(1), sessionController.event);
-app.get('/session/:sessionId/action/:actionIndex', authz.Middleware(1), sessionController.action);
 app.get('/students', authz.Middleware(1), studentsController.index);
 app.post('/students/modify', authz.Middleware(1), studentsController.modify);
 app.get('/student/:studentId', authz.Middleware(1), studentController.index);

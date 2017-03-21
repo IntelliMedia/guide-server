@@ -1,5 +1,6 @@
 const students = require('./students');
 const Hint = require('../models/Hint');
+const TutorAction = require('../models/TutorAction');
 const await = require('asyncawait/await');
 const guideProtocol = require('../shared/guide-protocol.js');
 const EvaluatorRepository = require('./evaluatorRepository');
@@ -35,19 +36,24 @@ exports.processEventAsync = (event, session) => {
         session.startTime = event.time;
     }
 
+    var currentStudent = null;
     return students.createOrFind(session.studentId).then((student) => {
-        session.events.unshift(event);
+        currentStudent = student;
+        session.logEvent(event);
 
         // Tutor interprets the event
         return handleEventAsync(student, session, event);
     })
-        .then((response) => {
-            // If the tutor has a response message, record it and send it to the client
-            if (response) {
-                session.actions.unshift(response);
-                session.emit(GuideProtocol.TutorDialog.Channel, response.toJson());
-            }
-        });
+    .then((action) => {
+        // If the tutor has a response message, record it and send it to the client
+        if (action) {
+            session.logEvent(action);
+            session.emit(GuideProtocol.TutorDialog.Channel, action.context.tutorDialog.toJson());
+        }
+    })
+    .then(() => {
+        return saveAsync(session, currentStudent);
+    })
 }
 
 function handleEventAsync(student, session, event) {
@@ -108,9 +114,8 @@ function handleSystemStartedSessionAsync(student, session, event) {
                     'Let\'s get started!');
         }
 
-        resolve(saveAsync(session, student).then(() => {
-            return new GuideProtocol.TutorDialog(dialogMessage);
-        }));
+        resolve(TutorAction.create(session, "SPOKETO", "USER", "welcome",
+            new GuideProtocol.TutorDialog(dialogMessage)));
     });
 }
 
@@ -152,9 +157,8 @@ function handleUserNavigatedChallengeAsync(student, session, event) {
         //         break;
         // }
 
-        resolve(saveAsync(session, student).then(() => {
-            return (dialogMessage ? new GuideProtocol.TutorDialog(dialogMessage) : null);
-        }));
+        resolve(TutorAction.create(session, "SPOKETO", "USER", "navigatedChallenge",
+            new GuideProtocol.TutorDialog(dialogMessage)));
     });
 }
 
@@ -185,7 +189,8 @@ function handleUserChangedAlleleAsync(student, session, event) {
                 break;
         }
 
-        resolve(dialogMessage ? new GuideProtocol.TutorDialog(dialogMessage) : null);
+        resolve(TutorAction.create(session, "SPOKETO", "USER", "changedAllele",
+            new GuideProtocol.TutorDialog(dialogMessage)));
     });
 }
 
@@ -194,10 +199,5 @@ function handleUserSubmittedOrganismAsync(student, session, event) {
     var repo = new EvaluatorRepository();
     return repo.findEvaluatorAsync(session.groupId, event.context.challengeId).then((evaluator) => {
         return (evaluator ? evaluator.evaluateAsync(student, session, event) : null);
-    })
-    .then((action) => {
-        return saveAsync(session, student).then(() => {
-            return (action ? action : null);
-        });
     });
 }

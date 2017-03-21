@@ -7,7 +7,7 @@ block content
   .row
     .col-sm-6
       div
-        h2 Events 
+        h2 ITS Event Log  
         table.table.table-striped
           thead
             tr
@@ -19,19 +19,3 @@ block content
                 td 
                   a(href='/session/#{session.id}/event/#{session.events.indexOf(event)}') #{event.actor} #{event.action} #{event.target}          
                 td #{new Date(event.time)}
-    .col-sm-6            
-      div
-        h2 Tutor Actions 
-        table.table.table-striped
-          thead
-            tr
-              th Type
-              th Time
-              th Messsage
-          tbody
-            for action in session.actions
-              tr
-                td 
-                  a(href='/session/#{session.id}/action/#{session.actions.indexOf(action)}') #{action.type}          
-                td #{new Date(action.time)}
-                td #{action.message.text}

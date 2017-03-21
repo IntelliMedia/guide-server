@@ -50,27 +50,3 @@ exports.event = (req, res) => {
     return res.redirect('/sessions');
   });   
 };
-
-exports.action = (req, res) => {
-  const sessionId = req.params.sessionId;
-  const actionIndex = req.params.actionIndex;
-  if (!sessionId || !actionIndex) {
-    return res.redirect('/sessions');
-  }
-
-  Session.findOne({ 'id': sessionId }, (err, session) => {
-    if (err) { return next(err); }
-
-    res.render('action', {
-      title: 'Action',
-      session: session,
-      actionStr: JSON.stringify(session.actions[actionIndex], undefined, 2)
-    });
-  })
-  .exec()
-  .catch((err) => {
-    consolex.exception(err);
-    req.flash('errors', { msg: 'Session with ID is not found: ' + studentId});
-    return res.redirect('/sessions');
-  });   
-};

@@ -3,6 +3,7 @@
 const rp = require('request-promise');
 const parse = require('csv-parse');
 const Group = require('../models/Group');
+const TutorAction = require('../models/TutorAction');
 const biologica = require('../shared/biologica.js');
 const biologicaX = require('../shared/biologicax.js');
 
@@ -33,7 +34,7 @@ class EcdRulesEvaluator {
 
                 var action = null;
                 if (!event.context.correct) {
-                    action = this.selectHint(student, event.context.challengeId, negativeConcepts)
+                    action = this.selectHint(student, session, event.context.challengeId, negativeConcepts)
                 } else {
                     console.info("No need to send hint, organism is correct for user: %s", student.id);
                 }  
@@ -126,14 +127,16 @@ class EcdRulesEvaluator {
         });
     } 
 
-    selectHint(student, challengeId, negativeConcepts) {
+    selectHint(student, session, challengeId, negativeConcepts) {
         console.info("Select hint for: %s", student.id);
 
         if (!negativeConcepts || negativeConcepts.length == 0) {
             console.info("No need to hint. No negative concepts for user: " + student.id);
+            return null;
         }
 
         var conceptToHint = null;
+        var selectionCriteria = null;
 
         // Prioritize the most recently hinted concept (don't jump around between hints)
         var mostRecentHint = student.mostRecentHint(challengeId);
@@ -142,6 +145,11 @@ class EcdRulesEvaluator {
                 if (negativeConcept.rule.target == mostRecentHint.ruleTarget
                     && negativeConcept.rule.selected == mostRecentHint.ruleSelected) {
                         conceptToHint = negativeConcept;
+                        selectionCriteria = {
+                            description:"staying with previous hint",
+                            conceptId:conceptToHint.conceptId,
+                            scaledScore:conceptToHint.scaledScore
+                        };
                         break;
                     }
             }
@@ -153,6 +161,11 @@ class EcdRulesEvaluator {
             for (let negativeConcept of negativeConcepts) {
                 if (negativeConcept.rule.hints.length > 0) {
                     conceptToHint = negativeConcept;
+                    selectionCriteria = {
+                      description:"most negative concept",
+                      ruleTarget:conceptToHint.rule.target,
+                      ruleSelected:conceptToHint.rule.selected
+                    };
                     break;
                 } else {
                     console.warn("No hints available for %s | %s | %s", 
@@ -190,7 +203,11 @@ class EcdRulesEvaluator {
             } else {
                 dialogMessage.args.trait = conceptToHint.rule.target;
             }
-            action = new GuideProtocol.TutorDialog(dialogMessage);
+            action = TutorAction.create(session, "SPOKETO", "USER", "hint",
+                        new GuideProtocol.TutorDialog(dialogMessage));
+            action.context.hintLevel = hintLevel;
+            action.context.selectionCriteria = selectionCriteria;
+            action.context.challengeId = challengeId;
         }
 
         return action;
