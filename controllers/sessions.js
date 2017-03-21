@@ -1,6 +1,7 @@
 const consolex = require('../utilities/consolex');
 const Session = require('../models/Session');
 const moment = require('moment');
+var Archiver = require('archiver');
 
 /**
  * GET /
@@ -24,7 +25,27 @@ exports.index = (req, res) => {
 };
 
 exports.modify = (req, res) => {
-  if (req.body.action == 'deleteAll') {
+  if (req.body.action == 'downloadAll') {
+    console.info("Download all sessions.");
+    Session.find({}, (err, sessions) => {
+    // Tell the browser that this is a zip file.
+      res.writeHead(200, {
+          'Content-Type': 'application/zip',
+          'Content-disposition': 'attachment; filename=guide-sessions.zip'
+      });
+
+      var zip = Archiver('zip');
+      zip.pipe(res);
+
+      for (let session of sessions) {
+        zip.append(JSON.stringify(session.events, null, 2), { name: session.id + ".json" });
+      }
+
+      zip.finalize();
+      
+    });
+
+  } else if (req.body.action == 'deleteAll') {
     console.info("Delete all sessions.");
     Session.remove({}, (err) => {
       return res.redirect('/sessions');

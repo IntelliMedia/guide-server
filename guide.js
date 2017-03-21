@@ -75,7 +75,8 @@ const passportConfig = require('./config/passport');
  */
 const app = express();
 app.locals.moment = require('moment');
-
+// Pretty print JSON
+app.set('json spaces', 2);
 /**
  * Connect to MongoDB.
  */

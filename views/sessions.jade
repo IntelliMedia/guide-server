@@ -10,6 +10,9 @@ block content
           form.form-horizontal(action='/sessions/modify', method='POST')
             .form-group.floatLeft
               input(type='hidden', name='_csrf', value=_csrf)
+              button.btn.btn-primary(type='submit' name='action' value='downloadAll' style='margin-right: 5px;')
+                i.fa.fa-download
+                | Download all
               button.btn.btn-warning(type='submit' name='action' value='deactivateAll' style='margin-right: 5px;')
                 i.fa.fa-hourglass-end
                 | Deactivate all  

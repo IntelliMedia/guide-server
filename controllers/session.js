@@ -14,10 +14,16 @@ exports.index = (req, res) => {
   Session.findOne({ 'id': sessionId }, (err, session) => {
     if (err) { return next(err); }
 
-    res.render('session', {
-      title: 'Session',
-      session: session
-    });
+    const format = req.query.format; 
+    if (format && format.toLowerCase() == "json") {
+      res.attachment(session.id + ".json");
+      res.json(session.events);
+    } else {
+      res.render('session', {
+        title: 'Session',
+        session: session
+      });
+    }
   })
   .exec()
   .catch((err) => {

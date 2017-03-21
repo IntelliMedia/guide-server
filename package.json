@@ -11,6 +11,7 @@
   },
   "dependencies": {
     "acl": "^0.4.9",
+    "archiver": "^1.3.0",
     "async": "^2.0.0-rc.4",
     "asyncawait": "^1.0.6",
     "bcrypt-nodejs": "^0.0.3",
