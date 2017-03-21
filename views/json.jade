@@ -1,0 +1,13 @@
+extends layout
+
+block extraHeader
+    link(rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/8.2/styles/tomorrow.min.css")
+    script(src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/8.2/highlight.min.js")
+
+    script.
+      hljs.initHighlightingOnLoad();
+
+block content
+  h1 #{title}
+  body
+    | <pre><code class="json">#{json}</code></pre>

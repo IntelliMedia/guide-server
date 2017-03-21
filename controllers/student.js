@@ -15,11 +15,18 @@ exports.index = (req, res) => {
   Student.findOne({ 'id': studentId }, (err, student) => {
     if (err) { return next(err); }
 
-    res.render('student', {
-      title: 'Student',
-      student: student,
-      concepts: Concept.getAll()
-    });
+    if (req.query.view == "json") {
+        res.render('json', {
+        title: 'Student JSON',
+        json: JSON.stringify(student, undefined, 2)
+      });
+    } else {
+      res.render('student', {
+        title: 'Student',
+        student: student,
+        concepts: Concept.getAll()
+      });
+    }
   })
   .exec()
   .catch((err) => {

@@ -43,10 +43,9 @@ exports.event = (req, res) => {
   Session.findOne({ 'id': sessionId }, (err, session) => {
     if (err) { return next(err); }
 
-    res.render('event', {
-      title: 'Event',
-      session: session,
-      eventStr: JSON.stringify(session.events[eventIndex], undefined, 2)
+    res.render('json', {
+      title: 'Event JSON',
+      json: JSON.stringify(session.events[eventIndex], undefined, 2)
     });
   })
   .exec()
