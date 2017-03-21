@@ -20,13 +20,15 @@ block content
         tr
           th Student ID
           th Average Score
-          th Last Sign In
+          th Total Hints
           th Total Sessions
+          th Last Sign In
       tbody
         for student in students
           tr
             td
               a(href='/student/#{student.id}') #{student.id}          
             td.scoreBox #{Math.round(student.averageScaledScore() * 1000)/10}
-            td #{student.lastSignIn}
-            td #{student.totalSessions}
+            td(align="center") #{student.hintHistory.length}
+            td(align="center") #{student.totalSessions}
+            td #{moment(student.lastSignIn).calendar()}

@@ -34,7 +34,7 @@ block content
               a(href='/session/#{session.id}') #{session.id}          
             td #{session.studentId}
             td #{session.groupId}
-            td #{new Date(session.startTime)}
+            td #{moment(session.startTime).calendar()}
           if session.events  
             td #{session.events.length}
           else
@@ -57,7 +57,7 @@ block content
               a(href='/session/#{session.id}') #{session.id}          
             td #{session.studentId}
             td #{session.groupId}
-            td #{new Date(session.startTime)}
+            td #{moment(session.startTime).calendar()}
             if session.events  
               td #{session.events.length}
             else
