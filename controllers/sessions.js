@@ -8,15 +8,17 @@ var Archiver = require('archiver');
  * Sessions page.
  */
 exports.index = (req, res) => {
+  var studentId = req.query.studentId;
   var activeSessions = [];
-  Session.getAllActiveSessions().then((sessions) => {
+  Session.getAllActiveSessions(studentId).then((sessions) => {
     activeSessions = sessions;
-    return Session.getAllInactiveSessions();
+    return Session.getAllInactiveSessions(studentId);
   }).then((inactiveSessions) => {
     res.render('sessions', {
       title: 'Sessions',
       activeSessions: activeSessions,
-      inactiveSessions: inactiveSessions
+      inactiveSessions: inactiveSessions,
+      studentId: studentId
     });
   }).catch((err) => {
     console.error(err);

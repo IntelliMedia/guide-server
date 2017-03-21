@@ -29,6 +29,8 @@ block content
             td
               a(href='/student/#{student.id}') #{student.id}          
             td.scoreBox #{Math.round(student.averageScaledScore() * 1000)/10}
-            td(align="center") #{student.hintHistory.length}
-            td(align="center") #{student.totalSessions}
+            td(align="center") 
+              a(href='/student/#{student.id}/hints') #{student.hintHistory.length}
+            td(align="center") 
+              a(href='/sessions?studentId=#{student.id}') #{student.totalSessions}
             td #{moment(student.lastSignIn).calendar()}

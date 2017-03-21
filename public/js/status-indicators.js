@@ -78,4 +78,10 @@ window.onload = function() {
             "background-color": shadeBlend(0.90, valueToHexColor($(this).text()))
         });
     });
+
+    $(".scoreBackground").each(function(index) {
+        $(this).css({
+            "background-color": shadeBlend(0.90, valueToHexColor($(this).text()))
+        });
+    });
 }

@@ -18,18 +18,26 @@ sessionSchema.methods.logEvent = function(event) {
 const Session = mongoose.model('Session', sessionSchema);
 module.exports = Session;
 
-module.exports.getAllActiveSessions = () => {
-  return new Promise((resolve, reject) => {  
-    Session.find({'active': true}, function(err, sessions) {
+module.exports.getAllActiveSessions = (studentId) => {
+  return new Promise((resolve, reject) => { 
+    var query = {'active': true};
+    if (studentId) {
+      query.studentId = studentId;
+    }
+    Session.find(query, function(err, sessions) {
       if (err) throw err;  
       resolve(sessions.sort(compareStartTime));
     });
   });
 };
 
-module.exports.getAllInactiveSessions = () => {
+module.exports.getAllInactiveSessions = (studentId) => {
   return new Promise((resolve, reject) => {  
-    Session.find({'active': false}, function(err, sessions) {
+    var query = {'active': false};
+    if (studentId) {
+      query.studentId = studentId;
+    }
+    Session.find(query, function(err, sessions) {
       if (err) throw err;  
       resolve(sessions.sort(compareStartTime));
     });

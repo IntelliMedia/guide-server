@@ -2,10 +2,12 @@ extends layout
 
 block content
   h1 Sessions
+  if studentId
+    h4 #{studentId}
 
   div
      h3 Active
-      if isAllowed('sessions', 'post')     
+      if isAllowed('sessions', 'post') && !studentId  
         div.pull-right
           form.form-horizontal(action='/sessions/modify', method='POST')
             .form-group.floatLeft
