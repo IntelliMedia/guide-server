@@ -9,7 +9,7 @@ const EcdRulesEvaluator = require("./ecdRulesEvaluator");
  * This class retrieves rules based on group and challengeId 
  * to locate rules/hints for a specific GV2 challenge.
  */
-class EcdRulesRepository {
+class EvaluatorRepository {
     constructor() {
     }
 
@@ -32,7 +32,7 @@ class EcdRulesRepository {
             return this.parseCsvAsync(response, docUrl);
         })
         .then (csv => {
-            // TODO determine which evaluator to instantiate, don't always assume
+            // TODO determine which condition to instantiate, don't always assume
             // ECD rules.
             try {
                 return new EcdRulesEvaluator(csv);
@@ -46,9 +46,19 @@ class EcdRulesRepository {
 
     parseCsvAsync(text, docUrl) {
         return new Promise((resolve, reject) => {
-            parse(text, {comment: '#'}, function(err, csv){
+            var parseOptions = {
+                comment: '#',
+                skip_empty_lines: true
+            };
+            parse(text, parseOptions, function(err, csv){
                 if (err) {
-                    reject(new Error("Unable to parse ECD rules from " + docUrl + " . " + err.message));
+                    var msg = "Unable to parse ECD rules from " + docUrl + " . ";
+                    if (text.includes("Create a new spreadsheet and edit with others at the same time")) {
+                        msg += "Unable to access Google spreadsheet. Change sharing options to allow 'anyone with the link' to view the spreadsheet.";
+                    } else {
+                        msg += err.message;
+                    }
+                    reject(new Error(msg));
                 }
                 resolve(csv);
             });
@@ -78,4 +88,4 @@ class EcdRulesRepository {
     }
 }
 
-module.exports = EcdRulesRepository;
+module.exports = EvaluatorRepository;

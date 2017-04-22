@@ -197,7 +197,7 @@ function handleUserChangedAlleleAsync(student, session, event) {
 function handleUserSubmittedOrganismAsync(student, session, event) {
 
     var repo = new EvaluatorRepository();
-    return repo.findEvaluatorAsync(session.groupId, event.context.challengeId).then((evaluator) => {
-        return (evaluator ? evaluator.evaluateAsync(student, session, event) : null);
+    return repo.findEvaluatorAsync(session.groupId, event.context.challengeId).then((condition) => {
+        return (condition ? condition.evaluateAsync(student, session, event) : null);
     });
 }
