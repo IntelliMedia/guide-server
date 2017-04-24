@@ -78,7 +78,7 @@ class EcdCsvParser {
     }
 
     extractHeadingValue(heading) {
-        var words = heading.split("-");
+        var words = heading.trim().split("-");
         if (words == null || words.length < 2) {
             throw new Error("Unable to extract heading value from: " + heading);
         }

@@ -20,7 +20,8 @@ var eventRoutes = [
     new EventToFunction('SYSTEM', 'ENDED', 'SESSION', handleSystemEndedSessionAsync),
     new EventToFunction('USER', 'NAVIGATED', 'CHALLENGE', handleUserNavigatedChallengeAsync),
 //    new EventToFunction('USER', 'CHANGED', 'ALLELE', handleUserChangedAlleleAsync),
-    new EventToFunction('USER', 'SUBMITTED', 'ORGANISM', handleUserSubmittedOrganismAsync)
+    new EventToFunction('USER', 'SUBMITTED', 'ORGANISM', handleUserSubmittedOrganismAsync),
+    new EventToFunction('USER', 'SUBMITTED', 'EGG', handleUserSubmittedOrganismAsync)
 ];
 
 exports.initialize = () => {
