@@ -30,8 +30,8 @@ if (typeof exports === 'undefined') {
     /**
      * Event - information sent by the client (Geniverse) to the GUIDE ITS
      */
-    GuideProtocol.Event = function(username, session, sequence, actor, action, target, context, time) {
-        this.username = username;
+    GuideProtocol.Event = function(studentId, session, sequence, actor, action, target, context, time) {
+        this.studentId = studentId;
         this.session = session;
         this.sequence = sequence;
         this.actor = actor;
@@ -60,7 +60,7 @@ if (typeof exports === 'undefined') {
     GuideProtocol.Event.fromJson = function(json) {
         var obj = JSON.parse(json);
         return new GuideProtocol.Event(
-            obj.username, 
+            obj.studentId, 
             obj.session, 
             obj.sequence, 
             obj.actor, 
