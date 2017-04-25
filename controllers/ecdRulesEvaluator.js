@@ -20,7 +20,7 @@ class EcdRulesEvaluator {
     evaluateAsync(student, session, event) {
         return new Promise((resolve, reject) => {
             try {
-                console.info("Update student model for: %s (%s | %s)", student.id, session.groupId, event.context.challengeId);                
+                console.info("Update student model for: %s (%s | %s | %s)", student.id, session.classId, session.groupId, event.context.challengeId);                
                 var activatedRules = this.evaluateRules( 
                     event.context.challengeCriteria,
                     event.context.userSelections);

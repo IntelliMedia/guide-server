@@ -22,6 +22,8 @@ const hintDelivered = new mongoose.Schema({
 
 const studentSchema = new mongoose.Schema({
   id: String,
+  classId: String,
+  groupId: String,
   lastSignIn: Date,
   totalSessions: Number,
   concepts: [conceptStateSchema],

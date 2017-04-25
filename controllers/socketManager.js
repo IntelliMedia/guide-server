@@ -62,10 +62,10 @@ function handleEvent(socket, data) {
     var receivedEvent = null;
     GuideProtocol.Event.fromJsonAsync(data).then((event) => {
         receivedEvent = event;
-        console.info("SocketManager - incoming: " + event.toString() + " user=" + event.username);
+        console.info("SocketManager - incoming: " + event.toString() + " user=" + event.studentId);
         // TODO - control with debug flag
         console.info("Event: " + JSON.stringify(event, null, '\t'));
-        return findSession(socket, receivedEvent.username, receivedEvent.session); 
+        return findSession(socket, receivedEvent.studentId, receivedEvent.session); 
     })
     .then((session) => { 
         return tutor.processEventAsync(receivedEvent, session);

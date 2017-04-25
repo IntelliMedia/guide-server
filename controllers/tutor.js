@@ -32,7 +32,7 @@ exports.processEventAsync = (event, session) => {
 
     // Is this the beginning of the session?
     if (event.isMatch("SYSTEM", "STARTED", "SESSION")) {
-        session.studentId = event.username;
+        session.studentId = event.studentId;
         session.active = true;
         session.startTime = event.time;
     }
@@ -68,11 +68,11 @@ function handleEventAsync(student, session, event) {
             console.error("Multiple handlers were defined for the same event: " + event.toString())
         }
 
-        console.info("Tutor - handling: " + event.toString() + " user=" + event.username);
+        console.info("Tutor - handling: " + event.toString() + " user=" + event.studentId);
         return eventRouters[0].handler(student, session, event);
     }
 
-    console.warn("Tutor - unhandled: " + event.toString() + " user=" + event.username);
+    console.warn("Tutor - unhandled: " + event.toString() + " user=" + event.studentId);
     return new Promise((resolve, reject) => {
         resolve(null);
     });
@@ -92,17 +92,21 @@ function saveAsync(session, student) {
 function handleSystemStartedSessionAsync(student, session, event) {
     return new Promise((resolve, reject) => {
         student.lastSignIn = new Date(event.time);
+        student.classId = event.context.classId;
+        student.groupId = event.context.groupId;
         student.totalSessions += 1;
+
+        session.classId = event.context.classId;
         session.groupId = event.context.groupId;
 
         var dialogMessage = null;
-        var username = (event.username.toLowerCase().includes("test") ? "there" : event.username);
+        var studentId = (event.studentId.toLowerCase().includes("test") ? "there" : event.studentId);
         switch (Math.floor(Math.random() * 3)) {
             case 0:
                 dialogMessage = new GuideProtocol.Text(
                     'ITS.HELLO.1',
-                    'Hello {{username}}! I\'m ready to help you learn about genetics.')
-                dialogMessage.args.username = username;
+                    'Hello {{studentId}}! I\'m ready to help you learn about genetics.')
+                dialogMessage.args.studentId = studentId;
                 break;
             case 1:
                 dialogMessage = new GuideProtocol.Text(
@@ -134,7 +138,6 @@ function handleSystemEndedSessionAsync(student, session, event) {
 function handleUserNavigatedChallengeAsync(student, session, event) {
     return new Promise((resolve, reject) => {
         var dialogMessage = null;
-        session.groupId = event.context.groupId;
 
         switch (Math.floor(Math.random() * 3)) {
             case 0:

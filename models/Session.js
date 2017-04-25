@@ -4,6 +4,7 @@ const sessionSchema = new mongoose.Schema({
       id: String,
       active: Boolean,
       studentId: String,
+      classId: String,
       groupId: String,
       startTime: Date,
       endTime: Date,      
