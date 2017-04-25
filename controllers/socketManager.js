@@ -60,6 +60,7 @@ function handleDisconnect(socket) {
 function handleEvent(socket, data) {
 
     var receivedEvent = null;
+    var currentSession = null;
     GuideProtocol.Event.fromJsonAsync(data).then((event) => {
         receivedEvent = event;
         console.info("SocketManager - incoming: " + event.toString() + " user=" + event.studentId);
@@ -68,6 +69,7 @@ function handleEvent(socket, data) {
         return findSession(socket, receivedEvent.studentId, receivedEvent.session); 
     })
     .then((session) => { 
+        currentSession = session;
         return tutor.processEventAsync(receivedEvent, session);
     })        
     .catch((err) => {
@@ -80,6 +82,16 @@ function handleEvent(socket, data) {
         newAlert.save();
         
         var alert = new GuideProtocol.Alert(GuideProtocol.Alert.Error, err.message);
+        if (currentSession) {
+            var event = new GuideProtocol.Event(
+                currentSession.studentId,
+                currentSession.id, 
+                currentSession.sequenceNumber++,
+                "ITS", "ISSUED", "ALERT", alert
+            );
+            currentSession.logEvent(event);
+            currentSession.save();
+        }
         socket.emit(GuideProtocol.Alert.Channel, alert.toJson());
     });
 }
