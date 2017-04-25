@@ -218,22 +218,22 @@ function initializeRoutes() {
  * Primary app routes.
  */
 app.get('/', homeController.index);
-app.get('/sessions', authz.Middleware(), sessionsController.index);
-app.post('/sessions/modify', authz.Middleware(1), sessionsController.modify);
-app.get('/session/:sessionId', authz.Middleware(1), sessionController.index);
-app.get('/session/:sessionId/event/:eventIndex', authz.Middleware(1), sessionController.event);
-app.get('/students', authz.Middleware(1), studentsController.index);
-app.post('/students/modify', authz.Middleware(1), studentsController.modify);
-app.get('/student/:studentId', authz.Middleware(1), studentController.index);
-app.get('/student/:studentId/hints', authz.Middleware(1), hintsController.index);
-app.get('/groups', authz.Middleware(1), groupsController.index);
-app.post('/groups/modify', authz.Middleware(1), groupsController.modify);
-app.get('/group/:groupId', authz.Middleware(1), groupController.index);
-app.delete('/group/:groupId', authz.Middleware(1), groupController.delete);
-app.post('/group/modify', authz.Middleware(1), groupController.modify);
-app.post('/group/duplicate', authz.Middleware(1), groupController.duplicate);
-app.get('/alerts', authz.Middleware(), alertsController.index);
-app.post('/alerts/clear', authz.Middleware(1), alertsController.clear);
+app.get('/sessions', authz.middleware(), sessionsController.index);
+app.post('/sessions/modify', authz.middleware(1), sessionsController.modify);
+app.get('/session/:sessionId', authz.middleware(1), sessionController.index);
+app.get('/session/:sessionId/event/:eventIndex', authz.middleware(1), sessionController.event);
+app.get('/students', authz.middleware(1), studentsController.index);
+app.post('/students/modify', authz.middleware(1), studentsController.modify);
+app.get('/student/:studentId', authz.middleware(1), studentController.index);
+app.get('/student/:studentId/hints', authz.middleware(1), hintsController.index);
+app.get('/groups', authz.middleware(1), groupsController.index);
+app.post('/groups/modify', authz.middleware(1), groupsController.modify);
+app.get('/group/:groupId', authz.middleware(1), groupController.index);
+app.delete('/group/:groupId', authz.middleware(1), groupController.delete);
+app.post('/group/modify', authz.middleware(1), groupController.modify);
+app.post('/group/duplicate', authz.middleware(1), groupController.duplicate);
+app.get('/alerts', authz.middleware(), alertsController.index);
+app.post('/alerts/clear', authz.middleware(1), alertsController.clear);
 app.get('/users', usersController.index);
 app.get('/login', userController.getLogin);
 app.post('/login', userController.postLogin);
@@ -248,7 +248,7 @@ app.get('/contact', contactController.getContact);
 app.post('/contact', contactController.postContact);
 app.get('/account/:userId?', authz.usersMiddleware(), userController.getAccount);
 app.post('/account/profile/:userId?', authz.usersMiddleware(), userController.postUpdateProfile);
-app.post('/account/roles/:userId?', authz.Middleware(2), userController.postUpdateRoles);
+app.post('/account/roles/:userId?', authz.middleware(2), userController.postUpdateRoles);
 app.post('/account/password/:userId?', authz.usersMiddleware(), userController.postUpdatePassword);
 app.post('/account/delete/:userId?', authz.usersMiddleware(), userController.postDeleteAccount);
 app.get('/account/unlink/:provider/:userId?', authz.usersMiddleware(), userController.getOauthUnlink);
@@ -256,7 +256,7 @@ app.get('/account/unlink/:provider/:userId?', authz.usersMiddleware(), userContr
 /**
  * API examples routes.
  */
-app.get('/api/student/:studentId',  authz.Middleware(1), apiController.getStudent);
+app.get('/api/student/:studentId',  authz.middleware(1), apiController.getStudent);
 /*
 app.get('/api', apiController.getApi);
 app.get('/api/lastfm', apiController.getLastfm);
