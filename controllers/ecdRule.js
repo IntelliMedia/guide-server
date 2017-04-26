@@ -11,6 +11,7 @@ class EcdRule {
         this.concepts = concepts;
         this.hints = hints;
         this.attributeName = null;
+        this.isMisconception = false;
 
         if (!this.challengeConditions || this.challengeConditions.length == 0) {
             throw new Error("No challenge attribute conditions defined for ECD rule. Missing 'Attribute-' columns.")
@@ -20,14 +21,15 @@ class EcdRule {
             throw new Error("No user selection conditions defined for ECD rule. Missing 'Selected-' columns.")
         }
 
-        var totalAdjustment = 0;
         for (var concept in this.concepts) {
             if (!this.concepts.hasOwnProperty(concept)) {
                 continue;
             }
-            totalAdjustment += this.concepts[concept];
+            if (this.concepts[concept] < 0) {
+                this.isMisconception = true;
+                break;
+            }
         }
-        this.isMisconception = totalAdjustment < 0;
     }
 
     evaluate(challengeCriteria, userSelections) {
