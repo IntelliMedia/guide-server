@@ -91,6 +91,15 @@ function saveAsync(session, student) {
 
 function handleSystemStartedSessionAsync(student, session, event) {
     return new Promise((resolve, reject) => {
+
+        if (!event.context.classId) {
+            throw new Error("context.classId is blank");
+        }
+
+        if (!event.context.groupId) {
+            throw new Error("context.groupId is blank");
+        }
+
         student.lastSignIn = new Date(event.time);
         student.classId = event.context.classId;
         student.groupId = event.context.groupId;

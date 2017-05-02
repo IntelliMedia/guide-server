@@ -112,6 +112,14 @@ function findSessionBySocket(socket) {
 
 function findSession(socket, studentId, sessionId) {
     return new Promise((resolve, reject) => {
+        if (!sessionId) {
+            throw new Error("sessionId is blank");
+        }
+
+        if (!studentId) {
+            throw new Error("studentId is blank");
+        }
+
         if (!socket) {
             reject('Cannot find session since socket is null');
         }
