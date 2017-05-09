@@ -35,3 +35,30 @@ exports.index = (req, res) => {
     return res.redirect('/students');
   });
 };
+
+exports.reset = (req, res) => {
+  if (req.body.studentId) {
+    var studentId = req.body.studentId;
+    console.info("Reset student model: " + studentId);
+    Student.findOne({ 'id': studentId }, (err, student) => {
+      if (err) { 
+        return next(err); 
+      }
+      console.info("Save student: " + studentId);
+      student.reset();
+      student.save((err) => {
+        if (err) {
+          return next(err);
+        } else {
+          return res.redirect('/student/' + studentId);
+        }
+      });
+    })
+    .exec()
+    .catch((err) => {
+      consolex.exception(err);
+      req.flash('errors', { msg: 'Student with ID is not found: ' + studentId});
+      return res.redirect('/students');
+    });
+  }
+}

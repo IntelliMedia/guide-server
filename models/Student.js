@@ -30,6 +30,12 @@ const studentSchema = new mongoose.Schema({
   hintHistory: [hintDelivered]
 }, { timestamps: true });
 
+studentSchema.methods.reset = function() {
+  this.totalSessions = 0;
+  this.concepts = [];
+  this.hintHistory = [];
+}
+
 studentSchema.methods.updateConceptState = function (criteria, conceptId, adjustment) {
   var conceptState = this.conceptState(criteria, conceptId);
   // Add new concept, if it doesn't already exist

@@ -7,6 +7,15 @@ block extraHeader
 
 block content
   h1 Student 
+    if isAllowed('students', 'post')     
+      div.pull-right
+        form.form-horizontal(action='/student/reset', method='POST')
+          .form-group.floatLeft
+            input(type='hidden', name='_csrf', value=_csrf)
+            input(type='hidden', name='studentId', value='#{student.id}')
+            button.btn.btn-danger(type='submit' name='action' value='resetModel')
+              i.fa.fa-trash
+              | Reset Model 
   h3 #{student.id}
   h4
     a(href='/student/#{student.id}/hints') Hint History  

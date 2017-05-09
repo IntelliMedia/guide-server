@@ -225,6 +225,7 @@ app.get('/session/:sessionId/event/:eventIndex', authz.middleware(1), sessionCon
 app.get('/students', authz.middleware(1), studentsController.index);
 app.post('/students/modify', authz.middleware(1), studentsController.modify);
 app.get('/student/:studentId', authz.middleware(1), studentController.index);
+app.post('/student/reset', authz.middleware(), studentController.reset);
 app.get('/student/:studentId/hints', authz.middleware(1), hintsController.index);
 app.get('/groups', authz.middleware(1), groupsController.index);
 app.post('/groups/modify', authz.middleware(1), groupsController.modify);
