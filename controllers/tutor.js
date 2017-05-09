@@ -145,7 +145,16 @@ function handleSystemEndedSessionAsync(student, session, event) {
 }
 
 function handleUserNavigatedChallengeAsync(student, session, event) {
-    return new Promise((resolve, reject) => {
+
+    // Is there tutoring available for this challenge?
+    var repo = new EvaluatorRepository();
+    return repo.doesEvaluatorExistAsync(session.groupId, event.context.challengeId).then((condition) => {
+
+        if (!condition) {
+            return null;
+        };
+
+        // If there is tutoring available, indicate it to the user with a feedback message.
         var dialogMessage = null;
 
         switch (Math.floor(Math.random() * 3)) {
@@ -170,8 +179,8 @@ function handleUserNavigatedChallengeAsync(student, session, event) {
                 break;
         }
 
-        resolve(TutorAction.create(session, "SPOKETO", "USER", "navigatedChallenge",
-            new GuideProtocol.TutorDialog(dialogMessage)));
+        return TutorAction.create(session, "SPOKETO", "USER", "navigatedChallenge",
+            new GuideProtocol.TutorDialog(dialogMessage));
     });
 }
 

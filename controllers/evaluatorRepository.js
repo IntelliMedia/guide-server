@@ -13,6 +13,39 @@ class EvaluatorRepository {
     constructor() {
     }
 
+    doesEvaluatorExistAsync(groupName, challengeId) {
+        var docUrl = null;
+        return this.getEcdMatrixIdAsync(groupName, challengeId).then(matrixId => {
+            docUrl = "https://docs.google.com/spreadsheets/d/" + matrixId + "/export?format=csv";
+            var options = {
+                method: "GET",
+                uri: docUrl,
+                headers: {
+                    'User-Agent': 'Request-Promise'
+                } 
+            };
+            
+            console.info("EcdRulesRepository GET: " + options.uri);
+            return rp(options);
+        })
+        .catch(err => {
+            return false;
+        })
+        .then( response => {
+            if (response) {
+                return this.parseCsvAsync(response, docUrl);
+            } else {
+                return false;
+            }
+        })
+        .catch(err => {
+            return false;
+        })
+        .then (csv => {
+            return csv.constructor === Array && csv.length > 0;
+        });
+    }
+
     findEvaluatorAsync(groupName, challengeId) {
         var docUrl = null;
         return this.getEcdMatrixIdAsync(groupName, challengeId).then(matrixId => {
