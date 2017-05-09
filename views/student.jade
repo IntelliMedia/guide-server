@@ -17,6 +17,8 @@ block content
               i.fa.fa-trash
               | Reset Model 
   h3 #{student.id}
+  h4 #{student.classId}
+  h4 #{student.groupId}
   h4
     a(href='/student/#{student.id}/hints') Hint History  
     a(href='/student/#{student.id}?view=json') JSON  

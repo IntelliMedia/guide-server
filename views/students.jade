@@ -20,6 +20,8 @@ block content
         tr
           th Student ID
           th Average Score
+          th Class ID
+          th Group ID
           th Total Hints
           th Total Sessions
           th Last Sign In
@@ -29,6 +31,8 @@ block content
             td
               a(href='/student/#{student.id}') #{student.id}          
             td.scoreBox #{Math.round(student.averageScaledScore() * 1000)/10}
+            td #{student.classId}
+            td #{student.groupId}
             td(align="center") 
               a(href='/student/#{student.id}/hints') #{student.hintHistory.length}
             td(align="center") 
