@@ -2,7 +2,7 @@ const mongoose = require('mongoose');
 const _ = require('lodash');
 
 const conceptStateSchema = new mongoose.Schema({
-  characteristic: String,
+  criteria: String,
   id: String,
   sumScore: Number,
   totalCorrect: Number,
@@ -14,7 +14,7 @@ const hintDelivered = new mongoose.Schema({
   conceptId: String,
   scaledScore: String,
   challengeId: String,
-  ruleTarget: String, 
+  ruleCriteria: String, 
   ruleSelected: String,
   hintLevel: Number,
   timestamp: Date
@@ -30,12 +30,12 @@ const studentSchema = new mongoose.Schema({
   hintHistory: [hintDelivered]
 }, { timestamps: true });
 
-studentSchema.methods.updateConceptState = function (characteristicName, conceptId, adjustment) {
-  var conceptState = this.conceptState(characteristicName, conceptId);
+studentSchema.methods.updateConceptState = function (criteria, conceptId, adjustment) {
+  var conceptState = this.conceptState(criteria, conceptId);
   // Add new concept, if it doesn't already exist
   if (conceptState == null) {
     conceptState = {
-      characteristic: characteristicName,
+      criteria: criteria,
       id: conceptId,
       scaledScore: 0,
       sumScore: 0,
@@ -70,8 +70,8 @@ studentSchema.methods.averageScaledScore = function () {
   return  (total != 0 ? correct/total : 0);
 }
 
-studentSchema.methods.conceptScaledScore = function (characteristicName, conceptId) {
-  var conceptState = this.conceptState(characteristicName, conceptId);
+studentSchema.methods.conceptScaledScore = function (criteria, conceptId) {
+  var conceptState = this.conceptState(criteria, conceptId);
   if (!conceptState) {
     return undefined;
   }
@@ -80,8 +80,8 @@ studentSchema.methods.conceptScaledScore = function (characteristicName, concept
   return  (total != 0 ? conceptState.totalCorrect/total : 0);
 }
 
-studentSchema.methods.conceptScoreInfo = function (characteristicName, conceptId) {
-  var conceptState = this.conceptState(characteristicName, conceptId);
+studentSchema.methods.conceptScoreInfo = function (criteria, conceptId) {
+  var conceptState = this.conceptState(criteria, conceptId);
   if (!conceptState) {
     return undefined;
   }
@@ -94,12 +94,12 @@ studentSchema.methods.conceptScoreInfo = function (characteristicName, conceptId
   };
 }
 
-studentSchema.methods.conceptState = function (characteristicName, conceptId) {
+studentSchema.methods.conceptState = function (criteria, conceptId) {
   var conceptState = null;
 
   // Finding existing conceptState
   for (let concept of this.concepts) {
-    if (concept.characteristic == characteristicName
+    if (concept.criteria == criteria
       && concept.id == conceptId) {
       conceptState = concept;
       break;
@@ -113,16 +113,16 @@ studentSchema.methods.modelConceptIds = function () {
   return _.uniq(this.concepts.map(function(a) {return a.id;})).sort();
 }
 
-studentSchema.methods.modelCharacterisitics = function () {
-  return _.uniq(this.concepts.map(function(a) {return a.characteristic;})).sort();
+studentSchema.methods.modelCriteria = function () {
+  return _.uniq(this.concepts.map(function(a) {return a.criteria;})).sort();
 }
 
-studentSchema.methods.addHintToHistory = function (conceptId, scaledScore, challengeId, ruleTarget, ruleSelected, hintLevel) {
+studentSchema.methods.addHintToHistory = function (conceptId, scaledScore, challengeId, ruleCriteria, ruleSelected, hintLevel) {
   var hintDelivered = {
     conceptId: conceptId,
     scaledScore: scaledScore,
     challengeId: challengeId,
-    ruleTarget: ruleTarget,
+    ruleCriteria: ruleCriteria,
     ruleSelected: ruleSelected,
     hintLevel: hintLevel,
     timestamp: new Date()
@@ -148,7 +148,7 @@ studentSchema.methods.currentHintLevel = function (challengeId, target, selected
   for (var i = 0; i < this.hintHistory.length; ++i) {
     var previousHint = this.hintHistory[i];
     if (previousHint.challengeId == challengeId
-      && previousHint.ruleTarget == target
+      && previousHint.ruleCriteria == target
       && previousHint.ruleSelected == selected) {
         hintLevel = Math.max(hintLevel, previousHint.hintLevel);
       }

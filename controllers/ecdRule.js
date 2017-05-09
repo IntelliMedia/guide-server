@@ -4,21 +4,21 @@ const EcdRuleCondition = require('./ecdRuleCondition');
 const CharacteristicsCondition = require('./ecdRuleCondition').CharacteristicsCondition;
 
 class EcdRule {   
-    constructor(priority, challengeConditions, userSelectionConditions, concepts, hints) {
+    constructor(priority, criteriaConditions, selectedConditions, concepts, hints) {
         this.priority = priority;
-        this.challengeConditions = challengeConditions;
-        this.userSelectionConditions = userSelectionConditions;
+        this.criteriaConditions = criteriaConditions;
+        this.selectedConditions = selectedConditions;
         this.concepts = concepts;
         this.hints = hints;
         this.attributeName = null;
         this.isMisconception = false;
 
-        if (!this.challengeConditions || this.challengeConditions.length == 0) {
-            throw new Error("No challenge attribute conditions defined for ECD rule. Missing 'Attribute-' columns.")
+        if (!this.criteriaConditions || this.criteriaConditions.length == 0) {
+            throw new Error("No criteria conditions defined for ECD rule. Missing 'Criteria-' columns.")
         }
 
-        if (!this.userSelectionConditions || this.userSelectionConditions.length == 0) {
-            throw new Error("No user selection conditions defined for ECD rule. Missing 'Selected-' columns.")
+        if (!this.selectedConditions || this.selectedConditions.length == 0) {
+            throw new Error("No user selected conditions defined for ECD rule. Missing 'Selected-' columns.")
         }
 
         for (var concept in this.concepts) {
@@ -34,7 +34,7 @@ class EcdRule {
 
     evaluate(challengeCriteria, userSelections) {
 
-        var criteriaMatched = this.challengeConditions.every((condition) => {
+        var criteriaMatched = this.criteriaConditions.every((condition) => {
             var result = condition.evaluate(challengeCriteria);
             if (condition instanceof CharacteristicsCondition) {
                 this.attributeName = condition.attributeName;
@@ -42,12 +42,34 @@ class EcdRule {
             return result;
         });
 
-        var selectionsMatched = this.userSelectionConditions.every((condition) => {
+        var selectionsMatched = this.selectedConditions.every((condition) => {
             var result =  condition.evaluate(userSelections);
             return result;
         });
 
         return criteriaMatched && selectionsMatched;
+    }
+
+    criteria() {
+        return this.conditionsToString(this.criteriaConditions);
+    }
+
+    selected() {
+        return this.conditionsToString(this.selectedConditions);
+    }
+
+    conditionsToString(conditions) {
+        var s = "";
+        var prependAnd = false;
+        conditions.forEach((condition) => {
+            if (prependAnd) {
+                s += " && ";
+            }
+            s += condition.description();
+            prependAnd = true;
+        });
+
+        return s;
     }
 }
 

@@ -80,7 +80,7 @@ class EcdRulesEvaluator {
                     continue;
                 }
                 var adjustment = rule.concepts[conceptId];
-                student.updateConceptState(rule.target, conceptId, adjustment);
+                student.updateConceptState(rule.criteria(), conceptId, adjustment);
                 console.info("Adjusted student model concept: " + conceptId + " adjustment=" + adjustment);
             }
         }
@@ -91,8 +91,8 @@ class EcdRulesEvaluator {
                     continue;
                 }
                 var adjustment = rule.concepts[conceptId];
-                student.updateConceptState(rule.target, conceptId, adjustment);
-                var scaledScore = student.conceptScaledScore(rule.target, conceptId);
+                student.updateConceptState(rule.criteria(), conceptId, adjustment);
+                var scaledScore = student.conceptScaledScore(rule.criteria(), conceptId);
                 // TODO - only include negative concept state scores?
                 //if (state.scaledScore < 0) {
                     negativeConcepts.push(new NegativeConcept(
@@ -129,8 +129,8 @@ class EcdRulesEvaluator {
         var mostRecentHint = student.mostRecentHint(challengeId);
         if (mostRecentHint) {
             for (let negativeConcept of negativeConcepts) {
-                if (negativeConcept.rule.target == mostRecentHint.ruleTarget
-                    && negativeConcept.rule.selected == mostRecentHint.ruleSelected) {
+                if (negativeConcept.rule.criteria() == mostRecentHint.ruleCriteria
+                    && negativeConcept.rule.selected() == mostRecentHint.ruleSelected) {
                         conceptToHint = negativeConcept;
                         selectionCriteria = {
                             description:"staying with previous hint",
@@ -150,15 +150,15 @@ class EcdRulesEvaluator {
                     conceptToHint = negativeConcept;
                     selectionCriteria = {
                       description:"most negative concept",
-                      ruleTarget:conceptToHint.rule.target,
-                      ruleSelected:conceptToHint.rule.selected
+                      ruleCriteria:conceptToHint.rule.criteria(),
+                      ruleSelected:conceptToHint.rule.selected()
                     };
                     break;
                 } else {
                     console.warn("No hints available for %s | %s | %s", 
                         challengeId,
-                        negativeConcept.rule.target,
-                        negativeConcept.rule.selected);
+                        negativeConcept.rule.criteria(),
+                        negativeConcept.rule.selected());
                 }
             }
         }
@@ -167,8 +167,8 @@ class EcdRulesEvaluator {
         if (conceptToHint != null) {
             var hintLevel = student.currentHintLevel(
                     challengeId,
-                    conceptToHint.rule.target, 
-                    conceptToHint.rule.selected) + 1;
+                    conceptToHint.rule.criteria(), 
+                    conceptToHint.rule.selected()) + 1;
 
             // Don't let hint level exceed the number of hints available
             hintLevel = Math.min(conceptToHint.rule.hints.length, hintLevel);
@@ -178,8 +178,8 @@ class EcdRulesEvaluator {
                 conceptToHint.conceptId, 
                 conceptToHint.scaledScore, 
                 challengeId, 
-                conceptToHint.rule.target, 
-                conceptToHint.rule.selected, 
+                conceptToHint.rule.criteria(), 
+                conceptToHint.rule.selected(), 
                 hintLevel);
 
             var dialogMessage = new GuideProtocol.Text(
@@ -188,7 +188,7 @@ class EcdRulesEvaluator {
             if (conceptToHint.rule.attributeName) {
                 dialogMessage.args.trait = conceptToHint.rule.attributeName;
             } else {
-                dialogMessage.args.trait = conceptToHint.rule.target;
+                dialogMessage.args.trait = conceptToHint.rule.criteria();
             }
             action = TutorAction.create(session, "SPOKETO", "USER", "hint",
                         new GuideProtocol.TutorDialog(dialogMessage));

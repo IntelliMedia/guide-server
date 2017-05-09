@@ -14,7 +14,7 @@ block content
           th Score
           th Hint Level
           th Time
-          th Target
+          th Criteria
           th Selected
           th Challenge Id
       tbody
@@ -24,6 +24,6 @@ block content
             td.scoreBackground #{Math.round(hint.scaledScore * 1000)/10}   
             td #{hint.hintLevel} 
             td #{moment(hint.timestamp).calendar()}             
-            td #{hint.ruleTarget}      
+            td #{hint.ruleCriteria}      
             td #{hint.ruleSelected}
             td #{hint.challengeId}       

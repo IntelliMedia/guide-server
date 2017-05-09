@@ -28,12 +28,17 @@ class EcdRuleCondition {
         return condition;
     }
 
-    constructor(value) { 
+    constructor(value) {
+        this.value = value; 
         if (typeof value === "undefined") {
             throw new Error("EcdRuleCondition condition value cannot be 'undefined'");
         }
 
         this.attributeName = null;
+    }
+
+    description() {
+        return this.value;
     }
 
     evaluate(attributes) {

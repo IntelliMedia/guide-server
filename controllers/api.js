@@ -67,7 +67,7 @@ function createConceptChart(student) {
 
 function createConceptHeatmap(student) {
 
-  var xAxisLabels = student.modelCharacterisitics();
+  var xAxisLabels = student.modelCriteria();
   var yAxisLabels = student.modelConceptIds().reverse();
 
     var conceptScoreData = [];
@@ -104,12 +104,12 @@ function createConceptHeatmap(student) {
     },
 
     title: {
-        text: "Characteristics/Concept Heatmap"
+        text: "Criteria/Concept Heatmap"
     },
 
     xAxis: {
         categories: xAxisLabels,
-        title: "Characteristics"
+        title: "Criteria"
     },
 
     yAxis: {
