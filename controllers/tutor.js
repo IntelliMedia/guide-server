@@ -114,7 +114,9 @@ function handleSystemStartedSessionAsync(student, session, event) {
             case 0:
                 dialogMessage = new GuideProtocol.Text(
                     'ITS.HELLO.1',
-                    'Hello {{studentId}}! I\'m ready to help you learn about genetics.')
+                    'Hello! I\'m ready to help you learn about genetics.')
+                    // TODO user student's first name (studentId is a number)
+                    //'Hello {{studentId}}! I\'m ready to help you learn about genetics.')
                 dialogMessage.args.studentId = studentId;
                 break;
             case 1:
