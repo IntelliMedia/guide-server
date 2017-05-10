@@ -107,8 +107,10 @@ class CharacteristicsCondition extends EcdRuleCondition {
         }
         var characterisitics = this.normalizeCharacterisitics(Object.keys(attributes.phenotype).map(key => attributes.phenotype[key]));
         var result = this.targetCharacteristics.every((item) => {
-            if (item == "metallic") {
+            if (item === "metallic") {
                 return BiologicaX.isColorMetallic(attributes.phenotype.color);
+            } else if (item === "armor") {
+                return BiologicaX.hasAnyArmor(attributes.phenotype.armor);
             } else {
                 return characterisitics.indexOf(item) >= 0;
             }

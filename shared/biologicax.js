@@ -144,6 +144,10 @@ if (typeof exports === 'undefined') {
                 || color == 'Gold');
     }
 
+    BiologicaX.hasAnyArmor = function(armor) {
+        return (armor !== 'No armor');
+    }
+
     BiologicaX.findAllele = function(species, alleles, side, gene) {
         var allOptions = '(?:' + species.geneList[gene].alleles.join('|') + ')';
         var regex = new RegExp(side + ':' + allOptions, '');
