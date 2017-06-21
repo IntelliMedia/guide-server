@@ -3,6 +3,7 @@
 const parse = require('csv-parse');
 const EcdRule = require('./ecdRule');
 const EcdRuleCondition = require('./ecdRuleCondition');
+const Stringx = require("../utilities/stringx");
 
 
 /**
@@ -78,11 +79,11 @@ class EcdCsvParser {
     }
 
     extractHeadingValue(heading) {
-        var words = heading.trim().split("-");
-        if (words == null || words.length < 2) {
+        var value = heading.trimThroughFirst("-");
+        if (!value) {
             throw new Error("Unable to extract heading value from: " + heading);
         }
-        return words[1];
+        return value;
     }
 
     extractConditions(prefix, headerRow, currentRow) {

@@ -13,6 +13,14 @@ if (typeof exports === 'undefined') {
     BiologicaX = {};
     exports.BiologicaX = BiologicaX;
 
+    BiologicaX.sexToString = function(sex) {
+        return (sex == 0 ? "Male" : "Female");
+    }
+
+    BiologicaX.sexFromString = function(str) {
+        return (str === "Male" ? 0 : 1);
+    }
+
     BiologicaX.randomizeAlleles = function(species, genes, alleles) {
 
         var allelesToRandomize = [];

@@ -19,9 +19,10 @@ var eventRoutes = [
     new EventToFunction('SYSTEM', 'STARTED', 'SESSION', handleSystemStartedSessionAsync),
     new EventToFunction('SYSTEM', 'ENDED', 'SESSION', handleSystemEndedSessionAsync),
     new EventToFunction('USER', 'NAVIGATED', 'CHALLENGE', handleUserNavigatedChallengeAsync),
-//    new EventToFunction('USER', 'CHANGED', 'ALLELE', handleUserChangedAlleleAsync),
+    new EventToFunction('USER', 'CHANGED', 'ALLELE', handleUserChangedAlleleAsync),
     new EventToFunction('USER', 'SUBMITTED', 'ORGANISM', handleUserSubmittedOrganismAsync),
-    new EventToFunction('USER', 'SUBMITTED', 'EGG', handleUserSubmittedOrganismAsync)
+    new EventToFunction('USER', 'SUBMITTED', 'EGG', handleUserSubmittedOrganismAsync),
+    new EventToFunction('USER', 'SUBMITTED', 'OFFSPRING', handleUserSubmittedOrganismAsync)
 ];
 
 exports.initialize = () => {
@@ -190,7 +191,7 @@ function handleUserChangedAlleleAsync(student, session, event) {
     return new Promise((resolve, reject) => {
         var dialogMessage = null;
 
-        switch (Math.floor(Math.random() * 6)) {
+        switch (Math.floor(Math.random() * 4)) {
             case 0:
                 dialogMessage = new GuideProtocol.Text(
                     'ITS.ALLELE.FEEDBACK.1',
@@ -206,7 +207,7 @@ function handleUserChangedAlleleAsync(student, session, event) {
                     'ITS.ALLELE.FEEDBACK.3',
                     'You are on the right track. Keep going!');
                 break;
-            case 2:
+            case 3:
                 dialogMessage = new GuideProtocol.Text(
                     'ITS.ALLELE.FEEDBACK.4',
                     'Perhaps you should review the info on recessive genes?');

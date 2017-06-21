@@ -2,23 +2,27 @@
 
 const Biologica = require('../shared/biologica');
 const biologicax = require('../shared/biologicax');
+const Stringx = require("../utilities/stringx");
 
 class EcdRuleCondition {   
 
-    static create(type, value) {
+    static create(columnName, value) {
+        var type = this.extractTypeFromFieldName(columnName);
+        var fieldName = columnName.toCamelCase();
+
         var condition = null;
         switch(type.toLowerCase()) {
 
             case "alleles":
-                condition = new AllelesCondition(value);
+                condition = new AllelesCondition(fieldName, value);
                 break;
 
             case "sex":
-                condition = new SexCondition(value);
+                condition = new SexCondition(fieldName, value);
                 break;
 
             case "characteristics":
-                condition = new CharacteristicsCondition(value);
+                condition = new CharacteristicsCondition(fieldName, value);
                 break;
 
             default:
@@ -28,7 +32,14 @@ class EcdRuleCondition {
         return condition;
     }
 
-    constructor(value) {
+    // Assume last word specifies the type of rule
+    static extractTypeFromFieldName(fieldName) {
+        var words = fieldName.split("-");
+        return words[words.length - 1];
+    }
+
+    constructor(fieldName, value) {
+        this.fieldName = fieldName;
         this.value = value; 
         if (typeof value === "undefined") {
             throw new Error("EcdRuleCondition condition value cannot be 'undefined'");
@@ -48,8 +59,8 @@ class EcdRuleCondition {
 }
 
 class AllelesCondition extends EcdRuleCondition {
-    constructor(value) { 
-        super(value);
+    constructor(fieldName, value) { 
+        super(fieldName, value);
         this.targetAlleles = this.normalizeAlleles(value);
     }
 
@@ -70,8 +81,8 @@ class AllelesCondition extends EcdRuleCondition {
 }
 
 class SexCondition extends EcdRuleCondition {
-    constructor(value) { 
-        super(value);
+    constructor(fieldName, value) { 
+        super(fieldName, value);
         this.attributeName = "sex";
 
         var targetSex = value.toLowerCase();
@@ -91,8 +102,8 @@ class SexCondition extends EcdRuleCondition {
 }
 
 class CharacteristicsCondition extends EcdRuleCondition {
-    constructor(value) { 
-        super(value);
+    constructor(fieldName, value) { 
+        super(fieldName, value);
         this.targetCharacteristics = this.normalizeCharacterisitics(value.split(","));
         this.attributeName = BiologicaX.findTraitForCharacteristic(this.targetCharacteristics[0]);
     }
@@ -102,24 +113,41 @@ class CharacteristicsCondition extends EcdRuleCondition {
     }
 
     evaluate(attributes) {
-        if (!attributes || !attributes.hasOwnProperty("phenotype")) {
+        var phenotype = attributes.phenotype;
+
+        if (!phenotype) {
+            phenotype = this.createPhenotypeFromAlleles(attributes);
+        }
+
+        if (!phenotype) {
             throw new Error("CharacteristicsCondition.evaluate() - attributes missing property: phenotype");
         }
-        var characterisitics = this.normalizeCharacterisitics(Object.keys(attributes.phenotype).map(key => attributes.phenotype[key]));
+
+        var characterisitics = this.normalizeCharacterisitics(Object.keys(phenotype).map(key => phenotype[key]));
         var result = this.targetCharacteristics.every((item) => {
             if (item === "metallic") {
-                return BiologicaX.isColorMetallic(attributes.phenotype.color);
+                return BiologicaX.isColorMetallic(phenotype.color);
             } else if (item === "armor") {
-                return BiologicaX.hasAnyArmor(attributes.phenotype.armor);
+                return BiologicaX.hasAnyArmor(phenotype.armor);          
             } else {
                 return characterisitics.indexOf(item) >= 0;
             }
         });
         return result;
     }
+
+    createPhenotypeFromAlleles(attributes) {
+        var phenotype = null;
+        
+        if (attributes.hasOwnProperty("alleles") && attributes.hasOwnProperty("sex")) {
+            console.warn("Phenotype missing from context. Creating from alleles. Assuming species is Drake");
+            var organism = new BioLogica.Organism(BioLogica.Species.Drake, attributes.alleles, BiologicaX.sexFromString(attributes.sex));
+            phenotype = organism.phenotype.characteristics;
+        }
+        
+        return phenotype;
+    }
 }
-
-
 
 module.exports = EcdRuleCondition;
 module.exports.CharacteristicsCondition = CharacteristicsCondition;
