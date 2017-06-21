@@ -69,10 +69,10 @@ class AllelesCondition extends EcdRuleCondition {
     }
 
     evaluate(attributes) {
-        if (!attributes || !attributes.hasOwnProperty("alleles")) {
-            throw new Error("AllelesCondition.evaluate() - attributes missing property: alleles");
+        if (!attributes || !attributes.hasOwnProperty(this.fieldName)) {
+            throw new Error("AllelesCondition.evaluate() - attributes missing property: " + this.fieldName);
         }
-        var alleles = this.normalizeAlleles(attributes.alleles);
+        var alleles = this.normalizeAlleles(attributes[this.fieldName]);
         var result = this.targetAlleles.every((item) => {
             return alleles.indexOf(item) >= 0;
         });
@@ -93,10 +93,10 @@ class SexCondition extends EcdRuleCondition {
     }
 
     evaluate(attributes) {
-        if (!attributes || !attributes.hasOwnProperty("sex")) {
-            throw new Error("SexCondition.evaluate() - attributes missing property: sex");
+        if (!attributes || !attributes.hasOwnProperty(this.fieldName)) {
+            throw new Error("SexCondition.evaluate() - attributes missing property: " + this.fieldName);
         }
-        var result = this.sex === attributes.sex.toLowerCase();
+        var result = this.sex === attributes[this.fieldName].toLowerCase();
         return result;
     }
 }
@@ -113,7 +113,7 @@ class CharacteristicsCondition extends EcdRuleCondition {
     }
 
     evaluate(attributes) {
-        var phenotype = attributes.phenotype;
+        var phenotype = (attributes.hasOwnProperty(this.fieldName) ? attributes[this.fieldName] : attributes.phenotype);
 
         if (!phenotype) {
             phenotype = this.createPhenotypeFromAlleles(attributes);
@@ -143,6 +143,8 @@ class CharacteristicsCondition extends EcdRuleCondition {
             console.warn("Phenotype missing from context. Creating from alleles. Assuming species is Drake");
             var organism = new BioLogica.Organism(BioLogica.Species.Drake, attributes.alleles, BiologicaX.sexFromString(attributes.sex));
             phenotype = organism.phenotype.characteristics;
+            attributes.phenotype = phenotype;
+            console.info("attributes.phenotype = " + JSON.stringify(attributes.phenotype, undefined, 2));
         }
         
         return phenotype;
