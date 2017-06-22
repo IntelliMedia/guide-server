@@ -1,5 +1,8 @@
 "use strict";
 
+var guideInfo = require('./package');
+console.info("%s %s", guideInfo.name, guideInfo.version);
+
 /**
  * Setup global promise lib
  */
@@ -75,7 +78,10 @@ const passportConfig = require('./config/passport');
  * Create Express server.
  */
 const app = express();
+app.locals.version = guideInfo.version;
+
 app.locals.moment = require('moment');
+
 // Pretty print JSON
 app.set('json spaces', 2);
 /**
