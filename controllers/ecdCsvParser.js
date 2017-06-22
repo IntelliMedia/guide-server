@@ -36,12 +36,7 @@ class EcdCsvParser {
                     continue;
                 }
 
-                rules.push(new EcdRule(
-                    this.asNumber(this.getCell(currentRow, columnMap, "priority")),
-                    this.extractConditions("criteria", headerRow, currentRow),
-                    this.extractConditions("selected", headerRow, currentRow),
-                    this.extractConcepts(headerRow, currentRow),
-                    this.extractHints(headerRow, currentRow)));
+                rules.push.apply(rules, this.parseRow(columnMap, headerRow, currentRow));
             }
 
             return rules;
@@ -50,6 +45,98 @@ class EcdCsvParser {
             err.message = msg + err.message;
             throw err;
         }
+    }
+
+    parseRow(columnMap, headerRow, currentRow) {
+        var DominantRecessiveMap = [
+            { dominant: "Wings", recessive: "No wings", ":Q":":W", ":q":":w", hintTarget: "wing"},
+            { dominant: "Forelimbs", recessive: "No forelimbs", ":Q":":Fl", ":q":":fl", hintTarget: "arm"},
+            { dominant: "Hindlimbs", recessive: "No hindlimbs", ":Q":":Hl", ":q":":hl", hintTarget: "leg"},
+            { dominant: "Hornless", recessive: "Horns", ":Q":":H", ":q":":h", hintTarget: "horn"},
+            { dominant: "Metallic", recessive: "Dull", ":Q":":M", ":q":":m", hintTarget: "shin|dull"},
+            { dominant: "Color", recessive: "Albino", ":Q":":C", ":q":":c", hintTarget: "color|albino"},
+            { dominant: "Gray", recessive: "Orange", ":Q":":B", ":q":":b", hintTarget: "gray|orange"}
+        ];
+
+        if (this.isDominantRecessiveRule(currentRow)) {
+            console.info("Found generic rule");
+            var rules = [];
+            DominantRecessiveMap.forEach((traitMap) => {
+                var clonedRow = currentRow.slice();
+                var parentRegexWithOnlyRecessiveAllele = "parent";
+                for (var i = 0; i < clonedRow.length; ++i) {
+                    var columnName = this.getColumnName(columnMap, i);
+                    var value = clonedRow[i];
+                    var motherHasDominantAllele = false;
+                    var fatherHasDominantAllele = false;
+                    if (value) {                        
+                        if (value.toLowerCase() === "dominant") {
+                            value = traitMap.dominant;
+                        } else if (value.toLowerCase() === "recessive") {
+                            value = traitMap.recessive;
+                        } else if (columnName.includes("mother-alleles")) {
+                            motherHasDominantAllele = ((value.match(/:Q/g) || []).length > 0);
+                            value = value.replace(/\:Q/g, traitMap[":Q"])
+                                         .replace(/\:q/g, traitMap[":q"]);
+                        } else if (columnName.includes("father-alleles")) {
+                            fatherHasDominantAllele = ((value.match(/:Q/g) || []).length > 0);
+                            value = value.replace(/\:Q/g, traitMap[":Q"])
+                                         .replace(/\:q/g, traitMap[":q"]);
+                        }
+
+                        if (motherHasDominantAllele && fatherHasDominantAllele) {
+                            parentRegexWithOnlyRecessiveAllele = "parent";
+                        } else if (motherHasDominantAllele) {
+                            parentRegexWithOnlyRecessiveAllele = "mother|mom";
+                        } else if (fatherHasDominantAllele) {
+                            parentRegexWithOnlyRecessiveAllele = "father|dad";
+                        }
+
+                        clonedRow[i] = value;
+                    }
+                }
+                this.makeHintSpecificFor(traitMap.hintTarget, parentRegexWithOnlyRecessiveAllele, headerRow, clonedRow);
+                rules.push(this.createRule(columnMap, headerRow, clonedRow));
+            });
+            return rules;
+        } else {
+            return [
+                this.createRule(columnMap, headerRow, currentRow)
+            ];
+        }
+    }
+
+    getColumnName(columnMap, index) {
+        for (var key in columnMap) {
+            if (columnMap[key] == index) {
+                return key;
+            }
+        }
+
+        return null;
+    }
+
+    createRule(columnMap, headerRow, currentRow) {
+        return new EcdRule(
+            this.asNumber(this.getCell(currentRow, columnMap, "priority")),
+            this.extractConditions("criteria", headerRow, currentRow),
+            this.extractConditions("selected", headerRow, currentRow),
+            this.extractConcepts(headerRow, currentRow),
+            this.extractHints(headerRow, currentRow));
+    }
+
+    isDominantRecessiveRule(row) {
+        for (var i = 0; i < row.length; ++i) {
+            var value = row[i];
+            if (value) {
+                value = value.toLowerCase();
+                if (value === "dominant" || value === "recessive") {
+                    return true;
+                }
+            }
+        }
+
+        return false;
     }
 
     getCell(currentRow, columnMap, columnName) {
@@ -126,6 +213,35 @@ class EcdCsvParser {
                 if (value) {
                     hints.push(value);
                 }
+            }
+         }
+         return hints;
+    }
+
+    makeHintSpecificFor(target, parentRegex, headerRow, currentRow) {
+        var findReplacementBlock = new RegExp("\\[[^\\]]*\\]", "i");
+        var findReplacementWord = new RegExp("([^,\\[]*" + target + "[^,\\]]*)", "i");
+        var findReplacementParent = new RegExp("([^,\\[]*" + parentRegex + "[^,\\]]*)", "i");
+
+        var hints = [];
+         for (var i = 0; i < headerRow.length; ++i) {
+            if (this.isHint(headerRow[i])) {
+                var value = currentRow[i].trim();
+                do {
+                    var replacementBlock = value.match(findReplacementBlock);
+                    if (replacementBlock != null) {
+                        var wordMatches = replacementBlock[0].match(findReplacementWord);
+                        if (wordMatches == null) {
+                            wordMatches = replacementBlock[0].match(findReplacementParent);
+                        }
+                        if (wordMatches != null) {
+                            value = value.replace(replacementBlock[0], wordMatches[0].trim());
+                        } else {
+                            value = value.replace(replacementBlock[0], "???");
+                        }
+                    }
+                } while (replacementBlock != null);
+                currentRow[i] = value.upperCaseFirstChar();
             }
          }
          return hints;
