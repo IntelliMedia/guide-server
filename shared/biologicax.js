@@ -14,7 +14,12 @@ if (typeof exports === 'undefined') {
     exports.BiologicaX = BiologicaX;
 
     BiologicaX.sexToString = function(sex) {
-        return (sex == 0 ? "Male" : "Female");
+        // If sex is already a string, just return it.
+        if (typeof sex === "string") {
+            return sex;
+        } else {
+            return (sex == 0 ? "Male" : "Female");
+        }
     }
 
     BiologicaX.sexFromString = function(str) {

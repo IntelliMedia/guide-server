@@ -96,7 +96,7 @@ class SexCondition extends EcdRuleCondition {
         if (!attributes || !attributes.hasOwnProperty(this.fieldName)) {
             throw new Error("SexCondition.evaluate() - attributes missing property: " + this.fieldName);
         }
-        var result = this.sex === attributes[this.fieldName].toLowerCase();
+        var result = this.sex === BiologicaX.sexToString(attributes[this.fieldName]).toLowerCase();
         return result;
     }
 }
