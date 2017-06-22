@@ -183,7 +183,7 @@ function handleUserNavigatedChallengeAsync(student, session, event) {
             case 3:
                 dialogMessage = new GuideProtocol.Text(
                     'ITS.CHALLENGE.INTRO.4',
-                    'We\'re going to solve this challenge together!');
+                    'We\'re going to work on this together!');
                 break;
             case 4:
                 dialogMessage = new GuideProtocol.Text(
