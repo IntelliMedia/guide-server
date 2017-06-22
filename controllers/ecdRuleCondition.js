@@ -139,9 +139,12 @@ class CharacteristicsCondition extends EcdRuleCondition {
     createPhenotypeFromAlleles(attributes) {
         var phenotype = null;
         
-        if (attributes.hasOwnProperty("alleles") && attributes.hasOwnProperty("sex")) {
+        var allelesPropName = this.fieldName.replace("Characteristics", "Alleles").lowerCaseFirstChar();
+        var sexPropName = this.fieldName.replace("Characteristics", "Sex").lowerCaseFirstChar();
+
+        if (attributes.hasOwnProperty(allelesPropName) && attributes.hasOwnProperty(sexPropName)) {
             console.warn("Phenotype missing from context. Creating from alleles. Assuming species is Drake");
-            var organism = new BioLogica.Organism(BioLogica.Species.Drake, attributes.alleles, BiologicaX.sexFromString(attributes.sex));
+            var organism = new BioLogica.Organism(BioLogica.Species.Drake, attributes[allelesPropName], BiologicaX.sexFromString(attributes[sexPropName]));
             phenotype = organism.phenotype.characteristics;
             attributes.phenotype = phenotype;
             console.info("attributes.phenotype = " + JSON.stringify(attributes.phenotype, undefined, 2));

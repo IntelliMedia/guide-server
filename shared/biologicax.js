@@ -18,7 +18,12 @@ if (typeof exports === 'undefined') {
     }
 
     BiologicaX.sexFromString = function(str) {
-        return (str === "Male" ? 0 : 1);
+        // If sex is already a number, just return it.
+        if (!isNaN(parseFloat(str))) {
+            return str;
+        } else {
+            return (str && str.toLowerCase() === "male" ? 0 : 1);
+        }
     }
 
     BiologicaX.randomizeAlleles = function(species, genes, alleles) {
