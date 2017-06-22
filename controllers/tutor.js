@@ -19,7 +19,7 @@ var eventRoutes = [
     new EventToFunction('SYSTEM', 'STARTED', 'SESSION', handleSystemStartedSessionAsync),
     new EventToFunction('SYSTEM', 'ENDED', 'SESSION', handleSystemEndedSessionAsync),
     new EventToFunction('USER', 'NAVIGATED', 'CHALLENGE', handleUserNavigatedChallengeAsync),
-    new EventToFunction('USER', 'CHANGED', 'ALLELE', handleUserChangedAlleleAsync),
+ //   new EventToFunction('USER', 'CHANGED', 'ALLELE', handleUserChangedAlleleAsync),
     new EventToFunction('USER', 'SUBMITTED', 'ORGANISM', handleUserSubmittedOrganismAsync),
     new EventToFunction('USER', 'SUBMITTED', 'EGG', handleUserSubmittedOrganismAsync),
     new EventToFunction('USER', 'SUBMITTED', 'OFFSPRING', handleUserSubmittedOrganismAsync)
@@ -160,7 +160,7 @@ function handleUserNavigatedChallengeAsync(student, session, event) {
         // If there is tutoring available, indicate it to the user with a feedback message.
         var dialogMessage = null;
 
-        switch (Math.floor(Math.random() * 3)) {
+        switch (Math.floor(Math.random() * 5)) {
             case 0:
                 dialogMessage = new GuideProtocol.Text(
                     'ITS.CHALLENGE.INTRO.1',
@@ -179,6 +179,16 @@ function handleUserNavigatedChallengeAsync(student, session, event) {
                 dialogMessage = new GuideProtocol.Text(
                     'ITS.CHALLENGE.INTRO.3',
                     'I\'m sure you\'re up to the challenge! :-).');
+                break;
+            case 3:
+                dialogMessage = new GuideProtocol.Text(
+                    'ITS.CHALLENGE.INTRO.4',
+                    'We\'re going to solve this challenge together!');
+                break;
+            case 4:
+                dialogMessage = new GuideProtocol.Text(
+                    'ITS.CHALLENGE.INTRO.5',
+                    'You and I are a team and we\'re going to work on this together!');
                 break;
         }
 
