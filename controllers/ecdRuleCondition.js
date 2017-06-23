@@ -127,6 +127,16 @@ class CharacteristicsCondition extends EcdRuleCondition {
         var result = this.targetCharacteristics.every((item) => {
             if (item === "metallic") {
                 return BiologicaX.isColorMetallic(phenotype.color);
+            } else if (item === "nonmetallic") {
+                return !BiologicaX.isColorMetallic(phenotype.color);
+            } else if (item === "albino") {
+                return BiologicaX.isAlbino(phenotype.color);
+            } else if (item === "color") {
+                return !BiologicaX.isAlbino(phenotype.color);
+            } else if (item === "orange") {
+                return BiologicaX.isOrange(phenotype.color);
+            } else if (item === "gray") {
+                return !BiologicaX.isOrange(phenotype.color);
             } else if (item === "armor") {
                 return BiologicaX.hasAnyArmor(phenotype.armor);          
             } else {

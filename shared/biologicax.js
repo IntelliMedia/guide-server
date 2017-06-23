@@ -162,6 +162,17 @@ if (typeof exports === 'undefined') {
                 || color == 'Gold');
     }
 
+    BiologicaX.isAlbino = function(color) {
+        return (color === 'Frost');
+    }
+
+    BiologicaX.isOrange = function(color) {
+        return (color == 'Copper'
+                || color == 'Gold'
+                || color == 'Lava'
+                || color == 'Sand');
+    }
+
     BiologicaX.hasAnyArmor = function(armor) {
         return (armor !== 'No armor');
     }

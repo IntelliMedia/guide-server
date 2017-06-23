@@ -29,6 +29,7 @@ class EcdCsvParser {
             var rowCount = csv.length;
             for (var i = 1; i < rowCount; ++i) {
                 currentRowIndex = i;
+                //console.info("Processing row " + currentRowIndex);
                 var currentRow = csv[i];
 
                 // Empty row?
@@ -49,26 +50,31 @@ class EcdCsvParser {
 
     parseRow(columnMap, headerRow, currentRow) {
         var DominantRecessiveMap = [
-            { dominant: "Wings", recessive: "No wings", ":Q":":W", ":q":":w", hintTarget: "wing"},
-            { dominant: "Forelimbs", recessive: "No forelimbs", ":Q":":Fl", ":q":":fl", hintTarget: "arm"},
-            { dominant: "Hindlimbs", recessive: "No hindlimbs", ":Q":":Hl", ":q":":hl", hintTarget: "leg"},
-            { dominant: "Hornless", recessive: "Horns", ":Q":":H", ":q":":h", hintTarget: "horn"},
-            { dominant: "Metallic", recessive: "Dull", ":Q":":M", ":q":":m", hintTarget: "shin|dull"},
-            { dominant: "Color", recessive: "Albino", ":Q":":C", ":q":":c", hintTarget: "color|albino"},
-            { dominant: "Gray", recessive: "Orange", ":Q":":B", ":q":":b", hintTarget: "gray|orange"}
+            { dominant: "Wings", recessive: "No wings", ":Q":":W", ":q":":w", hint: {dominant: "wing", recessive: "wing"}},
+            { dominant: "Forelimbs", recessive: "No forelimbs", ":Q":":Fl", ":q":":fl", hint: {dominant: "arm", recessive: "arm"}},
+            { dominant: "Hindlimbs", recessive: "No hindlimbs", ":Q":":Hl", ":q":":hl", hint: {dominant: "leg", recessive: "leg"}},
+            { dominant: "Hornless", recessive: "Horns", ":Q":":H", ":q":":h", hint: {dominant: "horn", recessive: "horn"}},
+            { dominant: "Metallic", recessive: "Nonmetallic", ":Q":":M", ":q":":m", hint: {dominant: "shiny", recessive: "dull"}},
+            { dominant: "Color", recessive: "Albino", ":Q":":C", ":q":":c",hint: {dominant: "color", recessive: "albino"}},
+            { dominant: "Gray", recessive: "Orange", ":Q":":B", ":q":":b", hint: {dominant: "gray", recessive: "orange"}}
         ];
 
         if (this.isDominantRecessiveRule(currentRow)) {
-            console.info("Found generic rule");
             var rules = [];
+
             DominantRecessiveMap.forEach((traitMap) => {
                 var clonedRow = currentRow.slice();
-                var parentRegexWithOnlyRecessiveAllele = "parent";
+                var targetCharacterisitic = clonedRow[columnMap["criteria-characteristics"]].toLowerCase();
+                var isTargetTraitDominant = targetCharacterisitic === "dominant";
+                var hintTarget = traitMap.hint[clonedRow[columnMap["selected-offspring-characteristics"]].toLowerCase()];
+                var motherHasDominantAllele = false;
+                var motherHasRecessiveAllele = false;
+                var fatherHasDominantAllele = false;
+                var fatherHasRecessiveAllele = false;
+
                 for (var i = 0; i < clonedRow.length; ++i) {
                     var columnName = this.getColumnName(columnMap, i);
-                    var value = clonedRow[i];
-                    var motherHasDominantAllele = false;
-                    var fatherHasDominantAllele = false;
+                     var value = clonedRow[i];
                     if (value) {                        
                         if (value.toLowerCase() === "dominant") {
                             value = traitMap.dominant;
@@ -76,26 +82,43 @@ class EcdCsvParser {
                             value = traitMap.recessive;
                         } else if (columnName.includes("mother-alleles")) {
                             motherHasDominantAllele = ((value.match(/:Q/g) || []).length > 0);
+                            motherHasRecessiveAllele = ((value.match(/:q/g) || []).length > 0);
                             value = value.replace(/\:Q/g, traitMap[":Q"])
                                          .replace(/\:q/g, traitMap[":q"]);
                         } else if (columnName.includes("father-alleles")) {
                             fatherHasDominantAllele = ((value.match(/:Q/g) || []).length > 0);
+                            fatherHasRecessiveAllele = ((value.match(/:q/g) || []).length > 0);
                             value = value.replace(/\:Q/g, traitMap[":Q"])
                                          .replace(/\:q/g, traitMap[":q"]);
                         }
-
-                        if (motherHasDominantAllele && fatherHasDominantAllele) {
-                            parentRegexWithOnlyRecessiveAllele = "parent";
-                        } else if (motherHasDominantAllele) {
-                            parentRegexWithOnlyRecessiveAllele = "mother|mom";
-                        } else if (fatherHasDominantAllele) {
-                            parentRegexWithOnlyRecessiveAllele = "father|dad";
-                        }
-
                         clonedRow[i] = value;
                     }
                 }
-                this.makeHintSpecificFor(traitMap.hintTarget, parentRegexWithOnlyRecessiveAllele, headerRow, clonedRow);
+
+                var parentTarget = "";
+                if (isTargetTraitDominant) {
+                    if (!motherHasDominantAllele && !fatherHasDominantAllele) {
+                        parentTarget = "parent";
+                    } else if (!motherHasDominantAllele) {
+                        parentTarget = "mother|mom";
+                    } else if (!fatherHasDominantAllele) {
+                        parentTarget = "father|dad";
+                    } else {
+                        //console.warn("Unexpected combination of dominant alleles");
+                    }
+                } else {
+                    if (!motherHasRecessiveAllele && !fatherHasRecessiveAllele) {
+                        parentTarget = "parent";
+                    } else if (!motherHasRecessiveAllele) {
+                        parentTarget = "mother|mom";
+                    } else if (!fatherHasRecessiveAllele) {
+                        parentTarget = "father|dad";
+                    } else {
+                        //console.warn("Unexpected combination of recessive alleles");
+                    }
+                }
+
+                this.makeHintSpecificFor(hintTarget, parentTarget, headerRow, clonedRow);
                 rules.push(this.createRule(columnMap, headerRow, clonedRow));
             });
             return rules;
