@@ -4,7 +4,9 @@ const EcdRuleCondition = require('./ecdRuleCondition');
 const CharacteristicsCondition = require('./ecdRuleCondition').CharacteristicsCondition;
 
 class EcdRule {   
-    constructor(priority, criteriaConditions, selectedConditions, concepts, hints) {
+    constructor(id, priority, criteriaConditions, selectedConditions, concepts, hints) {
+        this.id = id;
+        this.source = null;
         this.priority = priority;
         this.criteriaConditions = criteriaConditions;
         this.selectedConditions = selectedConditions;

@@ -16,10 +16,11 @@ class EvaluatorRepository {
     doesEvaluatorExistAsync(groupName, challengeId) {
         var docUrl = null;
         return this.getEcdMatrixIdAsync(groupName, challengeId).then(matrixId => {
-            docUrl = "https://docs.google.com/spreadsheets/d/" + matrixId + "/export?format=csv";
+            docUrl = "https://docs.google.com/spreadsheets/d/" + matrixId;
+            var csvExportUrl = docUrl + "/export?format=csv";
             var options = {
                 method: "GET",
-                uri: docUrl,
+                uri: csvExportUrl,
                 headers: {
                     'User-Agent': 'Request-Promise'
                 } 
@@ -49,10 +50,11 @@ class EvaluatorRepository {
     findEvaluatorAsync(groupName, challengeId) {
         var docUrl = null;
         return this.getEcdMatrixIdAsync(groupName, challengeId).then(matrixId => {
-            docUrl = "https://docs.google.com/spreadsheets/d/" + matrixId + "/export?format=csv";
+            docUrl = "https://docs.google.com/spreadsheets/d/" + matrixId;
+            var csvExportUrl = docUrl + "/export?format=csv";
             var options = {
                 method: "GET",
-                uri: docUrl,
+                uri: csvExportUrl,
                 headers: {
                     'User-Agent': 'Request-Promise'
                 } 
@@ -68,7 +70,7 @@ class EvaluatorRepository {
             // TODO determine which condition to instantiate, don't always assume
             // ECD rules.
             try {
-                return new EcdRulesEvaluator(csv);
+                return new EcdRulesEvaluator(docUrl, csv);
             } catch(err) {
                 var msg = "Unable to parse '" + docUrl + "'. ";
                 err.message = msg + err.message;

@@ -79,7 +79,7 @@ if (typeof exports === 'undefined') {
     /**
      * TutorDialog - used by the ITS to send a message to the student
      */
-    GuideProtocol.TutorDialog = function(message, time) {
+    GuideProtocol.TutorDialog = function(message, reason, time) {
 
         if (message instanceof GuideProtocol.Text) {
            this.message = message;
@@ -89,7 +89,8 @@ if (typeof exports === 'undefined') {
             this.message = new GuideProtocol.Text(message.id, message.text, message.args);
         }
 
-        this.time = (time == null ? Date.now() : time);        
+        this.time = (time == null ? Date.now() : time);   
+        this.reason = reason;     
     }
 
     GuideProtocol.TutorDialog.Channel = 'TutorDialog';     
@@ -101,7 +102,8 @@ if (typeof exports === 'undefined') {
     GuideProtocol.TutorDialog.fromJson = function(json) {
         var obj = JSON.parse(json);
         return new GuideProtocol.TutorDialog(
-            obj.message, 
+            obj.message,
+            obj.reason, 
             obj.time);
     }
 

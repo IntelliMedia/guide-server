@@ -12,9 +12,12 @@ const EcdCsvParser = require("./ecdCsvParser");
  * and to provide move-specific hints.
  */
 class EcdRulesEvaluator {
-    constructor(csv) {
+    constructor(source, csv) {
         var parser = new EcdCsvParser();
         this.rules = parser.convertCsvToRules(csv);
+        this.rules.forEach((rule) => {
+            rule.source = source;
+        });
     }
 
     evaluateAsync(student, session, event) {
@@ -81,7 +84,8 @@ class EcdRulesEvaluator {
                 }
                 var adjustment = rule.concepts[conceptId];
                 student.updateConceptState(rule.criteria(), conceptId, adjustment);
-                console.info("Adjusted student model concept: " + conceptId + " adjustment=" + adjustment);
+                console.info("+Rule Triggered -> ruleId: %s conceptId: %s adjustment: %d", 
+                    rule.id, conceptId, adjustment);
             }
         }
 
@@ -100,8 +104,8 @@ class EcdRulesEvaluator {
                         scaledScore, 
                         rule)); 
                 //}
-                console.info("Adjusted student model concept: " + conceptId + " adjustment=" + adjustment);
-            }
+                console.info("-Rule Triggered -> ruleId: %s conceptId: %s adjustment: %d", 
+                    rule.id, conceptId, adjustment);            }
         }
 
         // Sort by priority (highest to lowest) and then concept score (lowest to highest)
@@ -190,11 +194,19 @@ class EcdRulesEvaluator {
             } else {
                 dialogMessage.args.trait = conceptToHint.rule.criteria();
             }
+
+            var reason = {
+                why: "MisconceptionDetected",
+                ruleId: conceptToHint.rule.id,
+                ruleSource: conceptToHint.rule.source
+            };
             action = TutorAction.create(session, "SPOKETO", "USER", "hint",
-                        new GuideProtocol.TutorDialog(dialogMessage));
+                        new GuideProtocol.TutorDialog(dialogMessage, reason));
             action.context.hintLevel = hintLevel;
             action.context.selectionCriteria = selectionCriteria;
             action.context.challengeId = challengeId;
+            action.context.ruleId = conceptToHint.rule.id;
+            action.context.ruleSource = conceptToHint.rule.source;
         }
 
         return action;

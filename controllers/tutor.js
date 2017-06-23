@@ -131,8 +131,12 @@ function handleSystemStartedSessionAsync(student, session, event) {
                     'Let\'s get started!');
         }
 
+        var reason = {
+            why: "SessionStarted"
+        };
+
         resolve(TutorAction.create(session, "SPOKETO", "USER", "welcome",
-            new GuideProtocol.TutorDialog(dialogMessage)));
+            new GuideProtocol.TutorDialog(dialogMessage, reason)));
     });
 }
 
@@ -192,8 +196,13 @@ function handleUserNavigatedChallengeAsync(student, session, event) {
                 break;
         }
 
+        var reason = {
+            why: "ChallengeWithTutoringAvailableStarted",
+            challengeId: event.context.challengeId
+        };
+
         return TutorAction.create(session, "SPOKETO", "USER", "navigatedChallenge",
-            new GuideProtocol.TutorDialog(dialogMessage));
+            new GuideProtocol.TutorDialog(dialogMessage, reason));
     });
 }
 

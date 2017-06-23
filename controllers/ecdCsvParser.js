@@ -28,7 +28,9 @@ class EcdCsvParser {
 
             var rowCount = csv.length;
             for (var i = 1; i < rowCount; ++i) {
-                currentRowIndex = i;
+                // Google sheets uses 1-based counting for rows, thus add one so
+                // that this number matches the Google sheets row.
+                currentRowIndex = i + 1;
                 //console.info("Processing row " + currentRowIndex);
                 var currentRow = csv[i];
 
@@ -37,7 +39,7 @@ class EcdCsvParser {
                     continue;
                 }
 
-                rules.push.apply(rules, this.parseRow(columnMap, headerRow, currentRow));
+                rules.push.apply(rules, this.parseRow(currentRowIndex, columnMap, headerRow, currentRow));
             }
 
             return rules;
@@ -48,7 +50,7 @@ class EcdCsvParser {
         }
     }
 
-    parseRow(columnMap, headerRow, currentRow) {
+    parseRow(ruleId, columnMap, headerRow, currentRow) {
         var DominantRecessiveMap = [
             { dominant: "Wings", recessive: "No wings", ":Q":":W", ":q":":w", hint: {dominant: "wing", recessive: "wing"}},
             { dominant: "Forelimbs", recessive: "No forelimbs", ":Q":":Fl", ":q":":fl", hint: {dominant: "arm", recessive: "arm"}},
@@ -119,12 +121,12 @@ class EcdCsvParser {
                 }
 
                 this.makeHintSpecificFor(hintTarget, parentTarget, headerRow, clonedRow);
-                rules.push(this.createRule(columnMap, headerRow, clonedRow));
+                rules.push(this.createRule(ruleId, columnMap, headerRow, clonedRow));
             });
             return rules;
         } else {
             return [
-                this.createRule(columnMap, headerRow, currentRow)
+                this.createRule(ruleId, columnMap, headerRow, currentRow)
             ];
         }
     }
@@ -139,8 +141,9 @@ class EcdCsvParser {
         return null;
     }
 
-    createRule(columnMap, headerRow, currentRow) {
+    createRule(ruleId, columnMap, headerRow, currentRow) {
         return new EcdRule(
+            ruleId, 
             this.asNumber(this.getCell(currentRow, columnMap, "priority")),
             this.extractConditions("criteria", headerRow, currentRow),
             this.extractConditions("selected", headerRow, currentRow),
