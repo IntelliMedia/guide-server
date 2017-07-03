@@ -5,6 +5,7 @@ const parse = require('csv-parse');
 const Group = require('../models/Group');
 const TutorAction = require('../models/TutorAction');
 const EcdCsvParser = require("./ecdCsvParser");
+const stringx = require("../utilities/stringx");
 
 
 /**
@@ -23,18 +24,18 @@ class EcdRulesEvaluator {
     evaluateAsync(student, session, event) {
         return new Promise((resolve, reject) => {
             try {
-                console.info("Update student model for: %s (%s | %s | %s)", student.id, session.classId, session.groupId, event.context.challengeId);                
+                session.debugAlert("Update student model for: {0} ({1} | {2} | {3})".format(student.id, session.classId, session.groupId, event.context.challengeId));                
                 var activatedRules = this.evaluateRules( 
                     event.context.challengeCriteria,
                     event.context.userSelections);
 
-                var negativeConcepts = this.updateStudentModel(student, activatedRules);
+                var negativeConcepts = this.updateStudentModel(student, session, activatedRules);
 
                 var action = null;
                 if (!event.context.correct) {
                     action = this.selectHint(student, session, event.context.challengeId, negativeConcepts)
                 } else {
-                    console.info("No need to send hint, organism is correct for user: %s", student.id);
+                    session.debugAlert("No need to send hint, organism is correct for user: %s", student.id);
                 }  
 
                 resolve(action);
@@ -73,9 +74,11 @@ class EcdRulesEvaluator {
         });
     }
 
-    updateStudentModel(student, activatedRules) {
-        console.info("Update student model for: %s", student.id);
+    updateStudentModel(student, session, activatedRules) {
+        session.debugAlert("Update student model for: " + student.id);
         var negativeConcepts = [];
+
+        var rulesFired = [];
 
         for (let rule of activatedRules.correct) {
             for (var conceptId in rule.concepts) {
@@ -84,8 +87,8 @@ class EcdRulesEvaluator {
                 }
                 var adjustment = rule.concepts[conceptId];
                 student.updateConceptState(rule.criteria(), conceptId, adjustment);
-                console.info("+Rule Triggered -> ruleId: %s conceptId: %s adjustment: %d", 
-                    rule.id, conceptId, adjustment);
+                rulesFired.push("+Rule Triggered: {0} -> {1} | ruleId: {2} source: {3}".format( 
+                    conceptId, adjustment, rule.id, rule.source));
             }
         }
 
@@ -104,9 +107,13 @@ class EcdRulesEvaluator {
                         scaledScore, 
                         rule)); 
                 //}
-                console.info("-Rule Triggered -> ruleId: %s conceptId: %s adjustment: %d", 
-                    rule.id, conceptId, adjustment);            }
+                rulesFired.push("-Rule Triggered: {0} -> {1} | ruleId: {2} source: {3}".format( 
+                    conceptId, adjustment, rule.id, rule.source));            
+            }
         }
+
+        var msg = (rulesFired.length == 0 ? "no rules fired" : rulesFired.length + " rules fired\n" + rulesFired.join("\n"));
+        session.debugAlert("Rules Triggered: " + msg);
 
         // Sort by priority (highest to lowest) and then concept score (lowest to highest)
         return negativeConcepts.sort(function(a, b) {
@@ -119,12 +126,12 @@ class EcdRulesEvaluator {
     } 
 
     selectHint(student, session, challengeId, negativeConcepts) {
-        console.info("Select hint for: %s", student.id);
-
         if (!negativeConcepts || negativeConcepts.length == 0) {
-            console.info("No need to hint. No negative concepts for user: " + student.id);
+            session.debugAlert("No need to hint. No negative concepts for user: " + student.id);
             return null;
         }
+
+        session.debugAlert("Select hint for: " + student.id);
 
         var conceptToHint = null;
         var selectionCriteria = null;
@@ -159,10 +166,10 @@ class EcdRulesEvaluator {
                     };
                     break;
                 } else {
-                    console.warn("No hints available for %s | %s | %s", 
-                        challengeId,
-                        negativeConcept.rule.criteria(),
-                        negativeConcept.rule.selected());
+                    session.warningAlert("No hints available for {0} | {1} | {2}".format(
+                        challengeId, 
+                        negativeConcept.rule.criteria(), 
+                        negativeConcept.rule.selected()));
                 }
             }
         }

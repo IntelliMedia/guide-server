@@ -69,11 +69,11 @@ function handleEventAsync(student, session, event) {
             console.error("Multiple handlers were defined for the same event: " + event.toString())
         }
 
-        console.info("Tutor - handling: " + event.toString() + " user=" + event.studentId);
+        session.debugAlert("Tutor - handling: " + event.toString() + " user=" + event.studentId);
         return eventRouters[0].handler(student, session, event);
     }
 
-    console.warn("Tutor - unhandled: " + event.toString() + " user=" + event.studentId);
+    session.warningAlert("Tutor - unhandled: " + event.toString() + " user=" + event.studentId);
     return new Promise((resolve, reject) => {
         resolve(null);
     });

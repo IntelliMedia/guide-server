@@ -81,8 +81,9 @@ function handleEvent(socket, data) {
         newAlert.message = err.message;
         newAlert.save();
         
-        var alert = new GuideProtocol.Alert(GuideProtocol.Alert.Error, err.message);
         if (currentSession) {
+            // Send alert to client
+            var alert = currentSession.errorAlert(err.message);
             var event = new GuideProtocol.Event(
                 currentSession.studentId,
                 currentSession.id, 
@@ -91,8 +92,9 @@ function handleEvent(socket, data) {
             );
             currentSession.logEvent(event);
             currentSession.save();
+        } else {
+            console.error("Unable to find session -> " + err.message);
         }
-        socket.emit(GuideProtocol.Alert.Channel, alert.toJson());
     });
 }
 

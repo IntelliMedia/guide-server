@@ -16,6 +16,36 @@ sessionSchema.methods.logEvent = function(event) {
   this.events.push(event);
 }
 
+sessionSchema.methods.errorAlert = function(msg) {
+    console.error(msg);
+    return this.sendAlert(GuideProtocol.Alert.Error, msg);
+}
+
+sessionSchema.methods.warningAlert = function(msg) {
+    console.warn(msg);
+    return this.sendAlert(GuideProtocol.Alert.Warning, msg);
+}
+
+sessionSchema.methods.infoAlert = function(msg) {
+    console.info(msg);
+    return this.sendAlert(GuideProtocol.Alert.Info, msg);
+}
+
+sessionSchema.methods.debugAlert = function(msg) {
+    console.log(msg);
+    return this.sendAlert(GuideProtocol.Alert.Debug, msg);
+}
+
+sessionSchema.methods.sendAlert = function(type, msg) {
+  var alert = new GuideProtocol.Alert(type, msg);
+  if (!this.emit) {
+    console.error("Unable to send alert message to client. Emit method is not defined.");
+  } else {
+    this.emit(GuideProtocol.Alert.Channel, alert.toJson());
+  }
+  return alert;
+}
+
 const Session = mongoose.model('Session', sessionSchema);
 module.exports = Session;
 
