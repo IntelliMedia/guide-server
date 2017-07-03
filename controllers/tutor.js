@@ -40,6 +40,7 @@ exports.processEventAsync = (event, session) => {
 
     var currentStudent = null;
     return students.createOrFind(session.studentId).then((student) => {
+
         currentStudent = student;
         session.logEvent(event);
 
@@ -59,24 +60,29 @@ exports.processEventAsync = (event, session) => {
 }
 
 function handleEventAsync(student, session, event) {
+    try {
+        var eventRouters = eventRoutes.filter((route) => {
+            return event.isMatch(route.actor, route.action, route.target);
+        });
 
-    var eventRouters = eventRoutes.filter((route) => {
-        return event.isMatch(route.actor, route.action, route.target);
-    });
+        if (eventRouters.length > 0) {
+            if (eventRouters.length > 1) {
+                console.error("Multiple handlers were defined for the same event: " + event.toString())
+            }
 
-    if (eventRouters.length > 0) {
-        if (eventRouters.length > 1) {
-            console.error("Multiple handlers were defined for the same event: " + event.toString())
+            session.debugAlert("Tutor - handling: " + event.toString() + " user=" + event.studentId);
+            return eventRouters[0].handler(student, session, event);
         }
 
-        session.debugAlert("Tutor - handling: " + event.toString() + " user=" + event.studentId);
-        return eventRouters[0].handler(student, session, event);
+        session.warningAlert("Tutor - unhandled: " + event.toString() + " user=" + event.studentId);
+        return new Promise((resolve, reject) => {
+            resolve(null);
+        });
+    } catch(err) {
+        return new Promise((resolve, reject) => {
+            reject(err);
+        });
     }
-
-    session.warningAlert("Tutor - unhandled: " + event.toString() + " user=" + event.studentId);
-    return new Promise((resolve, reject) => {
-        resolve(null);
-    });
 }
 
 /**
@@ -93,12 +99,12 @@ function saveAsync(session, student) {
 function handleSystemStartedSessionAsync(student, session, event) {
     return new Promise((resolve, reject) => {
 
-        if (!event.context.classId) {
-            throw new Error("context.classId is blank");
+        if (!event.context.hasOwnProperty("classId") || !event.context.classId) {
+            throw new Error("context.classId is missing or undefined");
         }
 
-        if (!event.context.groupId) {
-            throw new Error("context.groupId is blank");
+        if (!event.context.hasOwnProperty("groupId") || !event.context.groupId) {
+            throw new Error("context.groupId is missing or undefined");
         }
 
         student.lastSignIn = new Date(event.time);
@@ -108,6 +114,8 @@ function handleSystemStartedSessionAsync(student, session, event) {
 
         session.classId = event.context.classId;
         session.groupId = event.context.groupId;
+
+        checkRequiredProperties(student);
 
         var dialogMessage = null;
         var studentId = (event.studentId.toLowerCase().includes("test") ? "there" : event.studentId);
@@ -141,6 +149,8 @@ function handleSystemStartedSessionAsync(student, session, event) {
 }
 
 function handleSystemEndedSessionAsync(student, session, event) {
+    checkRequiredProperties(student);
+
     return new Promise((resolve, reject) => {
         session.active = false;
         session.endTime = event.time;
@@ -152,9 +162,10 @@ function handleSystemEndedSessionAsync(student, session, event) {
 }
 
 function handleUserNavigatedChallengeAsync(student, session, event) {
+    checkRequiredProperties(student);
 
     // Is there tutoring available for this challenge?
-    var repo = new EvaluatorRepository();
+    var repo = new EvaluatorRepository(session);
     return repo.doesEvaluatorExistAsync(session.groupId, event.context.challengeId).then((condition) => {
 
         if (!condition) {
@@ -207,6 +218,8 @@ function handleUserNavigatedChallengeAsync(student, session, event) {
 }
 
 function handleUserChangedAlleleAsync(student, session, event) {
+    checkRequiredProperties(student);
+
     return new Promise((resolve, reject) => {
         var dialogMessage = null;
 
@@ -239,9 +252,16 @@ function handleUserChangedAlleleAsync(student, session, event) {
 }
 
 function handleUserSubmittedOrganismAsync(student, session, event) {
+    checkRequiredProperties(student);
 
-    var repo = new EvaluatorRepository();
+    var repo = new EvaluatorRepository(session);
     return repo.findEvaluatorAsync(session.groupId, event.context.challengeId).then((condition) => {
         return (condition ? condition.evaluateAsync(student, session, event) : null);
     });
+}
+
+function checkRequiredProperties(student) {
+    if (!student.groupId) {
+        throw new Error("student.groupId is missing or undefined");
+    }
 }

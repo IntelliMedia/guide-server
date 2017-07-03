@@ -10,7 +10,8 @@ const EcdRulesEvaluator = require("./ecdRulesEvaluator");
  * to locate rules/hints for a specific GV2 challenge.
  */
 class EvaluatorRepository {
-    constructor() {
+    constructor(session) {
+        this.session = session;
     }
 
     doesEvaluatorExistAsync(groupName, challengeId) {
@@ -26,7 +27,7 @@ class EvaluatorRepository {
                 } 
             };
             
-            console.info("EcdRulesRepository GET: " + options.uri);
+            this.session.debugAlert("Check for rules at: " + options.uri);
             return rp(options);
         })
         .catch(err => {
@@ -60,7 +61,7 @@ class EvaluatorRepository {
                 } 
             };
             
-            console.info("EcdRulesRepository GET: " + options.uri);
+            this.session.debugAlert("Load rules from: " + options.uri);
             return rp(options);
         })
         .then( response => {
