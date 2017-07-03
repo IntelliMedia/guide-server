@@ -126,7 +126,8 @@ if (typeof exports === 'undefined') {
 
     GuideProtocol.Alert.Error = 'Error';
     GuideProtocol.Alert.Warning = 'Warning';
-    GuideProtocol.Alert.Info = 'Info';    
+    GuideProtocol.Alert.Info = 'Info';
+    GuideProtocol.Alert.Debug = 'Debug';  
 
     GuideProtocol.Alert.prototype.toJson = function() {
         return JSON.stringify(this);
