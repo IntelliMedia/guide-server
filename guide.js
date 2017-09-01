@@ -63,7 +63,6 @@ const alertsController = require('./controllers/alerts');
 const usersController = require('./controllers/users');
 const userController = require('./controllers/user');
 const apiController = require('./controllers/api');
-const contactController = require('./controllers/contact');
 const socketManager = require('./controllers/socketManager');
 const authz = require('./controllers/authorization');
 
@@ -185,8 +184,8 @@ app.use((req, res, next) => {
   next();
 });
 app.use((req, res, next) => {
-  // After successful login, redirect back to /api, /contact or /
-  if (/(api)|(contact)|(^\/$)/i.test(req.path)) {
+  // After successful login, redirect back to /api or /
+  if (/(api)|(^\/$)/i.test(req.path)) {
     req.session.returnTo = req.path;
   }
   next();
@@ -253,8 +252,6 @@ app.get('/reset/:token', userController.getReset);
 app.post('/reset/:token', userController.postReset);
 app.get('/signup', userController.getSignup);
 app.post('/signup', userController.postSignup);
-app.get('/contact', contactController.getContact);
-app.post('/contact', contactController.postContact);
 app.get('/account/:userId?', authz.usersMiddleware(), userController.getAccount);
 app.post('/account/profile/:userId?', authz.usersMiddleware(), userController.postUpdateProfile);
 app.post('/account/roles/:userId?', authz.middleware(2), userController.postUpdateRoles);
