@@ -1,5 +1,6 @@
 const students = require('./students');
 const Hint = require('../models/Hint');
+const Student = require('../models/Student');
 const TutorAction = require('../models/TutorAction');
 const await = require('asyncawait/await');
 const guideProtocol = require('../shared/guide-protocol.js');
@@ -92,7 +93,7 @@ function handleEventAsync(student, session, event) {
  */
 function saveAsync(session, student) {
     return session.save().then(() => {
-        return student.save();
+        return Student.save(student);
     });
 }
 
