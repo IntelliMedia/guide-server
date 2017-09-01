@@ -12,7 +12,7 @@ exports.index = (req, res) => {
     return res.redirect('/groups');
   }
 
-  Group.findOne({ 'id': groupId }, (err, group) => {
+  Group.findOne({ '_id': groupId }, (err, group) => {
     if (err) { return next(err); }
     res.render('group', {
       title: 'Group',
@@ -49,11 +49,11 @@ exports.duplicate = (req, res) => {
   if (req.body.hasOwnProperty("id")) {
     var modifiedGroup = req.body;
     console.info("Duplicate group: " + modifiedGroup.id);
-    Group.findOne({ 'id': modifiedGroup.id }, (err, group) => {
+    Group.findOne({ '_id': modifiedGroup.id }, (err, group) => {
       if (err) { 
         return next(err); 
       }
-      console.info("Update group: " + group.id);
+      console.info("Update group: " + group._id);
       group.replace(modifiedGroup);
       group.save((err) => {
         if (err) {
@@ -83,7 +83,7 @@ exports.modify = (req, res) => {
   if (req.body.hasOwnProperty("id")) {
     var modifiedGroup = req.body;
     console.info("Update group: " + modifiedGroup.id);
-    Group.findOne({ 'id': modifiedGroup.id }, (err, group) => {
+    Group.findOne({ '_id': modifiedGroup.id }, (err, group) => {
       if (err) { return next(err); }
 
       group.replace(modifiedGroup);
