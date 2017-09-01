@@ -45,20 +45,13 @@ exports.reset = (req, res) => {
         return next(err); 
       }
       console.info("Save student: " + studentId);
-      student.reset();
-      student.save((err) => {
-        if (err) {
-          return next(err);
-        } else {
-          return res.redirect('/student/' + studentId);
-        }
+      student.reset().then((student) => {
+        return res.redirect('/student/' + studentId);
+      }).catch((err) => {
+        consolex.exception(err);
+        req.flash('errors', { msg: 'Student with ID is not found: ' + studentId});
+        return res.redirect('/students');
       });
-    })
-    .exec()
-    .catch((err) => {
-      consolex.exception(err);
-      req.flash('errors', { msg: 'Student with ID is not found: ' + studentId});
-      return res.redirect('/students');
     });
   }
 }

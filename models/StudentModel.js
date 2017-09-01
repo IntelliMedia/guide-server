@@ -168,6 +168,9 @@ studentModelSchema.methods.currentHintLevel = function (challengeId, target, sel
 
 studentModelSchema.statics.create = function() {
   let studentModel = new StudentModel({
+    concepts: [],
+    hintHistory: [],
+
   });
 
   return studentModel;

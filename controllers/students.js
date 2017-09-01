@@ -22,35 +22,6 @@ function compareId(a,b) {
   return 0;
 }
 
-exports.createOrFind = (studentId) => {
-    return Student.findOne({ 'id': studentId }).exec().then((student) => {
-
-      if (!student) {
-        student = Student.create(studentId);
-      }
-
-      return student.save();
-  });
-};
-
-exports.updateSessionInfo = (studentId, timestamp) => {
-  return new Promise((resolve, reject) => {
-    Student.findOne({ 'id': studentId }, (err, student) => {
-      if (err) {
-        reject(err);
-      }
-
-      if (!student) {
-        student = Student.create(studentId);
-      }
-
-      student.lastSignIn = new Date(timestamp);
-      student.totalSessions += 1;
-      resolve(Student.save(student));
-    });
-  });
-};
-
 exports.modify = (req, res) => {
   if (req.body.action == 'deleteAll') {
     console.info("Delete all students.");

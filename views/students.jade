@@ -30,11 +30,11 @@ block content
           tr
             td
               a(href='/student/#{student.id}') #{student.id}          
-            td.scoreBox #{Math.round(student.averageScaledScore() * 1000)/10}
+            td.scoreBox #{Math.round(student.studentModel.averageScaledScore() * 1000)/10}
             td #{student.classId}
             td #{student.groupId}
             td(align="center") 
-              a(href='/student/#{student.id}/hints') #{student.hintHistory.length}
+              a(href='/student/#{student.id}/hints') #{student.studentModel.hintHistory.length}
             td(align="center") 
               a(href='/sessions?studentId=#{student.id}') #{student.totalSessions}
             td #{moment(student.lastSignIn).calendar()}

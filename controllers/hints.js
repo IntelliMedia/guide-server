@@ -17,7 +17,7 @@ exports.index = (req, res) => {
     res.render('hints', {
       title: 'Hints',
       student: student,
-      hintHistory: student.hintHistory
+      hintHistory: student.studentModel.hintHistory
     });
   });
 };

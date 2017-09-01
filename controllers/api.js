@@ -37,7 +37,7 @@ function createConceptChart(student) {
     var conceptStateValues = [];
 
     concepts.forEach(function (concept) {
-      var state = student.conceptState(concept.Id);
+      var state = student.studentModel.conceptState(concept.Id);
       var value = (state != null ? state.value : 0);
              
       conceptStateValues.push(value);
@@ -67,15 +67,15 @@ function createConceptChart(student) {
 
 function createConceptHeatmap(student) {
 
-  var xAxisLabels = student.modelCriteria();
-  var yAxisLabels = student.modelConceptIds().reverse();
+  var xAxisLabels = student.studentModel.modelCriteria();
+  var yAxisLabels = student.studentModel.modelConceptIds().reverse();
 
     var conceptScoreData = [];
     var conceptScoreDetails = {};
 
     for (var x = 0; x < xAxisLabels.length; ++x) {
           for (var y = 0; y < yAxisLabels.length; ++y) {
-            var score = student.conceptScoreInfo(xAxisLabels[x], yAxisLabels[y]);
+            var score = student.studentModel.conceptScoreInfo(xAxisLabels[x], yAxisLabels[y]);
             if (score) {
               var scaledScore = Math.round( score.scaledScore * 1000) / 10;
               conceptScoreData.push([

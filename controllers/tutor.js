@@ -40,7 +40,7 @@ exports.processEventAsync = (event, session) => {
     }
 
     var currentStudent = null;
-    return students.createOrFind(session.studentId).then((student) => {
+    return Student.findOrCreate(session.studentId).then((student) => {
 
         currentStudent = student;
         session.logEvent(event);
@@ -57,7 +57,7 @@ exports.processEventAsync = (event, session) => {
     })
     .then(() => {
         return saveAsync(session, currentStudent);
-    })
+    });
 }
 
 function handleEventAsync(student, session, event) {
