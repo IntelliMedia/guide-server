@@ -133,7 +133,7 @@ function findSession(socket, studentId, sessionId) {
         
         if (sessionId) {
 
-            Session.createOrFind(sessionId).then((session) => {
+            Session.findOrCreate(sessionId).then((session) => {
                 socketMap[socket] = session;
                 initializeSessionSocket(session, socket);
                 resolve(session);         

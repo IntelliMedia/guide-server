@@ -1,5 +1,4 @@
 const students = require('./students');
-const Hint = require('../models/Hint');
 const Student = require('../models/Student');
 const TutorAction = require('../models/TutorAction');
 const await = require('asyncawait/await');
