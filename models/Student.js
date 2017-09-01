@@ -10,6 +10,14 @@ const studentSchema = new mongoose.Schema({
   studentModel: { type: mongoose.Schema.Types.ObjectId, ref: "StudentModel" }
 }, { timestamps: true });
 
+var autoPopulateStudentModel = function(next) {
+  this.populate('studentModel');
+  next();
+};
+
+studentSchema.pre('findOne', autoPopulateStudentModel);
+studentSchema.pre('find', autoPopulateStudentModel);
+
 studentSchema.statics.create = function(studentId) {
   let student = new Student({
     id: studentId,
@@ -20,9 +28,9 @@ studentSchema.statics.create = function(studentId) {
   return student;
 }
 
-studentSchema.statics.save = function(student) {
-  return student.studentModel.save().then(() => {
-    return student.save();
+studentSchema.methods.saveAll = function() {
+  return this.studentModel.save().then(() => {
+    return this.save();
   });
 }
 

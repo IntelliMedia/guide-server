@@ -23,7 +23,7 @@ function compareId(a,b) {
 }
 
 exports.createOrFind = (studentId) => {
-    return Student.findOne({ 'id': studentId }).populate('studentModel').exec().then((student) => {
+    return Student.findOne({ 'id': studentId }).exec().then((student) => {
 
       if (!student) {
         student = Student.create(studentId);
