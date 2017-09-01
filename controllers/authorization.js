@@ -9,7 +9,7 @@ const nodeAcl = require('acl');
 exports.acl = null;
 
 exports.initialize = (dbc, cb) => {
-    exports.acl = new nodeAcl(new nodeAcl.mongodbBackend(dbc.connection.db, "acl"));
+    exports.acl = new nodeAcl(new nodeAcl.mongodbBackend(dbc.db, "acl"));
 
     initializeRoles();
 

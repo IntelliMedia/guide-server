@@ -87,7 +87,9 @@ app.set('json spaces', 2);
 /**
  * Connect to MongoDB.
  */
-var dbc = mongoose.connect('mongodb://localhost/guide');
+var dbc = mongoose.connect('mongodb://localhost/guide', {
+  useMongoClient: true
+});
 
 mongoose.connection.on('open', function (ref) {
     console.log('Connected to mongo server.');
