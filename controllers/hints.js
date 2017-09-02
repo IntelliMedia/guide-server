@@ -11,13 +11,18 @@ exports.index = (req, res) => {
     return res.redirect('/students');
   }
 
-  Student.findOne({ 'id': studentId }, (err, student) => {
-    if (err) { return next(err); }
-
-    res.render('hints', {
-      title: 'Hints',
-      student: student,
-      hintHistory: student.studentModel.hintHistory
+  Student.findOne({ 'id': studentId }).exec()
+    .then((student) => {
+      
+      res.render('hints', {
+        title: 'Hints',
+        student: student,
+        hintHistory: student.studentModel.hintHistory
+      });
+    })
+    .catch((err) => {
+      consolex.exception(err);
+      req.flash('errors', { msg: 'Unable to load student. ' + err.toString()});
+      return res.send({redirect: '/students'});
     });
-  });
 };

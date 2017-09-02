@@ -6,12 +6,18 @@ const moment = require('moment');
  * Groups page.
  */
 exports.index = (req, res) => {
-  Group.find({}, (err, groups) => {
-    res.render('groups', {
-      title: 'Groups',
-      groups: groups.sort(compareName)
+  Group.find({}).exec()
+    .then((groups) => {
+      res.render('groups', {
+        title: 'Groups',
+        groups: groups.sort(compareName)
+      });
+    })
+    .catch((err) => {
+      console.error(err);
+      req.flash('errors', { msg: err.toString() });
+      return res.redirect('/');
     });
-  });
 };
 
 function compareName(a,b) {
@@ -22,31 +28,30 @@ function compareName(a,b) {
   return 0;
 }
 
-exports.create = (name) => {
-  return new Promise((resolve, reject) => {
-      group = Group.create(name);
-
-      group.save((err) => {
-        if (err) {
-          reject(err);
-        } else {
-          resolve(group);
-        }
-      });
-    });
-};
-
 exports.modify = (req, res) => {
+  // Add new group
   if (req.body.action == 'addNew') {
     console.info("Add new group.");
-    exports.create("New Group").then((group) => {
+    let group = new Group({ name: "New Group"});
+    group.save().then((group) => {
       return res.redirect('/group/' + group._id);
-    });
-  }
-  else if (req.body.action == 'deleteAll') {
-    console.info("Delete all groups.");
-    Group.remove({}, (err) => {
+    })
+    .catch((err) => {
+      console.error(err);
+      req.flash('errors', { msg: err.toString() });
       return res.redirect('/groups');
     });
+  }
+  // Delete all groups
+  else if (req.body.action == 'deleteAll') {
+    console.info("Delete all groups.");
+    Group.remove({}).then(() => {
+        return res.redirect('/groups');
+      })
+      .catch((err) => {
+        console.error(err);
+        req.flash('errors', { msg: err.toString() });
+        return res.redirect('/groups');
+      });
   }
 };

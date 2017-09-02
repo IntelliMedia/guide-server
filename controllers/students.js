@@ -6,12 +6,18 @@ const moment = require('moment');
  * Students page.
  */
 exports.index = (req, res) => {
-  Student.find({}, (err, students) => {
-    res.render('students', {
-      title: 'Students',
-      students: students.sort(compareId)
-    });
-  });
+  Student.find({}).exec()
+    .then((students) => {
+      res.render('students', {
+        title: 'Students',
+        students: students.sort(compareId)
+      })
+    })
+    .catch((err) => {
+      consolex.exception(err);
+      req.flash('errors', { msg: 'Unable to load students. ' + err.toString()});
+      return res.redirect('/home');
+    }); 
 };
 
 function compareId(a,b) {
@@ -25,7 +31,12 @@ function compareId(a,b) {
 exports.modify = (req, res) => {
   if (req.body.action == 'deleteAll') {
     console.info("Delete all students.");
-    Student.remove({}, (err) => {
+    Student.remove({}).then(() => {
+      return res.redirect('/students');
+    })
+    .catch((err) => {
+      consolex.exception(err);
+      req.flash('errors', { msg: 'Unable to delete student. ' + err.toString()});
       return res.redirect('/students');
     });
   }

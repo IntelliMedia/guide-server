@@ -6,16 +6,23 @@ const moment = require('moment');
  * Alerts page.
  */
 exports.index = (req, res) => {
-  Alert.find({}, (err, alerts) => {
+  Alert.find({}).exec().then((alerts) => {
     res.render('alerts', {
       title: 'Alerts',
       alerts: alerts
     });
+  }).catch((err) => {
+    console.error(err);
+    req.flash('errors', { msg: err.toString() });
+    return res.redirect('/');
   });
 };
 
 exports.clear = (req, res) => {
-  Alert.remove({}, (err) => {
+  Alert.remove({}).then(() => {
     return res.redirect('/alerts');
+  }).catch((err) => {
+    console.error(err);
+    req.flash('errors', { msg: err.toString() });
   });
 };

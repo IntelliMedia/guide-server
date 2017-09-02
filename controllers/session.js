@@ -11,26 +11,24 @@ exports.index = (req, res) => {
     return res.redirect('/sessions');
   }
 
-  Session.findOne({ 'id': sessionId }, (err, session) => {
-    if (err) { return next(err); }
-
-    const format = req.query.format; 
-    if (format && format.toLowerCase() == "json") {
-      res.attachment(session.id + ".json");
-      res.json(session.events);
-    } else {
-      res.render('session', {
-        title: 'Session',
-        session: session
-      });
-    }
-  })
-  .exec()
-  .catch((err) => {
-    consolex.exception(err);
-    req.flash('errors', { msg: 'Session with ID is not found: ' + studentId});
-    return res.redirect('/sessions');
-  }); 
+  Session.findOne({ 'id': sessionId }).exec()
+    .then((session) => {
+      const format = req.query.format; 
+      if (format && format.toLowerCase() == "json") {
+        res.attachment(session.id + ".json");
+        res.json(session.events);
+      } else {
+        res.render('session', {
+          title: 'Session',
+          session: session
+        });
+      }
+    })
+    .catch((err) => {
+      consolex.exception(err);
+      req.flash('errors', { msg: 'Unable to display session data. ' + err.toString()});
+      return res.redirect('/sessions');
+    }); 
 };
 
 exports.event = (req, res) => {
@@ -40,18 +38,16 @@ exports.event = (req, res) => {
     return res.redirect('/sessions');
   }
 
-  Session.findOne({ 'id': sessionId }, (err, session) => {
-    if (err) { return next(err); }
-
-    res.render('json', {
-      title: 'Event JSON',
-      json: JSON.stringify(session.events[eventIndex], undefined, 2)
-    });
-  })
-  .exec()
-  .catch((err) => {
-    consolex.exception(err);
-    req.flash('errors', { msg: 'Session with ID is not found: ' + studentId});
-    return res.redirect('/sessions');
-  });   
+  Session.findOne({ 'id': sessionId }).exec()
+    .then((session) => {
+      res.render('json', {
+        title: 'Event JSON',
+        json: JSON.stringify(session.events[eventIndex], undefined, 2)
+      });
+    })
+    .catch((err) => {
+      consolex.exception(err);
+      req.flash('errors', { msg: 'Unable to display session data. ' + err.toString()});
+      return res.redirect('/sessions');
+    });   
 };

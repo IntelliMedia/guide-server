@@ -12,19 +12,18 @@ exports.index = (req, res) => {
     return res.redirect('/groups');
   }
 
-  Group.findOne({ '_id': groupId }, (err, group) => {
-    if (err) { return next(err); }
-    res.render('group', {
-      title: 'Group',
-      group: group
+  Group.findOne({ '_id': groupId }).exec()
+    .then((group) => {
+      res.render('group', {
+        title: 'Group',
+        group: group
+      });
+    })
+    .catch((err) => {
+      consolex.exception(err);
+      req.flash('errors', { msg: 'Group with ID is not found: ' + groupId});
+      return res.redirect('/groups');
     });
-  })
-  .exec()
-  .catch((err) => {
-    consolex.exception(err);
-    req.flash('errors', { msg: 'Group with ID is not found: ' + groupId});
-    return res.redirect('/groups');
-  });
 };
 
 exports.delete = (req, res) => {
@@ -33,49 +32,39 @@ exports.delete = (req, res) => {
     return res.redirect('/groups');
   }
 
-  Group.remove({ 'id': groupId }, (err) => {
-    if (err) { return next(err); }  
-    return res.send({redirect: '/groups'});
-  })
-  .exec()
-  .catch((err) => {
-    consolex.exception(err);
-    req.flash('errors', { msg: 'Group with ID is not found: ' + groupId});
-    return res.send({redirect: '/groups'});
-  });
+  Group.remove({ '_id': groupId }).exec()
+    .then(() => { 
+      return res.send({redirect: '/groups'});
+    })
+    .catch((err) => {
+      consolex.exception(err);
+      req.flash('errors', { msg: 'Group with ID is not found: ' + groupId});
+      return res.send({redirect: '/groups'});
+    });
 };
 
 exports.duplicate = (req, res) => {
   if (req.body.hasOwnProperty("id")) {
     var modifiedGroup = req.body;
     console.info("Duplicate group: " + modifiedGroup.id);
-    Group.findOne({ '_id': modifiedGroup.id }, (err, group) => {
-      if (err) { 
-        return next(err); 
-      }
-      console.info("Update group: " + group._id);
-      group.replace(modifiedGroup);
-      group.save((err) => {
-        if (err) {
-          return next(err);
-        } else {
-          var duplicateGroup = group.clone();
-          duplicateGroup.save((err) => {
-            if (err) {
-              return next(err);
-            } else {
-              return res.send({redirect: '/group/' + duplicateGroup.id});
-            }
-          });
-        }
+    Group.findOne({ '_id': modifiedGroup.id }).exec()
+      .then((group) => {
+        console.info("Update group: " + group._id);
+        group.replace(modifiedGroup);
+        return group.save();
+      })
+      .then((group) => {
+        var duplicateGroup = group.clone();
+        return duplicateGroup.save();
+      })
+      .then((duplicateGroup) => {
+        return res.send({redirect: '/group/' + duplicateGroup.id});
+      })
+      .catch((err) => {
+        consolex.exception(err);
+        req.flash('errors', { msg: 'Unable to duplicate group. ' + err.toString()});
+        return res.send({redirect: '/groups'});
       });
-    })
-    .exec()
-    .catch((err) => {
-      consolex.exception(err);
-      req.flash('errors', { msg: 'Group with ID is not found: ' + groupId});
-      return res.send({redirect: '/groups'});
-    });
   }
 }
 
@@ -83,24 +72,18 @@ exports.modify = (req, res) => {
   if (req.body.hasOwnProperty("id")) {
     var modifiedGroup = req.body;
     console.info("Update group: " + modifiedGroup.id);
-    Group.findOne({ '_id': modifiedGroup.id }, (err, group) => {
-      if (err) { return next(err); }
-
+    Group.findOne({ '_id': modifiedGroup.id }).exec()
+    .then((group) => {
       group.replace(modifiedGroup);
-
-      group.save((err) => {
-        if (err) {
-          next(err);
-        } else {
-          return res.send({redirect: '/groups'});
-        }
-      });
+      return group.save();
     })
-    .exec()
+    .then(() => {
+      return res.send({redirect: '/groups'});
+    })
     .catch((err) => {
       consolex.exception(err);
-      req.flash('errors', { msg: 'Group with ID is not found: ' + groupId});
-      return res.send({redirect: '/groups'});
+      req.flash('errors', { msg: 'Unable to update group. ' + err.toString()});
+      return next(err);
     });
   }
 };

@@ -41,12 +41,4 @@ groupSchema.methods.clone = function() {
 
 const Group = mongoose.model('Group', groupSchema);
 
-Group.create = (name) => {
-      let group = new Group();
-      group.name = name;
-      group.challenges = [];
-
-      return group;
-}
-
 module.exports = Group;
