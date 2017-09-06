@@ -22,25 +22,83 @@ block content
   h4
     a(href='/student/#{student.id}/hints') Hint History  
     a(href='/student/#{student.id}?view=json') JSON  
-  div#container(style="min-width: 500px; height: 500px; margin: 0 auto")
+  div#container1(style="min-width: 500px; height: 500px; margin: 0 auto")
     script.
         $(function() {
-            var myChart = null;   
+            let myChart1 = null;   
             
-            function updateChart() {
-                $.getJSON("/api/student/#{student.id}?view=concept-heatmap", function(options) {
-                    if (myChart != null) {
-                        myChart.destroy();
+            function updateChart1() {
+                $.getJSON("/api/student/#{student.id}?view=aggregate-concept-heatmap", function(options) {
+                    if (myChart1 != null) {
+                        myChart1.destroy();
+                    }       
+                    options.tooltip.formatter = function () {
+                        let details = options.tooltip.conceptScoreDetails[this.point.x + "," + this.y];
+                            return 'Correct: <b>' + details.correct + '</b><br>'
+                                    + 'Total Attempts: <b>' + details.total + '</b>';
+                        };
+                    myChart1 = Highcharts.chart('container1', options);
+                });
+            }
+            updateChart1();
+        });
+  div
+  div#container2(style="min-width: 500px; height: 500px; margin: 0 auto")
+    script.
+        $(function() {
+            var myChart2 = null;   
+            
+            function updateChart2() {
+                $.getJSON("/api/student/#{student.id}?view=concept-by-challenge-heatmap", function(options) {
+                    if (myChart2 != null) {
+                        myChart2.destroy();
                     }       
                     options.tooltip.formatter = function () {
                         var details = options.tooltip.conceptScoreDetails[this.point.x + "," + this.y];
                             return 'Correct: <b>' + details.correct + '</b><br>'
                                     + 'Total Attempts: <b>' + details.total + '</b>';
                         };
-                    myChart = Highcharts.chart('container', options);
+                    myChart2 = Highcharts.chart('container2', options);
                 });
             }
-            updateChart();
+            updateChart2();
+        });
+  div
+  div#container3(style="min-width: 500px; height: 500px; margin: 0 auto")
+    script.
+        $(function() {
+            var myChart3 = null;   
+            
+            function updateChart3() {
+                $.getJSON("/api/student/#{student.id}?view=concept-by-trait-heatmap", function(options) {
+                    if (myChart3 != null) {
+                        myChart3.destroy();
+                    }       
+                    options.tooltip.formatter = function () {
+                        var details = options.tooltip.conceptScoreDetails[this.point.x + "," + this.y];
+                            return 'Correct: <b>' + details.correct + '</b><br>'
+                                    + 'Total Attempts: <b>' + details.total + '</b>';
+                        };
+                    myChart3 = Highcharts.chart('container3', options);
+                });
+            }
+            updateChart3();
+        });
+  div
+  div#container4(style="min-width: 500px; height: 500px; margin: 0 auto")
+    script.
+        $(function() {
+            var myChart4 = null;   
+            
+            function updateChart4() {
+                $.getJSON("/api/student/#{student.id}?view=snapshots-by-concept-linegraph", function(options) {
+                    if (myChart4 != null) {
+                        myChart4.destroy();
+                    }       
+                    myChart4 = Highcharts.chart('container4', options);
+                });
+            }
+            updateChart4();
         });
   div
     table.table.table-striped
