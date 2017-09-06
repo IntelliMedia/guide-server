@@ -37,7 +37,7 @@ class StudentModelService {
                 }
                 var adjustment = rule.concepts[conceptId];
                 //this.studentModel.updateConceptState(rule.criteria(), conceptId, adjustment);
-                this.processConceptDataPoint(timestamp, conceptId, true, this.challengeId);
+                this.processConceptDataPoint(conceptId, true, this.challengeId, "wings", timestamp);
                 rulesFired.push("+Rule Triggered: {0} -> {1} | ruleId: {2} source: {3}".format( 
                     conceptId, adjustment, rule.id, rule.source));
             }
@@ -50,7 +50,7 @@ class StudentModelService {
                 }
                 var adjustment = rule.concepts[conceptId];
                 //this.studentModel.updateConceptState(rule.criteria(), conceptId, adjustment);
-                this.processConceptDataPoint(timestamp, conceptId, false, this.challengeId);
+                this.processConceptDataPoint(conceptId, false, this.challengeId, "wings", timestamp);
                 var scaledScore = adjustment; //this.studentModel.conceptScaledScore(rule.criteria(), conceptId);
                 // TODO - only include negative concept state scores?
                 //if (state.scaledScore < 0) {
@@ -151,11 +151,17 @@ class StudentModelService {
         return conceptToHint;
     }
 
-    processConceptDataPoint(timestamp, conceptId, isCorrect, challengeId, trait) {
-        let conceptState = this.studentModel.findAggregate(conceptId);
+    processConceptDataPoint(conceptId, isCorrect, challengeId, trait, timestamp) {
+        this.updateConceptState(this.studentModel.getConcept(conceptId), isCorrect);
+        this.updateConceptState(this.studentModel.getConceptByChallenge(conceptId, challengeId), isCorrect);
+        this.updateConceptState(this.studentModel.getConceptByTrait(conceptId, trait), isCorrect);
+        this.updateConceptState(this.studentModel.getConceptSnapshot(conceptId, timestamp), isCorrect);
+    }
+
+    updateConceptState(conceptState, isCorrect) {
         conceptState.totalCorrect += (isCorrect ? 1 : 0);
         ++conceptState.totalAttempts;
-        conceptState.normalizedScore = conceptState.totalCorrect / conceptState.totalAttempts;
+        conceptState.score = conceptState.totalCorrect / conceptState.totalAttempts;     
     }
 }
 

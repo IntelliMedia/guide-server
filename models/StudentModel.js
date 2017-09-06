@@ -2,47 +2,62 @@ const mongoose = require('mongoose');
 const _ = require('lodash');
 
 const hintDeliveredSchema = new mongoose.Schema({
-  conceptId: String,
-  normalizedScore: Number,
+  conceptId: { type: String, required: true},
+  score: { type: Number, default: 0},
   challengeId: String,
   ruleCriteria: String, 
   ruleSelected: String,
-  hintLevel: Number,
+  hintLevel: { type: Number, default: 0},
   timestamp: Date
 }, { _id : false });
+const HintDelivered = mongoose.model('HintDelivered', hintDeliveredSchema);
 
-const conceptStateSchema = new mongoose.Schema({
-  conceptId: { type: String, required: true},
-  normalizedScore: { type: Number, default: 0},
-  totalCorrect: { type: Number, default: 0},
-  totalAttempts: { type: Number, default: 0},
-  totalHintsDelivered:{ type: Number, default: 0}
-}, { _id : false });
+function createConceptStateSchema(additionalField) {
+  let schema = new mongoose.Schema({
+    conceptId: { type: String, required: true},
+    score: { type: Number, default: 0},
+    totalCorrect: { type: Number, default: 0},
+    totalAttempts: { type: Number, default: 0},
+    totalHintsDelivered:{ type: Number, default: 0}
+  }, { _id : false });
+
+  if (additionalField) {
+    schema.add(additionalField);
+  }
+
+  return schema;
+}
+
+const conceptStateSchema = createConceptStateSchema();
 const ConceptState = mongoose.model('ConceptState', conceptStateSchema);
 
-const conceptsByKeySchema = new mongoose.Schema({
-  key: String,
+const conceptSnapshotSchema = createConceptStateSchema({timestamp: { type: Date, required: true }});
+const ConceptSnapshot = mongoose.model('ConceptSnapshot', conceptSnapshotSchema);
+
+const conceptsByChallengeIdSchema = new mongoose.Schema({
+  challengeId: { type: String, required: true},
   concepts: [conceptStateSchema]
 }, { _id : false });
+const ConceptsByChallengeId = mongoose.model('ConceptsByChallengeId', conceptsByChallengeIdSchema);
 
-const scoreSnapshotSchema = new mongoose.Schema({
-  normalizedScore: Number,
-  totalCorrect: Number,
-  totalAttempts: Number,
-  timestamp: Date
+const conceptsByTraitSchema = new mongoose.Schema({
+  trait: { type: String, required: true},
+  concepts: [conceptStateSchema]
 }, { _id : false });
+const ConceptsByTrait = mongoose.model('ConceptsByTrait', conceptsByTraitSchema);
 
 const snapshotsByConceptIdSchema = new mongoose.Schema({
-  conceptId: String,
-  snapshots: [scoreSnapshotSchema]
+  conceptId: { type: String, required: true},
+  snapshots: [conceptSnapshotSchema]
 }, { _id : false });
+const SnapshotsByConceptId = mongoose.model('SnapshotsByConceptId', snapshotsByConceptIdSchema);
 
 const studentModelSchema = new mongoose.Schema({
   concepts: [conceptStateSchema],
-  conceptsByChallenge: [conceptsByKeySchema],
-  conceptsByTrait: [conceptsByKeySchema],
+  conceptsByChallenge: [conceptsByChallengeIdSchema],
+  conceptsByTrait: [conceptsByTraitSchema],
   hintHistory: [hintDeliveredSchema],
-  conceptsOverTime: [snapshotsByConceptIdSchema]
+  snapshotsByConceptId: [snapshotsByConceptIdSchema]
 }, { timestamps: true });
 
 studentModelSchema.methods.reset = function() {
@@ -50,46 +65,80 @@ studentModelSchema.methods.reset = function() {
   this.conceptsByChallenge = [];
   this.conceptsByTrait = [];
   this.hintHistory = [];
-  this.conceptsOverTime = [];
+  this.conceptSnapshots = [];
 }
 
-studentModelSchema.methods.findAggregate = function(conceptId) {
-  let conceptState = this.concepts.find((c) => c.conceptId === conceptId);
+// Reusable method that is used to find/create ConceptState in a collection
+// This method is reused for multiple collections in the StudentModel
+studentModelSchema.statics.getConceptState = function(collection, conceptId) {
+  let conceptState = collection.find((c) => c.conceptId === conceptId);
   if (!conceptState) {
-    this.concepts.push(new ConceptState({
+    collection.push(new ConceptState({
       conceptId: conceptId }));
-    conceptState = this.concepts[0];
+
+    conceptState = collection[0];
   }
-  
   return conceptState;
+}
+
+// Reusable method for finding time-based concept data
+studentModelSchema.statics.getConceptSnapshot = function(collection, conceptId, timestamp) {
+  let conceptSnapshot = collection.find((c) => c.conceptId === conceptId && c.timestamp === timestamp);
+  if (!conceptSnapshot) {
+    collection.push(new ConceptSnapshot({
+      conceptId: conceptId,
+      timestamp: timestamp}));
+
+    conceptSnapshot = collection[0];
+  }
+  return conceptSnapshot;
+}
+
+studentModelSchema.methods.getConcept = function(conceptId) {
+  return StudentModel.getConceptState(this.concepts, conceptId);
 };
 
-studentModelSchema.methods.updateAggregate = function(conceptId, isCorrect) {
-  var conceptState = this.conceptState(criteria, conceptId);
-  // Add new concept, if it doesn't already exist
-  if (conceptState == null) {
-    conceptState = {
-      criteria: criteria,
-      id: conceptId,
-      scaledScore: 0,
-      sumScore: 0,
-      totalCorrect: 0,
-      totalIncorrect: 0,
-      totalNeutral: 0
-    };
-    this.concepts.push(conceptState);
-    conceptState = this.concepts[this.concepts.length-1];
+studentModelSchema.methods.getConceptByChallenge = function(conceptId, challengeId) {
+  // Get concept collection by challenge
+  let conceptsByChallenge = this.conceptsByChallenge.find((c) => c.challengeId === challengeId);
+  if (!conceptsByChallenge) {
+    // Create new concept collection for this challenge
+    this.conceptsByChallenge.push(new ConceptsByChallengeId({
+      challengeId: challengeId }));
+
+    conceptsByChallenge = this.conceptsByChallenge[0];
   }
 
-  conceptState.sumScore += adjustment;
-  if (adjustment > 0) {
-    conceptState.totalCorrect += 1;
-  } else if (adjustment < 0) {
-    conceptState.totalIncorrect += 1;
-  } else {
-    conceptState.totalNeutral += 1;
+  return StudentModel.getConceptState(conceptsByChallenge.concepts, conceptId);
+};
+
+studentModelSchema.methods.getConceptByTrait = function(conceptId, trait) {
+  // Get concept collection by challenge
+  let conceptsByTrait = this.conceptsByTrait.find((c) => c.trait === trait);
+  if (!conceptsByTrait) {
+    // Create new concept collection for this challenge
+    this.conceptsByTrait.push(new ConceptsByTrait({
+      trait: trait }));
+
+    conceptsByTrait = this.conceptsByTrait[0];
   }
-}
+
+  return StudentModel.getConceptState(conceptsByTrait.concepts, conceptId);
+};
+
+studentModelSchema.methods.getConceptSnapshot = function(conceptId, timestamp) {
+  // Get concept collection by challenge
+  let conceptSnapshots = this.snapshotsByConceptId.find((c) => c.conceptId === conceptId);
+  if (!conceptSnapshots) {
+    // Create new concept collection for this challenge
+    this.snapshotsByConceptId.push(new SnapshotsByConceptId({
+      conceptId: conceptId }));
+
+    conceptSnapshots = this.snapshotsByConceptId[0];
+  }
+
+  return StudentModel.getConceptSnapshot(conceptSnapshots.snapshots, conceptId, timestamp);
+};
 
 studentModelSchema.methods.averageScaledScore = function () {
 
