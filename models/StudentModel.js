@@ -1,45 +1,74 @@
 const mongoose = require('mongoose');
 const _ = require('lodash');
 
-const conceptStateSchema = new mongoose.Schema({
-  criteria: String,
-  id: String,
-  sumScore: Number,
-  totalCorrect: Number,
-  totalIncorrect: Number,
-  totalNeutral: Number
-});
-
-const scoreSchema = new mongoose.Schema({
-  id: String,
-  normalizedScore: Number,
-  totalCorrect: Number,
-  totalIncorrect: Number,
-  totalNeutral: Number,
-  totalAttempts: Number,
-});
-
-const hintDelivered = new mongoose.Schema({
+const hintDeliveredSchema = new mongoose.Schema({
   conceptId: String,
-  scaledScore: String,
+  normalizedScore: Number,
   challengeId: String,
   ruleCriteria: String, 
   ruleSelected: String,
   hintLevel: Number,
   timestamp: Date
-}, { timestamps: true });
+}, { _id : false });
+
+const conceptStateSchema = new mongoose.Schema({
+  conceptId: String,
+  normalizedScore: Number,
+  totalCorrect: Number,
+  totalAttempts: Number,
+  totalHintsDelivered: Number
+}, { _id : false });
+
+const conceptsByKeySchema = new mongoose.Schema({
+  key: String,
+  concepts: [conceptStateSchema]
+}, { _id : false });
+
+const scoreSnapshotSchema = new mongoose.Schema({
+  normalizedScore: Number,
+  totalCorrect: Number,
+  totalAttempts: Number,
+  timestamp: Date
+}, { _id : false });
+
+const snapshotsByConceptIdSchema = new mongoose.Schema({
+  conceptId: String,
+  snapshots: [scoreSnapshotSchema]
+}, { _id : false });
 
 const studentModelSchema = new mongoose.Schema({
   concepts: [conceptStateSchema],
-  hintHistory: [hintDelivered]
+  conceptsByChallenge: [conceptsByKeySchema],
+  conceptsByTrait: [conceptsByKeySchema],
+  hintHistory: [hintDeliveredSchema],
+  conceptsOverTime: [snapshotsByConceptIdSchema]
 }, { timestamps: true });
 
 studentModelSchema.methods.reset = function() {
   this.concepts = [];
+  this.conceptsByChallenge = [];
+  this.conceptsByTrait = [];
   this.hintHistory = [];
+  this.conceptsOverTime = [];
 }
 
-studentModelSchema.methods.updateConceptState = function (criteria, conceptId, adjustment) {
+studentModelSchema.methods.findAggregate = function(conceptId) {
+  let conceptState = this.concepts.find((c) => c.conceptId === conceptId);
+  if (!conceptState) {
+    this.concepts.push({
+      conceptId: conceptId,
+      normalizedScore: 0,
+      totalCorrect: 0,
+      totalAttempts: 0,
+      totalHintsDelivered: 0
+    });
+    conceptState = this.concepts[0];
+  }
+  
+  return conceptState;
+};
+
+studentModelSchema.methods.updateAggregate = (conceptId, isCorrect) => {
   var conceptState = this.conceptState(criteria, conceptId);
   // Add new concept, if it doesn't already exist
   if (conceptState == null) {
@@ -126,7 +155,7 @@ studentModelSchema.methods.modelCriteria = function () {
   return _.uniq(this.concepts.map(function(a) {return a.criteria;})).sort();
 }
 
-studentModelSchema.methods.addHintToHistory = function (conceptId, scaledScore, challengeId, ruleCriteria, ruleSelected, hintLevel) {
+studentModelSchema.methods.addHintToHistory = function(conceptId, scaledScore, challengeId, ruleCriteria, ruleSelected, hintLevel) {
   var hintDelivered = {
     conceptId: conceptId,
     scaledScore: scaledScore,
@@ -169,8 +198,10 @@ studentModelSchema.methods.currentHintLevel = function (challengeId, target, sel
 studentModelSchema.statics.create = function() {
   let studentModel = new StudentModel({
     concepts: [],
+    conceptsByChallenge: [],
+    conceptsByTrait: [],
     hintHistory: [],
-
+    conceptsOverTime: []
   });
 
   return studentModel;

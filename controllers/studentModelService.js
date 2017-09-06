@@ -25,8 +25,9 @@ class StudentModelService {
 
     updateStudentModel(activatedRules) {
         this.session.debugAlert("Update student model for: " + this.student.id);
-        var negativeConcepts = [];
 
+        let timestamp = new Date();
+        var negativeConcepts = [];
         var rulesFired = [];
 
         for (let rule of activatedRules.correct) {
@@ -35,7 +36,8 @@ class StudentModelService {
                     continue;
                 }
                 var adjustment = rule.concepts[conceptId];
-                this.studentModel.updateConceptState(rule.criteria(), conceptId, adjustment);
+                //this.studentModel.updateConceptState(rule.criteria(), conceptId, adjustment);
+                this.processConceptDataPoint(timestamp, conceptId, true, this.challengeId);
                 rulesFired.push("+Rule Triggered: {0} -> {1} | ruleId: {2} source: {3}".format( 
                     conceptId, adjustment, rule.id, rule.source));
             }
@@ -47,8 +49,9 @@ class StudentModelService {
                     continue;
                 }
                 var adjustment = rule.concepts[conceptId];
-                this.studentModel.updateConceptState(rule.criteria(), conceptId, adjustment);
-                var scaledScore = this.studentModel.conceptScaledScore(rule.criteria(), conceptId);
+                //this.studentModel.updateConceptState(rule.criteria(), conceptId, adjustment);
+                this.processConceptDataPoint(timestamp, conceptId, false, this.challengeId);
+                var scaledScore = adjustment; //this.studentModel.conceptScaledScore(rule.criteria(), conceptId);
                 // TODO - only include negative concept state scores?
                 //if (state.scaledScore < 0) {
                     negativeConcepts.push(new NegativeConcept(
@@ -146,6 +149,13 @@ class StudentModelService {
         }
 
         return conceptToHint;
+    }
+
+    processConceptDataPoint(timestamp, conceptId, isCorrect, challengeId, trait) {
+        let conceptState = this.studentModel.findAggregate(conceptId);
+        conceptState.totalCorrect += (isCorrect ? 1 : 0);
+        ++conceptState.totalAttempts;
+        conceptState.normalizedScore = conceptState.totalCorrect / conceptState.totalAttempts;
     }
 }
 
