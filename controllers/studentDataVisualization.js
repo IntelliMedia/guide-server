@@ -4,6 +4,7 @@ const concept = require('../models/Concept');
 const Student = require('../models/Student');
 const StudentModel = require('../models/StudentModel');
 const consolex = require('../utilities/consolex');
+const _ = require('lodash');
 
 /**
  * This class creates charts based on student data using Highcharts service
@@ -76,31 +77,58 @@ class StudentDataVisualization {
         };
     }
 
-    static createConceptHeatmap(student) {
+    static getConceptScores(collection, innerCollectionField, yAxisField, xAxisField) {
 
-        var xAxisLabels = student.studentModel.modelCriteria();
-        var yAxisLabels = student.studentModel.modelConceptIds().reverse();
+        let chartInfo = {
+            xLabels: [],
+            yLabels: [],
+            data: [],
+            dataDetails: {}
+        }
 
-        var conceptScoreData = [];
-        var conceptScoreDetails = {};
+        collection.forEach((a) => { 
+            chartInfo.yLabels.push(a[yAxisField]);
+        });
+        chartInfo.yLabels = _.uniq(chartInfo.yLabels).sort();
 
-        for (var x = 0; x < xAxisLabels.length; ++x) {
-            for (var y = 0; y < yAxisLabels.length; ++y) {
-                var score = student.studentModel.conceptScoreInfo(xAxisLabels[x], yAxisLabels[y]);
-                if (score) {
-                    var scaledScore = Math.round(score.scaledScore * 1000) / 10;
-                    conceptScoreData.push([
+        collection.forEach((g) => {
+            g[innerCollectionField].forEach((c) => {
+                chartInfo.xLabels.push(c[xAxisField]);
+            });
+        });
+        chartInfo.xLabels = _.uniq(chartInfo.xLabels).sort();
+
+        for (let x = 0; x < chartInfo.xLabels.length; ++x) {
+            let xLabel = chartInfo.xLabels[x];
+            for (let y = 0; y < chartInfo.yLabels.length; ++y) {
+                let yLabel = chartInfo.yLabels[y];
+
+                let yEntry = collection.find((g) => g[yAxisField] == yLabel);
+                let dataPoint = yEntry[innerCollectionField].find((c) => c[xAxisField] === xLabel);
+
+                    var scaledScore = Math.round(dataPoint.score * 1000) / 10;
+                    chartInfo.data.push([
                         x,
                         y,
                         scaledScore
                     ]);
-                    conceptScoreDetails[x + "," + y] = {
-                        correct: score.correct,
-                        total: score.total
+                    chartInfo.dataDetails[x + "," + y] = {
+                        correct: dataPoint.totalCorrect,
+                        total: dataPoint.totalAttempts
                     };
-                }
             }
         }
+
+        return chartInfo;
+    }
+
+    static createConceptHeatmap(student) {
+
+        let chartInfo = StudentDataVisualization.getConceptScores(
+            student.studentModel.conceptsByChallenge, 
+            "concepts", 
+            "challengeId", 
+            "conceptId");
 
         return {
             chart: {
@@ -111,7 +139,7 @@ class StudentDataVisualization {
             },
 
             tooltip: {
-                conceptScoreDetails: conceptScoreDetails
+                conceptScoreDetails: chartInfo.dataDetails
             },
 
             title: {
@@ -119,12 +147,12 @@ class StudentDataVisualization {
             },
 
             xAxis: {
-                categories: xAxisLabels,
+                categories: chartInfo.xLabels,
                 title: "Criteria"
             },
 
             yAxis: {
-                categories: yAxisLabels,
+                categories: chartInfo.yLabels,
                 title: "Concepts"
             },
 
@@ -150,7 +178,7 @@ class StudentDataVisualization {
             series: [{
                 name: 'Concept Score',
                 borderWidth: 1,
-                data: conceptScoreData,
+                data: chartInfo.data,
                 dataLabels: {
                     enabled: true,
                     color: '#000000'

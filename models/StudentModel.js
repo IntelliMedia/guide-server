@@ -192,8 +192,8 @@ studentModelSchema.methods.conceptState = function (criteria, conceptId) {
   return conceptState;
 };
 
-studentModelSchema.methods.modelConceptIds = function () {
-  return _.uniq(this.concepts.map(function(a) {return a.id;})).sort();
+studentModelSchema.methods.getConceptIds = function () {
+  return _.uniq(this.concepts.map(function(a) {return a.conceptId;})).sort();
 }
 
 studentModelSchema.methods.modelCriteria = function () {
