@@ -6,45 +6,22 @@ const studentSchema = new mongoose.Schema({
   classId: String,
   groupId: String,
   lastSignIn: Date,
-  totalSessions: Number,
-  studentModel: { type: mongoose.Schema.Types.ObjectId, ref: "StudentModel" }
+  totalSessions: { type: Number, default: 0 },
+  studentModel: { type: StudentModel.schema, default: StudentModel.schema}
 }, { timestamps: true });
-
-var autoPopulateStudentModel = function(next) {
-  this.populate('studentModel');
-  next();
-};
-
-studentSchema.pre('findOne', autoPopulateStudentModel);
-studentSchema.pre('find', autoPopulateStudentModel);
 
 studentSchema.statics.findOrCreate = function(studentId) {
   return Student.findOne({ 'id': studentId }).exec().then((student) => {
-
     // Found
     if (student) {
-      // For backward compatibility (GUIDE 1.x)
-      if (!(student.studentModel instanceof StudentModel)) {
-        student.studentModel = StudentModel.create();
-      }
       return student;
-
     } else {
       // Create
       let newStudent = new Student({
-        id: studentId,
-        totalSessions: 0,
-        studentModel: StudentModel.create()
-      });
+        id: studentId});
 
-      return newStudent.saveAll();
+      return newStudent.save();
     }
-  });
-}
-
-studentSchema.methods.saveAll = function() {
-  return this.studentModel.save().then(() => {
-    return this.save();
   });
 }
 

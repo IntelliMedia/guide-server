@@ -92,7 +92,7 @@ function handleEventAsync(student, session, event) {
  */
 function saveAsync(session, student) {
     return session.save().then(() => {
-        return student.saveAll();
+        return student.save();
     });
 }
 

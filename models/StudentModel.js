@@ -12,12 +12,13 @@ const hintDeliveredSchema = new mongoose.Schema({
 }, { _id : false });
 
 const conceptStateSchema = new mongoose.Schema({
-  conceptId: String,
-  normalizedScore: Number,
-  totalCorrect: Number,
-  totalAttempts: Number,
-  totalHintsDelivered: Number
+  conceptId: { type: String, required: true},
+  normalizedScore: { type: Number, default: 0},
+  totalCorrect: { type: Number, default: 0},
+  totalAttempts: { type: Number, default: 0},
+  totalHintsDelivered:{ type: Number, default: 0}
 }, { _id : false });
+const ConceptState = mongoose.model('ConceptState', conceptStateSchema);
 
 const conceptsByKeySchema = new mongoose.Schema({
   key: String,
@@ -55,20 +56,15 @@ studentModelSchema.methods.reset = function() {
 studentModelSchema.methods.findAggregate = function(conceptId) {
   let conceptState = this.concepts.find((c) => c.conceptId === conceptId);
   if (!conceptState) {
-    this.concepts.push({
-      conceptId: conceptId,
-      normalizedScore: 0,
-      totalCorrect: 0,
-      totalAttempts: 0,
-      totalHintsDelivered: 0
-    });
+    this.concepts.push(new ConceptState({
+      conceptId: conceptId }));
     conceptState = this.concepts[0];
   }
   
   return conceptState;
 };
 
-studentModelSchema.methods.updateAggregate = (conceptId, isCorrect) => {
+studentModelSchema.methods.updateAggregate = function(conceptId, isCorrect) {
   var conceptState = this.conceptState(criteria, conceptId);
   // Add new concept, if it doesn't already exist
   if (conceptState == null) {
@@ -193,18 +189,6 @@ studentModelSchema.methods.currentHintLevel = function (challengeId, target, sel
   }
 
   return hintLevel;
-}
-
-studentModelSchema.statics.create = function() {
-  let studentModel = new StudentModel({
-    concepts: [],
-    conceptsByChallenge: [],
-    conceptsByTrait: [],
-    hintHistory: [],
-    conceptsOverTime: []
-  });
-
-  return studentModel;
 }
 
 const StudentModel = mongoose.model('StudentModel', studentModelSchema);
