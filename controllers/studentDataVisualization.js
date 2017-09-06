@@ -19,28 +19,36 @@ class StudentDataVisualization {
 
         var view = req.query.view;
 
-        Student.findOne({ 'id': studentId }, (err, student) => {
-            if (err) { return next(err); }
-
+        Student.findOne({ 'id': studentId }).exec().then((student) => {
+            let chartData = undefined;
             switch (view) {
-                case 'concept-chart':
-                    res.end(JSON.stringify(StudentDataVisualization.createConceptChart(student)));
+                case 'aggregate-concept-heatmap':
+                    chartData = StudentDataVisualization.createAggregateConceptHeatmap(student);
                     break;
 
-                case 'concept-heatmap':
-                    res.end(JSON.stringify(StudentDataVisualization.createConceptHeatmap(student)));
+                case 'concept-by-challenge-heatmap':
+                    chartData = StudentDataVisualization.createConceptByChallengeHeatmap(student);
+                    break;
+
+                case 'concept-by-trait-heatmap':
+                    chartData = StudentDataVisualization.createConceptByTraitHeatmap(student);
+                    break;
+
+                case 'snapshots-by-concept-linegraph':
+                    chartData = StudentDataVisualization.createSnapshotsByConcept(student);
                     break;
 
                 default:
-                    res.end(JSON.stringify(student));
+                    chartData = JSON.stringify(student);
             }
+
+            res.end(JSON.stringify(chartData));
         })
-            .exec()
-            .catch((err) => {
-                consolex.exception(err);
-                req.flash('errors', { msg: 'Student with ID is not found: ' + studentId });
-                return res.redirect('/');
-            });
+        .catch((err) => {
+            consolex.exception(err);
+            req.flash('errors', { msg: 'Student with ID is not found: ' + studentId + ". " + err.toString()});
+            return res.redirect('/');
+        });
     }
 
     static createConceptChart(student) {
@@ -86,16 +94,26 @@ class StudentDataVisualization {
             dataDetails: {}
         }
 
-        collection.forEach((a) => { 
-            chartInfo.yLabels.push(a[yAxisField]);
-        });
-        chartInfo.yLabels = _.uniq(chartInfo.yLabels).sort();
+        if (yAxisField) {
+            collection.forEach((a) => { 
+                chartInfo.yLabels.push(a[yAxisField]);
+            });
+            chartInfo.yLabels = _.uniq(chartInfo.yLabels).sort();
+        } else {
+            chartInfo.yLabels = [""];
+        }
 
-        collection.forEach((g) => {
-            g[innerCollectionField].forEach((c) => {
+        if (yAxisField) {
+            collection.forEach((g) => {
+                g[innerCollectionField].forEach((c) => {
+                    chartInfo.xLabels.push(c[xAxisField]);
+                });
+            });
+        } else {
+            collection.forEach((c) => {
                 chartInfo.xLabels.push(c[xAxisField]);
             });
-        });
+        }
         chartInfo.xLabels = _.uniq(chartInfo.xLabels).sort();
 
         for (let x = 0; x < chartInfo.xLabels.length; ++x) {
@@ -103,32 +121,64 @@ class StudentDataVisualization {
             for (let y = 0; y < chartInfo.yLabels.length; ++y) {
                 let yLabel = chartInfo.yLabels[y];
 
-                let yEntry = collection.find((g) => g[yAxisField] == yLabel);
-                let dataPoint = yEntry[innerCollectionField].find((c) => c[xAxisField] === xLabel);
+                let dataPoint = undefined;
+                if (yAxisField) {
+                    let yEntry = collection.find((g) => g[yAxisField] == yLabel);
+                    dataPoint = yEntry[innerCollectionField].find((c) => c[xAxisField] === xLabel);
+                } else {
+                    dataPoint = collection.find((c) => c[xAxisField] === xLabel);
+                }
 
-                    var scaledScore = Math.round(dataPoint.score * 1000) / 10;
-                    chartInfo.data.push([
-                        x,
-                        y,
-                        scaledScore
-                    ]);
-                    chartInfo.dataDetails[x + "," + y] = {
-                        correct: dataPoint.totalCorrect,
-                        total: dataPoint.totalAttempts
-                    };
+                var scaledScore = Math.round(dataPoint.score * 1000) / 10;
+                chartInfo.data.push([
+                    x,
+                    y,
+                    scaledScore
+                ]);
+                chartInfo.dataDetails[x + "," + y] = {
+                    correct: dataPoint.totalCorrect,
+                    total: dataPoint.totalAttempts
+                };
             }
         }
 
         return chartInfo;
     }
 
-    static createConceptHeatmap(student) {
+    static createAggregateConceptHeatmap(student) {
+        
+        let chartInfo = StudentDataVisualization.getConceptScores(
+            student.studentModel.concepts, 
+            "concepts", 
+            undefined, 
+            "conceptId");
+
+        return StudentDataVisualization.createConceptHeatmap(chartInfo, "Aggregate");
+    }
+
+    static createConceptByTraitHeatmap(student) {
+        
+        let chartInfo = StudentDataVisualization.getConceptScores(
+            student.studentModel.conceptsByTrait, 
+            "concepts", 
+            "trait", 
+            "conceptId");
+
+        return StudentDataVisualization.createConceptHeatmap(chartInfo, "Trait");
+    }
+
+    static createConceptByChallengeHeatmap(student) {
 
         let chartInfo = StudentDataVisualization.getConceptScores(
             student.studentModel.conceptsByChallenge, 
             "concepts", 
             "challengeId", 
             "conceptId");
+
+        return StudentDataVisualization.createConceptHeatmap(chartInfo, "Challenge");
+    }
+
+    static createConceptHeatmap(chartInfo, yLabel) {
 
         return {
             chart: {
@@ -143,7 +193,7 @@ class StudentDataVisualization {
             },
 
             title: {
-                text: "Criteria/Concept Heatmap"
+                text: yLabel + "/Concept Heatmap"
             },
 
             xAxis: {
@@ -184,6 +234,99 @@ class StudentDataVisualization {
                     color: '#000000'
                 }
             }]
+        };
+    }
+
+    static createSnapshotsByConcept(student) {
+        
+        let collection = student.studentModel.snapshotsByConceptId;
+        // y axis is normalized score (0-1)
+        let innerCollectionField = "snapshots";
+        let seriesField = "conceptId";
+        let xAxisField = "timestamp";
+
+        let chartInfo = {
+            xLabels: [],
+            seriesLabels: [],
+            series: [],
+            dataDetails: {}
+        }
+
+        collection.forEach((a) => { 
+            chartInfo.seriesLabels.push(a[seriesField]);
+        });
+        chartInfo.seriesLabels = _.uniq(chartInfo.seriesLabels).sort();
+
+        collection.forEach((g) => {
+            g[innerCollectionField].forEach((c) => {
+                chartInfo.xLabels.push(c[xAxisField]);
+            });
+        });
+        chartInfo.xLabels = _.uniq(chartInfo.xLabels).sort();
+
+        for (let s = 0; s < chartInfo.seriesLabels.length; ++s) {
+            let seriesLabel = chartInfo.seriesLabels[s];
+            let currentSeries = {
+                name: seriesLabel,
+                data: []
+            };
+            for (let x = 0; x < chartInfo.xLabels.length; ++x) {
+                let xLabel = chartInfo.xLabels[x];
+
+                let seriesEntry = collection.find((g) => g[seriesField] == seriesLabel);
+                let dataPoint = seriesEntry[innerCollectionField].find((c) => c[xAxisField] === xLabel);
+                if (dataPoint) { 
+                    let scaledScore = Math.round(dataPoint.score * 1000) / 10;
+                    currentSeries.data.push([Math.round(dataPoint.timestamp.getTime()), scaledScore]);
+                }
+            }
+            chartInfo.series.push(currentSeries);
+        }
+
+        return StudentDataVisualization.createSnapshotsGraph(chartInfo);
+    }
+
+    static createSnapshotsGraph(chartInfo, yLabel) {
+
+        return {
+            chart: {
+                type: 'spline'
+            },
+
+            title: {
+                text: 'Concept Score Snapshots'
+            },
+            xAxis: {
+                type: 'datetime',
+                dateTimeLabelFormats: { // don't display the dummy year
+                    second: '%H:%M:%S'
+                },
+                title: {
+                    text: 'timestamp'
+                }
+            },
+            yAxis: {
+                title: {
+                    text: 'Score'
+                },
+                max: 100,
+                min: 0
+            },
+            legend: {
+                layout: 'vertical',
+                align: 'right',
+                verticalAlign: 'middle'
+            },
+        
+            plotOptions: {
+                spline: {
+                    marker: {
+                        enabled: true
+                    }
+                }
+            },
+        
+            series: chartInfo.series
         };
     }
 }
