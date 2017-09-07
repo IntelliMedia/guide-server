@@ -150,7 +150,7 @@ class StudentDataVisualization {
     static createAggregateConceptHeatmap(student) {
         
         let chartInfo = StudentDataVisualization.getConceptScores(
-            student.studentModel.concepts, 
+            student.studentModel.conceptsAggregated, 
             "concepts", 
             undefined, 
             "conceptId");

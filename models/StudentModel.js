@@ -53,7 +53,7 @@ const snapshotsByConceptIdSchema = new mongoose.Schema({
 const SnapshotsByConceptId = mongoose.model('SnapshotsByConceptId', snapshotsByConceptIdSchema);
 
 const studentModelSchema = new mongoose.Schema({
-  concepts: [conceptStateSchema],
+  conceptsAggregated: [conceptStateSchema],
   conceptsByChallenge: [conceptsByChallengeIdSchema],
   conceptsByTrait: [conceptsByTraitSchema],
   hintHistory: [hintDeliveredSchema],
@@ -61,7 +61,7 @@ const studentModelSchema = new mongoose.Schema({
 }, { timestamps: true });
 
 studentModelSchema.methods.reset = function() {
-  this.concepts = [];
+  this.conceptsAggregated = [];
   this.conceptsByChallenge = [];
   this.conceptsByTrait = [];
   this.hintHistory = [];
@@ -94,8 +94,21 @@ studentModelSchema.statics.getConceptSnapshot = function(collection, conceptId, 
   return conceptSnapshot;
 }
 
-studentModelSchema.methods.getConcept = function(conceptId) {
-  return StudentModel.getConceptState(this.concepts, conceptId);
+studentModelSchema.methods.getOverallScore = function() {
+  if (!this.conceptsAggregated || this.conceptsAggregated.length == 0) {
+    return 0;
+  }
+
+  let score = 0;
+  this.conceptsAggregated.forEach((c) => score += c.score);
+
+  score = score / this.conceptsAggregated.length;
+
+  return score;
+};
+
+studentModelSchema.methods.getConceptAggregated = function(conceptId) {
+  return StudentModel.getConceptState(this.conceptsAggregated, conceptId);
 };
 
 studentModelSchema.methods.getConceptByChallenge = function(conceptId, challengeId) {

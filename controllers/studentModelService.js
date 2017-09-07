@@ -152,7 +152,7 @@ class StudentModelService {
     }
 
     processConceptDataPoint(conceptId, isCorrect, challengeId, trait, timestamp) {
-        this.updateConceptState(this.studentModel.getConcept(conceptId), isCorrect);
+        this.updateConceptState(this.studentModel.getConceptAggregated(conceptId), isCorrect);
         this.updateConceptState(this.studentModel.getConceptByChallenge(conceptId, challengeId), isCorrect);
         this.updateConceptState(this.studentModel.getConceptByTrait(conceptId, trait), isCorrect);
         this.updateConceptState(this.studentModel.getConceptSnapshot(conceptId, timestamp), isCorrect);
