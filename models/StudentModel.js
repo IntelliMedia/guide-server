@@ -1,17 +1,6 @@
 const mongoose = require('mongoose');
 const _ = require('lodash');
 
-const hintDeliveredSchema = new mongoose.Schema({
-  conceptId: { type: String, required: true},
-  score: { type: Number, default: 0},
-  challengeId: String,
-  ruleCriteria: String, 
-  ruleSelected: String,
-  hintLevel: { type: Number, default: 0},
-  timestamp: Date
-}, { _id : false });
-const HintDelivered = mongoose.model('HintDelivered', hintDeliveredSchema);
-
 function createConceptStateSchema(additionalField) {
   let schema = new mongoose.Schema({
     conceptId: { type: String, required: true},
@@ -52,20 +41,32 @@ const snapshotsByConceptIdSchema = new mongoose.Schema({
 }, { _id : false });
 const SnapshotsByConceptId = mongoose.model('SnapshotsByConceptId', snapshotsByConceptIdSchema);
 
+const hintDeliveredSchema = new mongoose.Schema({
+  conceptId: { type: String, required: true},
+  score: { type: Number, default: 0},
+  challengeId: String,
+  trait: String,
+  ruleCriteria: String, 
+  ruleSelected: String,
+  hintLevel: { type: Number, default: 0},
+  timestamp: Date
+}, { _id : false });
+const HintDelivered = mongoose.model('HintDelivered', hintDeliveredSchema);
+
 const studentModelSchema = new mongoose.Schema({
   conceptsAggregated: [conceptStateSchema],
   conceptsByChallenge: [conceptsByChallengeIdSchema],
   conceptsByTrait: [conceptsByTraitSchema],
-  hintHistory: [hintDeliveredSchema],
-  snapshotsByConceptId: [snapshotsByConceptIdSchema]
+  snapshotsByConceptId: [snapshotsByConceptIdSchema],
+  hintHistory: [hintDeliveredSchema]
 }, { timestamps: true });
 
 studentModelSchema.methods.reset = function() {
   this.conceptsAggregated = [];
   this.conceptsByChallenge = [];
   this.conceptsByTrait = [];
+  this.snapshotsByConceptId = [];
   this.hintHistory = [];
-  this.conceptSnapshots = [];
 }
 
 // Reusable method that is used to find/create ConceptState in a collection
@@ -153,79 +154,19 @@ studentModelSchema.methods.getConceptSnapshot = function(conceptId, timestamp) {
   return StudentModel.getConceptSnapshot(conceptSnapshots.snapshots, conceptId, timestamp);
 };
 
-studentModelSchema.methods.averageScaledScore = function () {
-
-  // Finding existing conceptState
-  var correct = 0;
-  var total = 0; 
-  for (let concept of this.concepts) {
-    correct += concept.totalCorrect;
-    total += (concept.totalCorrect + concept.totalIncorrect);
-  }   
-  
-  return  (total != 0 ? correct/total : 0);
-}
-
-studentModelSchema.methods.conceptScaledScore = function (criteria, conceptId) {
-  var conceptState = this.conceptState(criteria, conceptId);
-  if (!conceptState) {
-    return undefined;
-  }
-
-  var total = (conceptState.totalCorrect + conceptState.totalIncorrect);
-  return  (total != 0 ? conceptState.totalCorrect/total : 0);
-}
-
-studentModelSchema.methods.conceptScoreInfo = function (criteria, conceptId) {
-  var conceptState = this.conceptState(criteria, conceptId);
-  if (!conceptState) {
-    return undefined;
-  }
-
-  var total = (conceptState.totalCorrect + conceptState.totalIncorrect);
-  return {
-     scaledScore: (total != 0 ? conceptState.totalCorrect/total : 0),
-     correct: conceptState.totalCorrect,
-     total: total
-  };
-}
-
-studentModelSchema.methods.conceptState = function (criteria, conceptId) {
-  var conceptState = null;
-
-  // Finding existing conceptState
-  for (let concept of this.concepts) {
-    if (concept.criteria == criteria
-      && concept.id == conceptId) {
-      conceptState = concept;
-      break;
-    }
-  }   
-  
-  return conceptState;
-};
-
-studentModelSchema.methods.getConceptIds = function () {
-  return _.uniq(this.concepts.map(function(a) {return a.conceptId;})).sort();
-}
-
-studentModelSchema.methods.modelCriteria = function () {
-  return _.uniq(this.concepts.map(function(a) {return a.criteria;})).sort();
-}
-
-studentModelSchema.methods.addHintToHistory = function(conceptId, scaledScore, challengeId, ruleCriteria, ruleSelected, hintLevel) {
-  var hintDelivered = {
+studentModelSchema.methods.addHintToHistory = function(conceptId, score, challengeId, trait, ruleCriteria, ruleSelected, hintLevel) {
+  this.hintHistory.unshift({
     conceptId: conceptId,
-    scaledScore: scaledScore,
+    score: score,
     challengeId: challengeId,
+    trait: trait,
     ruleCriteria: ruleCriteria,
     ruleSelected: ruleSelected,
     hintLevel: hintLevel,
     timestamp: new Date()
-  }
-  this.hintHistory.push(hintDelivered);
+  });
 
-  return hintDelivered;
+  return this.hintHistory[0];
 }
 
 studentModelSchema.methods.mostRecentHint = function(challengeId) {

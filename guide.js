@@ -63,7 +63,7 @@ const alertsController = require('./controllers/alerts');
 const usersController = require('./controllers/users');
 const userController = require('./controllers/user');
 const socketManager = require('./controllers/socketManager');
-const StudentDataVisualization = require('./controllers/StudentDataVisualization');
+const StudentDataVisualization = require('./controllers/studentDataVisualization');
 const authz = require('./controllers/authorization');
 
 const tutor = require('./controllers/tutor');

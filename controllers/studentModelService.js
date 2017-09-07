@@ -4,9 +4,9 @@ const Student = require('../models/Student');
 const StudentModel = require('../models/StudentModel');
 
 class NegativeConcept {
-    constructor(conceptId, scaledScore, rule) {
+    constructor(conceptId, score, rule) {
         this.conceptId = conceptId;
-        this.scaledScore = scaledScore;
+        this.score = score;
         this.rule = rule;
     }
 }
@@ -21,12 +21,13 @@ class StudentModelService {
         this.studentModel = student.studentModel;
         this.session = session;
         this.challengeId = challengeId;
+        this.timestamp = null;
     }
 
     updateStudentModel(activatedRules) {
         this.session.debugAlert("Update student model for: " + this.student.id);
 
-        let timestamp = new Date();
+        this.timestamp = new Date();
         var negativeConcepts = [];
         var rulesFired = [];
 
@@ -36,27 +37,25 @@ class StudentModelService {
                     continue;
                 }
                 var adjustment = rule.concepts[conceptId];
-                //this.studentModel.updateConceptState(rule.criteria(), conceptId, adjustment);
-                this.processConceptDataPoint(conceptId, true, this.challengeId, rule.trait, timestamp);
+                this.processConceptDataPoint(conceptId, true, this.challengeId, rule.trait, this.timestamp);
                 rulesFired.push("+Rule Triggered: {0} -> {1} | ruleId: {2} source: {3}".format( 
                     conceptId, adjustment, rule.id, rule.source));
             }
         }
 
         for (let rule of activatedRules.misconceptions) {
-            for (var conceptId in rule.concepts) {
+            for (let conceptId in rule.concepts) {
                 if (!rule.concepts.hasOwnProperty(conceptId)) {
                     continue;
                 }
-                var adjustment = rule.concepts[conceptId];
-                //this.studentModel.updateConceptState(rule.criteria(), conceptId, adjustment);
-                this.processConceptDataPoint(conceptId, false, this.challengeId, rule.trait, timestamp);
-                var scaledScore = adjustment; //this.studentModel.conceptScaledScore(rule.criteria(), conceptId);
+                let adjustment = rule.concepts[conceptId];
+                this.processConceptDataPoint(conceptId, false, this.challengeId, rule.trait, this.timestamp);
+                let score = this.getScore(conceptId, this.challengeId);
                 // TODO - only include negative concept state scores?
-                //if (state.scaledScore < 0) {
+                //if (state.score < 0) {
                     negativeConcepts.push(new NegativeConcept(
                         conceptId, 
-                        scaledScore, 
+                        score, 
                         rule)); 
                 //}
                 rulesFired.push("-Rule Triggered: {0} -> {1} | ruleId: {2} source: {3}".format( 
@@ -72,7 +71,7 @@ class StudentModelService {
             if (b.rule.priority != a.rule.priority) {
                 return b.rule.priority - a.rule.priority;
             } else {
-                return a.scaledScore - b.scaledScore;
+                return a.score - b.score;
             }
         });
     }
@@ -99,7 +98,7 @@ class StudentModelService {
                         selectionCriteria = {
                             description:"staying with previous hint",
                             conceptId:conceptToHint.conceptId,
-                            scaledScore:conceptToHint.scaledScore
+                            score:conceptToHint.score
                         };
                         break;
                     }
@@ -141,14 +140,21 @@ class StudentModelService {
 
             this.studentModel.addHintToHistory(
                 conceptToHint.conceptId, 
-                conceptToHint.scaledScore, 
-                this.challengeId, 
+                conceptToHint.score, 
+                this.challengeId,
+                conceptToHint.rule.trait, 
                 conceptToHint.rule.criteria(), 
                 conceptToHint.rule.selected(), 
                 conceptToHint.hintLevel);
+
+            this.updateHintTotals(conceptToHint.conceptId, this.challengeId, conceptToHint.rule.trait, this.timestamp);
         }
 
         return conceptToHint;
+    }
+
+    getScore(conceptId, challengeId) {
+        return this.studentModel.getConceptByChallenge(conceptId, challengeId).score;
     }
 
     processConceptDataPoint(conceptId, isCorrect, challengeId, trait, timestamp) {
@@ -162,6 +168,13 @@ class StudentModelService {
         conceptState.totalCorrect += (isCorrect ? 1 : 0);
         conceptState.totalAttempts++;
         conceptState.score = conceptState.totalCorrect / conceptState.totalAttempts;     
+    }
+
+    updateHintTotals(conceptId, challengeId, trait, timestamp) {
+        this.studentModel.getConceptAggregated(conceptId).totalHintsDelivered++;
+        this.studentModel.getConceptByChallenge(conceptId, challengeId).totalHintsDelivered++;
+        this.studentModel.getConceptByTrait(conceptId, trait).totalHintsDelivered++;
+        this.studentModel.getConceptSnapshot(conceptId, timestamp).totalHintsDelivered++;
     }
 }
 
