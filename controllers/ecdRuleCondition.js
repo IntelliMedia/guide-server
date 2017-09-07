@@ -1,7 +1,7 @@
 'use strict';
 
 const Biologica = require('../shared/biologica');
-const biologicax = require('../shared/biologicax');
+const Biologicax = require('../shared/biologicax');
 const Stringx = require("../utilities/stringx");
 
 class EcdRuleCondition {   
@@ -45,7 +45,7 @@ class EcdRuleCondition {
             throw new Error("EcdRuleCondition condition value cannot be 'undefined'");
         }
 
-        this.attributeName = null;
+        this.trait = null;
     }
 
     description() {
@@ -62,6 +62,7 @@ class AllelesCondition extends EcdRuleCondition {
     constructor(fieldName, value) { 
         super(fieldName, value);
         this.targetAlleles = this.normalizeAlleles(value);
+        this.trait = BiologicaX.getGene(BioLogica.Species.Drake, this.targetAlleles[0]);
     }
 
     normalizeAlleles(alleles) {
@@ -83,7 +84,7 @@ class AllelesCondition extends EcdRuleCondition {
 class SexCondition extends EcdRuleCondition {
     constructor(fieldName, value) { 
         super(fieldName, value);
-        this.attributeName = "sex";
+        this.trait = "sex";
 
         var targetSex = value.toLowerCase();
         if (targetSex !== "female" && targetSex !== "male") { 
@@ -105,7 +106,7 @@ class CharacteristicsCondition extends EcdRuleCondition {
     constructor(fieldName, value) { 
         super(fieldName, value);
         this.targetCharacteristics = this.normalizeCharacterisitics(value.split(","));
-        this.attributeName = BiologicaX.findTraitForCharacteristic(this.targetCharacteristics[0]);
+        this.trait = BiologicaX.findTraitForCharacteristic(this.targetCharacteristics[0]);
     }
 
     normalizeCharacterisitics(phenotype) {

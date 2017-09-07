@@ -49,8 +49,8 @@ class EcdRulesEvaluator {
                     var dialogMessage = new GuideProtocol.Text(
                         'ITS.CONCEPT.FEEDBACK',
                         conceptToHint.Text);
-                    if (conceptToHint.rule.attributeName) {
-                        dialogMessage.args.trait = conceptToHint.rule.attributeName;
+                    if (conceptToHint.rule.trait) {
+                        dialogMessage.args.trait = conceptToHint.rule.trait;
                     } else {
                         dialogMessage.args.trait = conceptToHint.rule.criteria();
                     }

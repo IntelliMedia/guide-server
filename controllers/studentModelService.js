@@ -37,7 +37,7 @@ class StudentModelService {
                 }
                 var adjustment = rule.concepts[conceptId];
                 //this.studentModel.updateConceptState(rule.criteria(), conceptId, adjustment);
-                this.processConceptDataPoint(conceptId, true, this.challengeId, "wings", timestamp);
+                this.processConceptDataPoint(conceptId, true, this.challengeId, rule.trait, timestamp);
                 rulesFired.push("+Rule Triggered: {0} -> {1} | ruleId: {2} source: {3}".format( 
                     conceptId, adjustment, rule.id, rule.source));
             }
@@ -50,7 +50,7 @@ class StudentModelService {
                 }
                 var adjustment = rule.concepts[conceptId];
                 //this.studentModel.updateConceptState(rule.criteria(), conceptId, adjustment);
-                this.processConceptDataPoint(conceptId, false, this.challengeId, "wings", timestamp);
+                this.processConceptDataPoint(conceptId, false, this.challengeId, rule.trait, timestamp);
                 var scaledScore = adjustment; //this.studentModel.conceptScaledScore(rule.criteria(), conceptId);
                 // TODO - only include negative concept state scores?
                 //if (state.scaledScore < 0) {
@@ -160,7 +160,7 @@ class StudentModelService {
 
     updateConceptState(conceptState, isCorrect) {
         conceptState.totalCorrect += (isCorrect ? 1 : 0);
-        ++conceptState.totalAttempts;
+        conceptState.totalAttempts++;
         conceptState.score = conceptState.totalCorrect / conceptState.totalAttempts;     
     }
 }

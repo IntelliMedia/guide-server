@@ -129,16 +129,18 @@ class StudentDataVisualization {
                     dataPoint = collection.find((c) => c[xAxisField] === xLabel);
                 }
 
-                var scaledScore = Math.round(dataPoint.score * 1000) / 10;
-                chartInfo.data.push([
-                    x,
-                    y,
-                    scaledScore
-                ]);
-                chartInfo.dataDetails[x + "," + y] = {
-                    correct: dataPoint.totalCorrect,
-                    total: dataPoint.totalAttempts
-                };
+                if (dataPoint) {
+                    let scaledScore = Math.round(dataPoint.score * 1000) / 10;
+                    chartInfo.data.push([
+                        x,
+                        y,
+                        scaledScore
+                    ]);
+                    chartInfo.dataDetails[x + "," + y] = {
+                        correct: dataPoint.totalCorrect,
+                        total: dataPoint.totalAttempts
+                    };
+                }
             }
         }
 

@@ -73,7 +73,7 @@ studentModelSchema.methods.reset = function() {
 studentModelSchema.statics.getConceptState = function(collection, conceptId) {
   let conceptState = collection.find((c) => c.conceptId === conceptId);
   if (!conceptState) {
-    collection.push(new ConceptState({
+    collection.unshift(new ConceptState({
       conceptId: conceptId }));
 
     conceptState = collection[0];
@@ -85,7 +85,7 @@ studentModelSchema.statics.getConceptState = function(collection, conceptId) {
 studentModelSchema.statics.getConceptSnapshot = function(collection, conceptId, timestamp) {
   let conceptSnapshot = collection.find((c) => c.conceptId === conceptId && c.timestamp === timestamp);
   if (!conceptSnapshot) {
-    collection.push(new ConceptSnapshot({
+    collection.unshift(new ConceptSnapshot({
       conceptId: conceptId,
       timestamp: timestamp}));
 
@@ -103,7 +103,7 @@ studentModelSchema.methods.getConceptByChallenge = function(conceptId, challenge
   let conceptsByChallenge = this.conceptsByChallenge.find((c) => c.challengeId === challengeId);
   if (!conceptsByChallenge) {
     // Create new concept collection for this challenge
-    this.conceptsByChallenge.push(new ConceptsByChallengeId({
+    this.conceptsByChallenge.unshift(new ConceptsByChallengeId({
       challengeId: challengeId }));
 
     conceptsByChallenge = this.conceptsByChallenge[0];
@@ -117,7 +117,7 @@ studentModelSchema.methods.getConceptByTrait = function(conceptId, trait) {
   let conceptsByTrait = this.conceptsByTrait.find((c) => c.trait === trait);
   if (!conceptsByTrait) {
     // Create new concept collection for this challenge
-    this.conceptsByTrait.push(new ConceptsByTrait({
+    this.conceptsByTrait.unshift(new ConceptsByTrait({
       trait: trait }));
 
     conceptsByTrait = this.conceptsByTrait[0];
@@ -131,7 +131,7 @@ studentModelSchema.methods.getConceptSnapshot = function(conceptId, timestamp) {
   let conceptSnapshots = this.snapshotsByConceptId.find((c) => c.conceptId === conceptId);
   if (!conceptSnapshots) {
     // Create new concept collection for this challenge
-    this.snapshotsByConceptId.push(new SnapshotsByConceptId({
+    this.snapshotsByConceptId.unshift(new SnapshotsByConceptId({
       conceptId: conceptId }));
 
     conceptSnapshots = this.snapshotsByConceptId[0];

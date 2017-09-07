@@ -2,6 +2,7 @@
 
 const EcdRuleCondition = require('./ecdRuleCondition');
 const CharacteristicsCondition = require('./ecdRuleCondition').CharacteristicsCondition;
+const _ = require('lodash');
 
 class EcdRule {   
     constructor(id, priority, criteriaConditions, selectedConditions, concepts, hints) {
@@ -12,7 +13,7 @@ class EcdRule {
         this.selectedConditions = selectedConditions;
         this.concepts = concepts;
         this.hints = hints;
-        this.attributeName = null;
+        this.trait = null;
         this.isMisconception = false;
 
         if (!this.criteriaConditions || this.criteriaConditions.length == 0) {
@@ -21,6 +22,24 @@ class EcdRule {
 
         if (!this.selectedConditions || this.selectedConditions.length == 0) {
             throw new Error("No user selected conditions defined for ECD rule. Missing 'Selected-' columns.")
+        }
+
+        let traits = [];
+        this.criteriaConditions.every((condition) => {
+            traits.push(condition.trait);
+        });
+
+        this.selectedConditions.every((condition) => {
+            traits.push(condition.trait);
+        });
+
+        traits = _.uniq(traits);
+        if (traits.length > 1) {
+            this.trait = "multiple";
+        } else if (traits.length == 1) {
+            this.trait = traits[0];
+        } else {
+            this.trait = "unknown";
         }
 
         for (var concept in this.concepts) {
@@ -38,9 +57,6 @@ class EcdRule {
 
         var criteriaMatched = this.criteriaConditions.every((condition) => {
             var result = condition.evaluate(challengeCriteria);
-            if (condition instanceof CharacteristicsCondition) {
-                this.attributeName = condition.attributeName;
-            }
             return result;
         });
 
