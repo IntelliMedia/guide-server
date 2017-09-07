@@ -106,7 +106,7 @@ class CharacteristicsCondition extends EcdRuleCondition {
     constructor(fieldName, value) { 
         super(fieldName, value);
         this.targetCharacteristics = this.normalizeCharacterisitics(value.split(","));
-        this.trait = BiologicaX.findTraitForCharacteristic(this.targetCharacteristics[0]);
+        this.trait = BiologicaX.getTrait(BioLogica.Species.Drake, this.targetCharacteristics[0]);
     }
 
     normalizeCharacterisitics(phenotype) {

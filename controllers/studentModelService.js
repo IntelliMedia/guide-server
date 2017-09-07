@@ -4,9 +4,9 @@ const Student = require('../models/Student');
 const StudentModel = require('../models/StudentModel');
 
 class NegativeConcept {
-    constructor(conceptId, score, rule) {
+    constructor(conceptId, scoreByChallenge, rule) {
         this.conceptId = conceptId;
-        this.score = score;
+        this.scoreByChallenge = scoreByChallenge;
         this.rule = rule;
     }
 }
@@ -50,12 +50,12 @@ class StudentModelService {
                 }
                 let adjustment = rule.concepts[conceptId];
                 this.processConceptDataPoint(conceptId, false, this.challengeId, rule.trait, this.timestamp);
-                let score = this.getScore(conceptId, this.challengeId);
+                let scoreByChallenge = this.getScoreByChallenge(conceptId, this.challengeId);
                 // TODO - only include negative concept state scores?
                 //if (state.score < 0) {
                     negativeConcepts.push(new NegativeConcept(
                         conceptId, 
-                        score, 
+                        scoreByChallenge, 
                         rule)); 
                 //}
                 rulesFired.push("-Rule Triggered: {0} -> {1} | ruleId: {2} source: {3}".format( 
@@ -98,7 +98,7 @@ class StudentModelService {
                         selectionCriteria = {
                             description:"staying with previous hint",
                             conceptId:conceptToHint.conceptId,
-                            score:conceptToHint.score
+                            scoreByChallenge:conceptToHint.scoreByChallenge
                         };
                         break;
                     }
@@ -136,24 +136,26 @@ class StudentModelService {
 
             // Don't let hint level exceed the number of hints available
             conceptToHint.hintLevel = Math.min(conceptToHint.rule.hints.length, conceptToHint.hintLevel);
+            let isBottomOutHint = (conceptToHint.hintLevel == conceptToHint.rule.hints.length);
             conceptToHint.Text = conceptToHint.rule.hints[conceptToHint.hintLevel - 1];
 
             this.studentModel.addHintToHistory(
                 conceptToHint.conceptId, 
-                conceptToHint.score, 
+                conceptToHint.scoreByChallenge, 
                 this.challengeId,
                 conceptToHint.rule.trait, 
                 conceptToHint.rule.criteria(), 
                 conceptToHint.rule.selected(), 
-                conceptToHint.hintLevel);
+                conceptToHint.hintLevel,
+                isBottomOutHint);
 
-            this.updateHintTotals(conceptToHint.conceptId, this.challengeId, conceptToHint.rule.trait, this.timestamp);
+            this.updateHintTotals(conceptToHint.conceptId, this.challengeId, conceptToHint.rule.trait, this.timestamp, isBottomOutHint);
         }
 
         return conceptToHint;
     }
 
-    getScore(conceptId, challengeId) {
+    getScoreByChallenge(conceptId, challengeId) {
         return this.studentModel.getConceptByChallenge(conceptId, challengeId).score;
     }
 
@@ -170,11 +172,16 @@ class StudentModelService {
         conceptState.score = conceptState.totalCorrect / conceptState.totalAttempts;     
     }
 
-    updateHintTotals(conceptId, challengeId, trait, timestamp) {
-        this.studentModel.getConceptAggregated(conceptId).totalHintsDelivered++;
-        this.studentModel.getConceptByChallenge(conceptId, challengeId).totalHintsDelivered++;
-        this.studentModel.getConceptByTrait(conceptId, trait).totalHintsDelivered++;
-        this.studentModel.getConceptSnapshot(conceptId, timestamp).totalHintsDelivered++;
+    updateHintTotals(conceptId, challengeId, trait, timestamp, isBottomOutHint) {
+        this.addHintTotals(this.studentModel.getConceptAggregated(conceptId), isBottomOutHint);
+        this.addHintTotals(this.studentModel.getConceptByChallenge(conceptId, challengeId), isBottomOutHint);
+        this.addHintTotals(this.studentModel.getConceptByTrait(conceptId, trait), isBottomOutHint);
+        this.addHintTotals(this.studentModel.getConceptSnapshot(conceptId, timestamp), isBottomOutHint);
+    }
+
+    addHintTotals(conceptState, isBottomOutHint) {
+        conceptState.totalBottomOutHintsDelivered += (isBottomOutHint ? 1 : 0);
+        conceptState.totalHintsDelivered++;     
     }
 }
 

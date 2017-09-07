@@ -7,7 +7,8 @@ function createConceptStateSchema(additionalField) {
     score: { type: Number, default: 0},
     totalCorrect: { type: Number, default: 0},
     totalAttempts: { type: Number, default: 0},
-    totalHintsDelivered:{ type: Number, default: 0}
+    totalHintsDelivered:{ type: Number, default: 0},
+    totalBottomOutHintsDelivered:{ type: Number, default: 0}
   }, { _id : false });
 
   if (additionalField) {
@@ -43,11 +44,12 @@ const SnapshotsByConceptId = mongoose.model('SnapshotsByConceptId', snapshotsByC
 
 const hintDeliveredSchema = new mongoose.Schema({
   conceptId: { type: String, required: true},
-  score: { type: Number, default: 0},
+  scoreByChallenge: { type: Number, default: 0},
   challengeId: String,
   trait: String,
   ruleCriteria: String, 
   ruleSelected: String,
+  isBottomOut: { type: Boolean, default: false},
   hintLevel: { type: Number, default: 0},
   timestamp: Date
 }, { _id : false });
@@ -154,15 +156,16 @@ studentModelSchema.methods.getConceptSnapshot = function(conceptId, timestamp) {
   return StudentModel.getConceptSnapshot(conceptSnapshots.snapshots, conceptId, timestamp);
 };
 
-studentModelSchema.methods.addHintToHistory = function(conceptId, score, challengeId, trait, ruleCriteria, ruleSelected, hintLevel) {
+studentModelSchema.methods.addHintToHistory = function(conceptId, scoreByChallenge, challengeId, trait, ruleCriteria, ruleSelected, hintLevel, isBottomOut) {
   this.hintHistory.unshift({
     conceptId: conceptId,
-    score: score,
+    scoreByChallenge: scoreByChallenge,
     challengeId: challengeId,
     trait: trait,
     ruleCriteria: ruleCriteria,
     ruleSelected: ruleSelected,
     hintLevel: hintLevel,
+    isBottomOut: isBottomOut,
     timestamp: new Date()
   });
 

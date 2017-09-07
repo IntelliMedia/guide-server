@@ -25,12 +25,16 @@ class EcdRule {
         }
 
         let traits = [];
-        this.criteriaConditions.every((condition) => {
-            traits.push(condition.trait);
+        this.criteriaConditions.forEach((condition) => {
+            if (condition.trait) {
+                traits.push(condition.trait);
+            }
         });
 
-        this.selectedConditions.every((condition) => {
-            traits.push(condition.trait);
+        this.selectedConditions.forEach((condition) => {
+            if (condition.trait) {
+                traits.push(condition.trait);
+            }
         });
 
         traits = _.uniq(traits);
@@ -40,6 +44,7 @@ class EcdRule {
             this.trait = traits[0];
         } else {
             this.trait = "unknown";
+            console.warn("Unable to determine trait for rule");
         }
 
         for (var concept in this.concepts) {

@@ -11,8 +11,9 @@ block content
       thead
         tr
           th Concept Id
-          th Score
+          th Score by Challenge
           th Hint Level
+          th Is Bottom Out
           th Time
           th Trait
           th Criteria
@@ -22,8 +23,9 @@ block content
         for hint in hintHistory
           tr
             td #{hint.conceptId}          
-            td.scoreBackground #{Math.round(hint.score * 1000)/10}   
+            td.scoreBackground #{Math.round(hint.scoreByChallenge * 1000)/10}   
             td #{hint.hintLevel} 
+            td #{hint.isBottomOut}
             td #{moment(hint.timestamp).calendar()}  
             td #{hint.trait}            
             td #{hint.ruleCriteria}      

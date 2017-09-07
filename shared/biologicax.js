@@ -98,21 +98,25 @@ if (typeof exports === 'undefined') {
         return geneName;
     }
 
-     BiologicaX.getTrait = function(organism, characteristic) {
+     BiologicaX.getTrait = function(species, characteristic) {
          var isMetallicCharacteristic = false;
          var targetCharacteristic = characteristic.toLowerCase();
          if (targetCharacteristic.includes("metallic")) {
              return "metallic";
          }
 
+        if (targetCharacteristic.includes("color")) {
+            return "color";
+        }
+
          var foundTrait = null;
-         for (var trait in organism.species.traitRules) {
-             if (!organism.species.traitRules.hasOwnProperty(trait)) {
+         for (var trait in species.traitRules) {
+             if (!species.traitRules.hasOwnProperty(trait)) {
                  continue;
              }
              
-             for (var characteristic in organism.species.traitRules[trait]) {
-                if (!organism.species.traitRules[trait].hasOwnProperty(characteristic)) {
+             for (var characteristic in species.traitRules[trait]) {
+                if (!species.traitRules[trait].hasOwnProperty(characteristic)) {
                     continue;
                 }
 
