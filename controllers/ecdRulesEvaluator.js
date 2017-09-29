@@ -58,7 +58,8 @@ class EcdRulesEvaluator {
                     var reason = {
                         why: "MisconceptionDetected",
                         ruleId: conceptToHint.rule.id,
-                        ruleSource: conceptToHint.rule.source
+                        ruleSource: conceptToHint.rule.source,
+                        trait: conceptToHint.rule.trait
                     };
                     action = TutorAction.create(session, "SPOKETO", "USER", "hint",
                                 new GuideProtocol.TutorDialog(dialogMessage, reason));
