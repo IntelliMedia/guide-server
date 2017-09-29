@@ -110,6 +110,7 @@ function handleSystemStartedSessionAsync(student, session, event) {
         student.lastSignIn = new Date(event.time);
         student.classId = event.context.classId;
         student.groupId = event.context.groupId;
+        student.learnPortalEndpoint = event.context.itsDBEndpoint;
         student.totalSessions += 1;
 
         session.classId = event.context.classId;

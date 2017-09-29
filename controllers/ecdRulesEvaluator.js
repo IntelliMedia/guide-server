@@ -7,7 +7,7 @@ const Group = require('../models/Group');
 const TutorAction = require('../models/TutorAction');
 const EcdCsvParser = require("./ecdCsvParser");
 const stringx = require("../utilities/stringx");
-
+const LearnPortalService = require('./learnPortalService');
 
 /**
  * This class uses ECD-derived rules to evaluate student moves
@@ -69,7 +69,22 @@ class EcdRulesEvaluator {
                     action.context.ruleSource = conceptToHint.rule.source;
                 }
 
-                resolve(action);
+                if (student.learnPortalEndpoint) {
+                    let learnPortalService = new LearnPortalService();
+                    let updatePromise = learnPortalService.updateStudentDataAsync(student.studentModel, student.learnPortalEndpoint)
+                    .then(() => {
+                        return action;
+                    })
+                    .catch((err) => {
+                        return action;
+                    });
+
+                    resolve(updatePromise);
+                }
+                else
+                {
+                    resolve(action);
+                }
             } catch(err) {
                 reject(err);
             }

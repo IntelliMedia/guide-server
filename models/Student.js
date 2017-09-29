@@ -5,6 +5,7 @@ const studentSchema = new mongoose.Schema({
   id: String,
   classId: String,
   groupId: String,
+  learnPortalEndpoint: String,
   lastSignIn: Date,
   totalSessions: { type: Number, default: 0 },
   studentModel: { type: StudentModel.schema, default: StudentModel.schema}
