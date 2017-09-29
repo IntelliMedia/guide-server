@@ -23,7 +23,10 @@ class EcdCsvParser {
             var columnCount = csv[0].length;
             var columnMap = {};
             for (var i = 0; i < columnCount; ++i) {
-                columnMap[headerRow[i].toLowerCase().trim()] = i;
+                if (headerRow[i]) {
+                    headerRow[i] = headerRow[i].trim();
+                    columnMap[headerRow[i].toLowerCase()] = i;
+                }
             }
 
             var rowCount = csv.length;
@@ -166,7 +169,7 @@ class EcdCsvParser {
         for (var i = 0; i < row.length; ++i) {
             var value = row[i];
             if (value) {
-                value = value.toLowerCase();
+                value = value.trim().toLowerCase();
                 if (value === "dominant" || value === "recessive") {
                     return true;
                 }
@@ -206,6 +209,8 @@ class EcdCsvParser {
         var value = heading.trimThroughFirst("-");
         if (!value) {
             throw new Error("Unable to extract heading value from: " + heading);
+        } else {
+            value = value.trim();
         }
         return value;
     }
