@@ -7,7 +7,7 @@ const Group = require('../models/Group');
 const TutorAction = require('../models/TutorAction');
 const EcdCsvParser = require("./ecdCsvParser");
 const stringx = require("../utilities/stringx");
-const LearnPortalService = require('./learnPortalService');
+const DashboardService = require('./dashboardService');
 
 /**
  * This class uses ECD-derived rules to evaluate student moves
@@ -70,12 +70,13 @@ class EcdRulesEvaluator {
                 }
 
                 if (student.learnPortalEndpoint) {
-                    let learnPortalService = new LearnPortalService();
-                    let updatePromise = learnPortalService.updateStudentDataAsync(student.studentModel, student.learnPortalEndpoint)
+                    let dashboardService = new DashboardService();
+                    let updatePromise = dashboardService.updateStudentDataAsync(student.studentModel, student.learnPortalEndpoint)
                     .then(() => {
                         return action;
                     })
                     .catch((err) => {
+                        session.errorAlert("Unable to upload to dashboard. " + err.toString());
                         return action;
                     });
 
