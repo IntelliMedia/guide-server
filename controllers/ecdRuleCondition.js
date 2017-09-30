@@ -25,6 +25,14 @@ class EcdRuleCondition {
                 condition = new CharacteristicsCondition(fieldName, value);
                 break;
 
+            case "challengeid":
+                condition = new ChallengeCondition(fieldName, value);
+                break;
+
+            case "correct":
+                condition = new IsCorrectCondition(fieldName, value);
+                break;
+
             default:
                 throw new Error("Unknown EcdRuleCondition type: " + type);
         }
@@ -99,6 +107,36 @@ class SexCondition extends EcdRuleCondition {
         }
         var result = this.sex === BiologicaX.sexToString(attributes[this.fieldName]).toLowerCase();
         return result;
+    }
+}
+
+class ChallengeCondition extends EcdRuleCondition {
+    constructor(fieldName, value) { 
+        super(fieldName, value);
+ 
+        this.challengeId = (value ? value.toLowerCase() : "");
+    }
+
+    evaluate(attributes) {
+        if (!attributes || !attributes.hasOwnProperty(this.fieldName)) {
+            throw new Error("ChallengeCondition.evaluate() - attributes missing property: " + this.fieldName);
+        }
+        return this.challengeId === attributes[this.fieldName].toLowerCase();
+    }
+}
+
+class IsCorrectCondition extends EcdRuleCondition {
+    constructor(fieldName, value) { 
+        super(fieldName, value);
+ 
+        this.isCorrect = (value ? value.toLowerCase() === "true" : false);
+    }
+
+    evaluate(attributes) {
+        if (!attributes || !attributes.hasOwnProperty(this.fieldName)) {
+            throw new Error("ChallengeCondition.evaluate() - attributes missing property: " + this.fieldName);
+        }
+        return this.isCorrect === attributes[this.fieldName];
     }
 }
 
