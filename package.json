@@ -61,6 +61,7 @@
     "passport-openid": "^0.4.0",
     "passport-twitter": "^1.0.4",
     "paypal-rest-sdk": "^1.6.8",
+    "property-path": "0.0.5",
     "request": "^2.72.0",
     "request-promise": "^4.2.1",
     "secp256k1": "^3.3.0",

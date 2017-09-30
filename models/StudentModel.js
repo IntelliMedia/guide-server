@@ -47,8 +47,7 @@ const hintDeliveredSchema = new mongoose.Schema({
   scoreByChallenge: { type: Number, default: 0},
   challengeId: String,
   trait: String,
-  ruleCriteria: String, 
-  ruleSelected: String,
+  ruleConditions: String,
   isBottomOut: { type: Boolean, default: false},
   hintLevel: { type: Number, default: 0},
   timestamp: Date
@@ -156,14 +155,13 @@ studentModelSchema.methods.getConceptSnapshot = function(conceptId, timestamp) {
   return StudentModel.getConceptSnapshot(conceptSnapshots.snapshots, conceptId, timestamp);
 };
 
-studentModelSchema.methods.addHintToHistory = function(conceptId, scoreByChallenge, challengeId, trait, ruleCriteria, ruleSelected, hintLevel, isBottomOut) {
+studentModelSchema.methods.addHintToHistory = function(conceptId, scoreByChallenge, challengeId, trait, ruleConditions, hintLevel, isBottomOut) {
   this.hintHistory.unshift({
     conceptId: conceptId,
     scoreByChallenge: scoreByChallenge,
     challengeId: challengeId,
     trait: trait,
-    ruleCriteria: ruleCriteria,
-    ruleSelected: ruleSelected,
+    ruleConditions: ruleConditions,
     hintLevel: hintLevel,
     isBottomOut: isBottomOut,
     timestamp: new Date()
@@ -188,8 +186,7 @@ studentModelSchema.methods.currentHintLevel = function (challengeId, target, sel
   for (var i = 0; i < this.hintHistory.length; ++i) {
     var previousHint = this.hintHistory[i];
     if (previousHint.challengeId == challengeId
-      && previousHint.ruleCriteria == target
-      && previousHint.ruleSelected == selected) {
+      && previousHint.ruleConditions == target) {
         hintLevel = Math.max(hintLevel, previousHint.hintLevel);
       }
   }

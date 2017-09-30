@@ -156,11 +156,19 @@ class EcdCsvParser {
     }
 
     createRule(ruleId, columnMap, headerRow, currentRow) {
+        var conditions = [];
+        conditions = conditions.concat(this.extractConditions("context.challengeCriteria", "criteria", headerRow, currentRow));
+        conditions = conditions.concat(this.extractConditions("context.userSelections","selected", headerRow, currentRow));
+        conditions = conditions.concat(this.extractConditions("context","condition", headerRow, currentRow));
+
+        if (conditions.length == 0) {
+            throw new Error("Missing conditions in CSV. Unable to find columns with condition prefixes: Criteria-, Selected-, or Condition-");
+        }
+
         return new EcdRule(
             ruleId, 
             this.asNumber(this.getCell(currentRow, columnMap, "priority")),
-            this.extractConditions("criteria", headerRow, currentRow),
-            this.extractConditions("selected", headerRow, currentRow),
+            conditions,
             this.extractConcepts(headerRow, currentRow),
             this.extractHints(headerRow, currentRow));
     }
@@ -206,7 +214,7 @@ class EcdCsvParser {
     }
 
     extractHeadingValue(heading) {
-        var value = heading.trimThroughFirst("-");
+        let value = heading.trimThroughFirst("-");
         if (!value) {
             throw new Error("Unable to extract heading value from: " + heading);
         } else {
@@ -215,22 +223,68 @@ class EcdCsvParser {
         return value;
     }
 
-    extractConditions(prefix, headerRow, currentRow) {
-        var conditions = [];
-         for (var i = 0; i < headerRow.length; ++i) {
+    extractConditions(basePropertyPath, prefix, headerRow, currentRow) {
+        let conditions = [];
+         for (let i = 0; i < headerRow.length; ++i) {
             if (this.isCondition(prefix, headerRow[i])) {
-                var targetValue = currentRow[i].trim();
+                let targetValue = currentRow[i].trim();
                 if (targetValue) {
-                    var conditionType = this.extractHeadingValue(headerRow[i]);
-                    conditions.push(EcdRuleCondition.create(conditionType, targetValue));
+                    let columnName = headerRow[i];
+                    let ruleType = this.extractRuleTypeFromColumnName(columnName);
+                    let propertyPath = basePropertyPath + "." + this.extractProprtyPathFromColumnName(columnName);
+                    conditions.push(this.createCondition(ruleType, targetValue, propertyPath));
                 }
             }
          }
 
-         if (conditions.length == 0) {
-             throw new Error("Missing conditions in CSV. Unable to find columns with '{0}' prefix.".replace("{0}", prefix));
-         }
          return conditions;
+    }
+
+    // Assume last word specifies the type of rule
+    // E.g., Criteria-Sex -> Sex
+    extractRuleTypeFromColumnName(columnName) {
+        var words = columnName.split("-");
+        return words[words.length - 1];
+    }
+
+    // Assume last word specifies the type of rule
+        // E.g., Selected-Offspring-Sex -> offspringSex
+    extractProprtyPathFromColumnName(columnName) {
+        let value = columnName.trimThroughFirst("-");
+        value = value.replace("-", "");
+        return value.lowerCaseFirstChar();
+    }
+
+    createCondition(type, value, propertyPath) {
+        // The last word indicates the type of condition (e.g., sex or characteristics)
+        let condition = null;
+        switch(type.toLowerCase()) {
+
+            case "alleles":
+                condition = new EcdRuleCondition.AllelesCondition(propertyPath, value);
+                break;
+
+            case "sex":
+                condition = new EcdRuleCondition.SexCondition(propertyPath, value);
+                break;
+
+            case "characteristics":
+                condition = new EcdRuleCondition.CharacteristicsCondition(propertyPath, value);
+                break;
+
+            case "challengeid":
+                condition = new EcdRuleCondition.StringCondition(propertyPath, value);
+                break;
+
+            case "correct":
+                condition = new EcdRuleCondition.BoolCondition(propertyPath, value);
+                break;
+
+            default:
+                throw new Error("Unknown EcdRuleCondition type: " + type);
+        }
+
+        return condition;
     }
 
     extractConcepts(headerRow, currentRow) {

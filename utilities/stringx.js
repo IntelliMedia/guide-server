@@ -13,6 +13,8 @@ String.prototype.trimThroughFirst = function(delimiter)
     return this.substring(this.indexOf(delimiter) + 1);
 }
 
+
+// E.g., Foo-Bar -> fooBar
 String.prototype.toCamelCase = function() {
     var words = this.split(/\s|_|-/);
     if (words.length > 0) {
@@ -23,6 +25,21 @@ String.prototype.toCamelCase = function() {
     }
     
     return words.join("");
+}
+
+String.prototype.replaceLastWordInCamelCase = function(newWord) {
+    for (var i = this.length-1; i >= 0; --i) {
+      let c = this[i];
+      if (c == c.toUpperCase()) {
+        break;
+      }
+    }
+
+    if (i < 0) {
+      return newWord;
+    } else {
+      return this.substr(0, i) + newWord.upperCaseFirstChar();
+    }
 }
 
 // First, checks if it isn't implemented yet.

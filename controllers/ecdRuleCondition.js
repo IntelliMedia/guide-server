@@ -3,56 +3,22 @@
 const Biologica = require('../shared/biologica');
 const Biologicax = require('../shared/biologicax');
 const Stringx = require("../utilities/stringx");
+const propPath = require('property-path');
 
 class EcdRuleCondition {   
 
-    static create(columnName, value) {
-        var type = this.extractTypeFromFieldName(columnName);
-        var fieldName = columnName.toCamelCase();
+    constructor(propertyPath, value) {
 
-        var condition = null;
-        switch(type.toLowerCase()) {
-
-            case "alleles":
-                condition = new AllelesCondition(fieldName, value);
-                break;
-
-            case "sex":
-                condition = new SexCondition(fieldName, value);
-                break;
-
-            case "characteristics":
-                condition = new CharacteristicsCondition(fieldName, value);
-                break;
-
-            case "challengeid":
-                condition = new ChallengeCondition(fieldName, value);
-                break;
-
-            case "correct":
-                condition = new IsCorrectCondition(fieldName, value);
-                break;
-
-            default:
-                throw new Error("Unknown EcdRuleCondition type: " + type);
+        if (typeof propertyPath === "undefined") {
+            throw new Error("Condition propertyPath value cannot be 'undefined'");
         }
 
-        return condition;
-    }
-
-    // Assume last word specifies the type of rule
-    static extractTypeFromFieldName(fieldName) {
-        var words = fieldName.split("-");
-        return words[words.length - 1];
-    }
-
-    constructor(fieldName, value) {
-        this.fieldName = fieldName;
-        this.value = value; 
         if (typeof value === "undefined") {
-            throw new Error("EcdRuleCondition condition value cannot be 'undefined'");
+            throw new Error("Condition value cannot be 'undefined'");
         }
 
+        this.propertyPath = propertyPath;
+        this.value = value; 
         this.trait = null;
     }
 
@@ -60,15 +26,55 @@ class EcdRuleCondition {
         return this.value;
     }
 
-    evaluate(attributes) {
+    evaluate(obj) {
         throw new Error("EcdRuleCondition.evaluate() must be overriden in a child class");
     }
 
+    getPropertyPath(propertyOverride) {
+        if (propertyOverride) {
+            let parts = this.propertyPath.split(".");
+            parts[parts.length - 1] = parts[parts.length - 1].replaceLastWordInCamelCase(propertyOverride);
+            return parts.join(".");
+        } else {
+            return this.propertyPath;
+        }
+    }
+
+    hasValue(obj, propertyOverride) {
+        return this._getValue(false, obj, propertyOverride) != undefined;
+    }
+
+    getValue(obj, propertyOverride) {
+        return this._getValue(true, obj, propertyOverride);
+    }
+
+    _getValue(throwOnMissingProperty, obj, propertyOverride) {
+        if (obj == undefined || obj == null) {
+            throw new Error("Condition unable to evaluate undefined or null object");
+        }
+
+        let path = this.getPropertyPath(propertyOverride);
+        let propertyValue = propPath.get(obj, path);
+        if (throwOnMissingProperty && propertyValue == undefined) {
+            throw new Error("Condition unable to find value at property path: " + path);
+        }
+
+        return propertyValue;
+    }
+
+    setValue(obj, value, propertyOverride) {
+        if (obj == undefined || obj == null) {
+            throw new Error("Condition unable to set property on undefined or null object");
+        }
+
+        let path = this.getPropertyPath(propertyOverride);
+        return propPath.set(obj, path, value);
+    }
 }
 
 class AllelesCondition extends EcdRuleCondition {
-    constructor(fieldName, value) { 
-        super(fieldName, value);
+    constructor(propertyPath, value) { 
+        super(propertyPath, value);
         this.targetAlleles = this.normalizeAlleles(value);
         this.trait = BiologicaX.getGene(BioLogica.Species.Drake, this.targetAlleles[0]);
     }
@@ -77,12 +83,10 @@ class AllelesCondition extends EcdRuleCondition {
         return alleles.split(",").map((item) => item.trim());
     }
 
-    evaluate(attributes) {
-        if (!attributes || !attributes.hasOwnProperty(this.fieldName)) {
-            throw new Error("AllelesCondition.evaluate() - attributes missing property: " + this.fieldName);
-        }
-        var alleles = this.normalizeAlleles(attributes[this.fieldName]);
-        var result = this.targetAlleles.every((item) => {
+    evaluate(obj) {
+        let alleles = this.getValue(obj);
+        alleles = this.normalizeAlleles(alleles);
+        let result = this.targetAlleles.every((item) => {
             return alleles.indexOf(item) >= 0;
         });
         return result;
@@ -90,59 +94,60 @@ class AllelesCondition extends EcdRuleCondition {
 }
 
 class SexCondition extends EcdRuleCondition {
-    constructor(fieldName, value) { 
-        super(fieldName, value);
+    constructor(propertyPath, value) { 
+        super(propertyPath, value);
         this.trait = "sex";
 
-        var targetSex = value.toLowerCase();
-        if (targetSex !== "female" && targetSex !== "male") { 
-            throw new Error("SexCondition: unspported target value: " + targetSex);
+        this.target = value.toLowerCase();
+        if (this.target !== "female" && this.target !== "male") { 
+            throw new Error("SexCondition: unspported target value: " + this.target);
         }
-        this.sex = targetSex;
     }
 
-    evaluate(attributes) {
-        if (!attributes || !attributes.hasOwnProperty(this.fieldName)) {
-            throw new Error("SexCondition.evaluate() - attributes missing property: " + this.fieldName);
-        }
-        var result = this.sex === BiologicaX.sexToString(attributes[this.fieldName]).toLowerCase();
+    evaluate(obj) {
+        let sex = this.getValue(obj);
+        let result = this.target === BiologicaX.sexToString(sex).toLowerCase();
         return result;
     }
 }
 
-class ChallengeCondition extends EcdRuleCondition {
-    constructor(fieldName, value) { 
-        super(fieldName, value);
+class StringCondition extends EcdRuleCondition {
+    constructor(propertyPath, value, normalize) { 
+        super(propertyPath, value);
  
-        this.challengeId = (value ? value.toLowerCase() : "");
+        this.normalize = normalize == true;
+        this.target = (value ? value.toLowerCase() : "");
+        if (normalize === true) {
+            this.target = this.target.toLowerCase();
+        }
     }
 
-    evaluate(attributes) {
-        if (!attributes || !attributes.hasOwnProperty(this.fieldName)) {
-            throw new Error("ChallengeCondition.evaluate() - attributes missing property: " + this.fieldName);
+    evaluate(obj) {
+        let value = this.getValue(obj);
+        if (this.normalize) {
+            value = value.sexToString();
         }
-        return this.challengeId === attributes[this.fieldName].toLowerCase();
+
+        return this.target == value;
     }
 }
 
-class IsCorrectCondition extends EcdRuleCondition {
-    constructor(fieldName, value) { 
-        super(fieldName, value);
+class BoolCondition extends EcdRuleCondition {
+    constructor(propertyPath, value) { 
+        super(propertyPath, value);
  
-        this.isCorrect = (value ? value.toLowerCase() === "true" : false);
+        this.target = (value ? value.toLowerCase() === "true" : false);
     }
 
-    evaluate(attributes) {
-        if (!attributes || !attributes.hasOwnProperty(this.fieldName)) {
-            throw new Error("ChallengeCondition.evaluate() - attributes missing property: " + this.fieldName);
-        }
-        return this.isCorrect === attributes[this.fieldName];
+    evaluate(obj) {
+        let value = this.getValue(obj);
+        return this.isCorrect == value;
     }
 }
 
 class CharacteristicsCondition extends EcdRuleCondition {
-    constructor(fieldName, value) { 
-        super(fieldName, value);
+    constructor(propertyPath, value) { 
+        super(propertyPath, value);
         this.targetCharacteristics = this.normalizeCharacterisitics(value.split(","));
         this.trait = BiologicaX.getTrait(BioLogica.Species.Drake, this.targetCharacteristics[0]);
     }
@@ -151,15 +156,24 @@ class CharacteristicsCondition extends EcdRuleCondition {
         return phenotype.map((item) => item.toLowerCase().trim());
     }
 
-    evaluate(attributes) {
-        var phenotype = (attributes.hasOwnProperty(this.fieldName) ? attributes[this.fieldName] : attributes.phenotype);
+    evaluate(obj) {
+        let phenotype = this._getValue(false, obj);
 
+        // Fallback if propertyPath isn't available
         if (!phenotype) {
-            phenotype = this.createPhenotypeFromAlleles(attributes);
+            phenotype = this._getValue(false, obj, "phenotype");  
+        }
+
+        // Fallback if 'phenotype' isn't available
+        if (!phenotype) {
+            phenotype = this.createPhenotypeFromAlleles(
+                obj,
+                this._getValue(false, obj, "alleles"), 
+                this._getValue(false, obj, "sex"));
         }
 
         if (!phenotype) {
-            throw new Error("CharacteristicsCondition.evaluate() - attributes missing property: phenotype");
+            throw new Error("Condition unable to construct phenotype. Unable find any properties: " + this.propertyPath + ", phenotype, alleles, or sex");
         }
 
         var characterisitics = this.normalizeCharacterisitics(Object.keys(phenotype).map(key => phenotype[key]));
@@ -185,23 +199,24 @@ class CharacteristicsCondition extends EcdRuleCondition {
         return result;
     }
 
-    createPhenotypeFromAlleles(attributes) {
-        var phenotype = null;
-        
-        var allelesPropName = this.fieldName.replace("Characteristics", "Alleles").lowerCaseFirstChar();
-        var sexPropName = this.fieldName.replace("Characteristics", "Sex").lowerCaseFirstChar();
+    createPhenotypeFromAlleles(obj, alleles, sex) {
+        var phenotype = null; 
 
-        if (attributes.hasOwnProperty(allelesPropName) && attributes.hasOwnProperty(sexPropName)) {
+        if (alleles != undefined && sex != undefined) {
             console.warn("Phenotype missing from context. Creating from alleles. Assuming species is Drake");
-            var organism = new BioLogica.Organism(BioLogica.Species.Drake, attributes[allelesPropName], BiologicaX.sexFromString(attributes[sexPropName]));
-            phenotype = organism.phenotype.characteristics;
-            attributes.phenotype = phenotype;
-            console.info("attributes.phenotype = " + JSON.stringify(attributes.phenotype, undefined, 2));
+            var organism = new BioLogica.Organism(BioLogica.Species.Drake, alleles, BiologicaX.sexFromString(sex));
+            phenotype = organism.phenotype.characteristics;  
+            //console.info("attributes.phenotype = " + JSON.stringify(attributes.phenotype, undefined, 2));
+            // Set the phenotype on the object so that we don't have to compute it everytime
+            this.setValue(obj, phenotype, "phenotype");
         }
         
         return phenotype;
     }
 }
 
-module.exports = EcdRuleCondition;
+module.exports.AllelesCondition = AllelesCondition;
+module.exports.SexCondition = SexCondition;
 module.exports.CharacteristicsCondition = CharacteristicsCondition;
+module.exports.StringCondition = StringCondition;
+module.exports.BoolCondition = BoolCondition;

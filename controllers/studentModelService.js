@@ -92,8 +92,7 @@ class StudentModelService {
         var mostRecentHint = this.studentModel.mostRecentHint(this.challengeId);
         if (mostRecentHint) {
             for (let negativeConcept of negativeConcepts) {
-                if (negativeConcept.rule.criteria() == mostRecentHint.ruleCriteria
-                    && negativeConcept.rule.selected() == mostRecentHint.ruleSelected) {
+                if (negativeConcept.rule.conditionsAsString() == mostRecentHint.ruleConditions) {
                         conceptToHint = negativeConcept;
                         selectionCriteria = {
                             description:"staying with previous hint",
@@ -113,15 +112,13 @@ class StudentModelService {
                     conceptToHint = negativeConcept;
                     selectionCriteria = {
                       description:"most negative concept",
-                      ruleCriteria:conceptToHint.rule.criteria(),
-                      ruleSelected:conceptToHint.rule.selected()
+                      ruleConditions:conceptToHint.rule.conditionsAsString()
                     };
                     break;
                 } else {
-                    this.session.warningAlert("No hints available for {0} | {1} | {2}".format(
+                    this.session.warningAlert("No hints available for {0} | {1}".format(
                         this.challengeId, 
-                        negativeConcept.rule.criteria(), 
-                        negativeConcept.rule.selected()));
+                        negativeConcept.rule.conditionsAsString()));
                 }
             }
         }
@@ -129,8 +126,7 @@ class StudentModelService {
         if (conceptToHint != null) {
             conceptToHint.hintLevel = this.studentModel.currentHintLevel(
                     this.challengeId,
-                    conceptToHint.rule.criteria(), 
-                    conceptToHint.rule.selected()) + 1;
+                    conceptToHint.rule.conditionsAsString()) + 1;
 
             conceptToHint.selectionCriteria = selectionCriteria;
 
@@ -144,8 +140,7 @@ class StudentModelService {
                 conceptToHint.scoreByChallenge, 
                 this.challengeId,
                 conceptToHint.rule.trait, 
-                conceptToHint.rule.criteria(), 
-                conceptToHint.rule.selected(), 
+                conceptToHint.rule.conditionsAsString(), 
                 conceptToHint.hintLevel,
                 isBottomOutHint);
 

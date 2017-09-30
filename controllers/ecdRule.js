@@ -5,33 +5,22 @@ const CharacteristicsCondition = require('./ecdRuleCondition').CharacteristicsCo
 const _ = require('lodash');
 
 class EcdRule {   
-    constructor(id, priority, criteriaConditions, selectedConditions, concepts, hints) {
+    constructor(id, priority, conditions, concepts, hints) {
         this.id = id;
         this.source = null;
         this.priority = priority;
-        this.criteriaConditions = criteriaConditions;
-        this.selectedConditions = selectedConditions;
+        this.conditions = conditions;
         this.concepts = concepts;
         this.hints = hints;
         this.trait = null;
         this.isMisconception = false;
 
-        if (!this.criteriaConditions || this.criteriaConditions.length == 0) {
-            throw new Error("No criteria conditions defined for ECD rule. Missing 'Criteria-' columns.")
-        }
-
-        if (!this.selectedConditions || this.selectedConditions.length == 0) {
-            throw new Error("No user selected conditions defined for ECD rule. Missing 'Selected-' columns.")
+        if (!this.conditions || this.conditions.length == 0) {
+            throw new Error("No conditions defined for ECD rule.")
         }
 
         let traits = [];
-        this.criteriaConditions.forEach((condition) => {
-            if (condition.trait) {
-                traits.push(condition.trait);
-            }
-        });
-
-        this.selectedConditions.forEach((condition) => {
+        this.conditions.forEach((condition) => {
             if (condition.trait) {
                 traits.push(condition.trait);
             }
@@ -58,33 +47,20 @@ class EcdRule {
         }
     }
 
-    evaluate(challengeCriteria, userSelections) {
+    evaluate(event) {
 
-        var criteriaMatched = this.criteriaConditions.every((condition) => {
-            var result = condition.evaluate(challengeCriteria);
+        let allConditionsMatched = this.conditions.every((condition) => {
+            let result = condition.evaluate(event);
             return result;
         });
 
-        var selectionsMatched = this.selectedConditions.every((condition) => {
-            var result =  condition.evaluate(userSelections);
-            return result;
-        });
-
-        return criteriaMatched && selectionsMatched;
+        return allConditionsMatched;
     }
 
-    criteria() {
-        return this.conditionsToString(this.criteriaConditions);
-    }
-
-    selected() {
-        return this.conditionsToString(this.selectedConditions);
-    }
-
-    conditionsToString(conditions) {
-        var s = "";
-        var prependAnd = false;
-        conditions.forEach((condition) => {
+    conditionsAsString(conditions) {
+        let s = "";
+        let prependAnd = false;
+        this.conditions.forEach((condition) => {
             if (prependAnd) {
                 s += " && ";
             }

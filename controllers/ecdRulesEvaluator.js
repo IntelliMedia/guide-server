@@ -29,9 +29,7 @@ class EcdRulesEvaluator {
                 let challengeId = event.context.challengeId;
                 session.debugAlert("Evaulte rules for: {0} ({1} | {2} | {3})".format(student.id, session.classId, session.groupId, challengeId));                
                 
-                var activatedRules = this.evaluateRules( 
-                    event.context.challengeCriteria,
-                    event.context.userSelections);
+                var activatedRules = this.evaluateRules(event);
 
                 this.studentModelService = new StudentModelService(student, session, challengeId);
                 var negativeConcepts = this.studentModelService.updateStudentModel(activatedRules);
@@ -52,7 +50,7 @@ class EcdRulesEvaluator {
                     if (conceptToHint.rule.trait) {
                         dialogMessage.args.trait = conceptToHint.rule.trait;
                     } else {
-                        dialogMessage.args.trait = conceptToHint.rule.criteria();
+                        dialogMessage.args.trait = conceptToHint.rule.conditionsAsString();
                     }
         
                     var reason = {
@@ -93,7 +91,7 @@ class EcdRulesEvaluator {
         });
     }
 
-    evaluateRules(challengeAttributes, userSelections) {
+    evaluateRules(event) {
 
         var activatedRules = {
             correct: [],
@@ -101,7 +99,7 @@ class EcdRulesEvaluator {
         }
 
         for (let rule of this.rules) {
-            if (rule.evaluate(challengeAttributes, userSelections)) {
+            if (rule.evaluate(event)) {
                 if (!rule.isMisconception) {
                     activatedRules.correct.push(rule);
                 } else {
