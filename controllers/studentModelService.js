@@ -2,6 +2,7 @@
 
 const Student = require('../models/Student');
 const StudentModel = require('../models/StudentModel');
+const ConceptObservation = require('../models/ConceptObservation');
 
 class NegativeConcept {
     constructor(conceptId, scoreByChallenge, rule) {
@@ -159,6 +160,8 @@ class StudentModelService {
         this.updateConceptState(this.studentModel.getConceptByChallenge(conceptId, challengeId), isCorrect);
         this.updateConceptState(this.studentModel.getConceptByTrait(conceptId, trait), isCorrect);
         this.updateConceptState(this.studentModel.getConceptSnapshot(conceptId, timestamp), isCorrect);
+
+        ConceptObservation.record(conceptId, this.student.id, challengeId, isCorrect);
     }
 
     updateConceptState(conceptState, isCorrect) {
