@@ -29,8 +29,9 @@ class DashboardService {
 
     updateStudentDataAsync(studentModel, pathToUserITSData) { 
 
+      let data = null;
       try {
-          let data = {
+          data = {
               "studentModel": {
                 "conceptsAggregated": this._filterConceptsAggregated(studentModel.conceptsAggregated),
                 "conceptsByChallenge": this._convertConceptsByChallengeToProperties(studentModel.conceptsByChallenge),
@@ -40,11 +41,12 @@ class DashboardService {
 
           //console.info("Push this to firebase:\n" + JSON.stringify(data, null, 2));
           
-          console.info("Update LearnPortal");
+          console.info("Update LearnPortal");          
           let ref = firebaseDb.ref(pathToUserITSData);
           return ref.set(data);
 
         } catch(err) {
+          console.error("Failed to write this to dashboard:\n"+ JSON.stringify(data, null, 2));
           return Promise.reject(err);
         }
     }
@@ -67,7 +69,7 @@ class DashboardService {
       let concepts = {};
       if (conceptsByChallenge) {
         conceptsByChallenge.forEach((conceptByChallenge) => {
-          concepts[conceptByChallenge.challengeId] = conceptByChallenge.concepts;
+          concepts[conceptByChallenge.challengeId] = conceptByChallenge.concepts.toObject();
         });
       }
 
