@@ -4,6 +4,7 @@ const rp = require('request-promise');
 const parse = require('csv-parse');
 const Group = require('../models/Group');
 const EcdRulesEvaluator = require("./ecdRulesEvaluator");
+const EcdCsvParser = require("./ecdCsvParser");
 
 /**
  * This class retrieves rules based on group and challengeId 
@@ -15,69 +16,52 @@ class EvaluatorRepository {
     }
 
     doesEvaluatorExistAsync(groupName, challengeId) {
-        var docUrl = null;
-        return this.getEcdMatrixIdAsync(groupName, challengeId).then(matrixId => {
-            docUrl = "https://docs.google.com/spreadsheets/d/" + matrixId;
-            var csvExportUrl = docUrl + "/export?format=csv";
-            var options = {
-                method: "GET",
-                uri: csvExportUrl,
-                headers: {
-                    'User-Agent': 'Request-Promise'
-                } 
-            };
-            
-            this.session.debugAlert("Check for rules at: " + options.uri);
-            return rp(options);
+        return this.getEcdRuleDocIdsAsync(groupName, challengeId, false).then((docIds) => {
+            return  (docIds && docIds.length > 0 && docIds.some((item) => item == challengeId));
         })
         .catch(err => {
             return false;
-        })
-        .then( response => {
-            if (response) {
-                return this.parseCsvAsync(response, docUrl);
-            } else {
-                return false;
-            }
-        })
-        .catch(err => {
-            return false;
-        })
-        .then (csv => {
-            return csv.constructor === Array && csv.length > 0;
         });
     }
 
     findEvaluatorAsync(groupName, challengeId) {
         var docUrl = null;
-        return this.getEcdMatrixIdAsync(groupName, challengeId).then(matrixId => {
-            docUrl = "https://docs.google.com/spreadsheets/d/" + matrixId;
-            var csvExportUrl = docUrl + "/export?format=csv";
-            var options = {
-                method: "GET",
-                uri: csvExportUrl,
-                headers: {
-                    'User-Agent': 'Request-Promise'
-                } 
-            };
-            
-            this.session.debugAlert("Load rules from: " + options.uri);
-            return rp(options);
-        })
-        .then( response => {
-            return this.parseCsvAsync(response, docUrl);
-        })
-        .then (csv => {
-            // TODO determine which condition to instantiate, don't always assume
-            // ECD rules.
-            try {
-                return new EcdRulesEvaluator(docUrl, csv);
-            } catch(err) {
-                var msg = "Unable to parse '" + docUrl + "'. ";
-                err.message = msg + err.message;
-                throw err;
-            }
+        return this.getEcdRuleDocIdsAsync(groupName, challengeId, true).then((docIds) => {
+            let loadRulesPromises = [];
+            docIds.forEach((docId) => {
+                loadRulesPromises.push(this._loadRulesFromGoogleSheetAsync(docId));
+            });
+
+            return Promise.all(loadRulesPromises);
+        }).then((ruleArrays) => {
+            let rules = [];
+            ruleArrays.forEach((array) => {
+                rules = rules.concat(array);
+            });
+            return new EcdRulesEvaluator(rules);
         });
+    }
+
+    _loadRulesFromGoogleSheetAsync(docId) {
+        var docUrl = "https://docs.google.com/spreadsheets/d/" + docId;
+        var csvExportUrl = docUrl + "/export?format=csv";
+        var options = {
+            method: "GET",
+            uri: csvExportUrl,
+            headers: {
+                'User-Agent': 'Request-Promise'
+            } 
+        };
+        
+        this.session.debugAlert("Load rules from: " + options.uri);
+        return rp(options)
+            .then( response => {
+                return this.parseCsvAsync(response, docUrl);
+            })
+            .then (csv => {
+                var parser = new EcdCsvParser();
+                return parser.convertCsvToRules(docUrl, csv);
+            });
     }
 
     parseCsvAsync(text, docUrl) {
@@ -101,25 +85,24 @@ class EvaluatorRepository {
         });  
     }
 
-    getEcdMatrixIdAsync(groupName, challengeId) {
+    // Returns as array of GoogleSheet IDs that contain ECD rules
+    getEcdRuleDocIdsAsync(groupName, challengeId, includeWildcards) {
         return Group.findOne({ "name": groupName }).then((group) => {
             if (!group) {
                 throw new Error("Unable to find group with name: " + groupName);
             }
 
-            var matchingChallenges = group.challenges.filter(function( challenge ) {
-                return challenge.challengeId == challengeId;
+            var matchingChallenges = group.challenges.filter(function(item) {
+                return item.challengeId == challengeId || (includeWildcards && item.challengeId == "*");
             });
-
-            if (matchingChallenges.length > 1) {
-                console.warn("More than one challenge with id=" + challengeId + " defined for group: " + groupName);
-            }
             
-            if (matchingChallenges.length > 0) {
-                return matchingChallenges[0].googleEcdMatrixId;
+
+            if (matchingChallenges.length == 0) {
+                throw new Error("Unable to find challenge id=" + challengeId + " group: " + groupName);  
             }
 
-            throw new Error("Unable to find  challenge id=" + challengeId + " group: " + groupName);      
+            console.info("Found " + matchingChallenges.length + " rule set(s) for challengeId=" + challengeId + " defined for group: " + groupName);
+            return matchingChallenges.map((c) => { return c.googleEcdMatrixId; });
         });
     }
 }

@@ -12,9 +12,11 @@ const Stringx = require("../utilities/stringx");
  */
 class EcdCsvParser {
     constructor() {
+        this.source = null;
     }
 
-    convertCsvToRules(csv) {
+    convertCsvToRules(source, csv) {
+        this.source = source;
         var currentRowIndex = 0;
         try { 
             var rules = [];
@@ -47,7 +49,7 @@ class EcdCsvParser {
 
             return rules;
         } catch(err) {
-            var msg = "Unable to parse CSV row " + currentRowIndex + ". ";
+            var msg = "Unable to parse '" + this.source + "' - Row: " + currentRowIndex;
             err.message = msg + err.message;
             throw err;
         }
@@ -166,6 +168,7 @@ class EcdCsvParser {
         }
 
         return new EcdRule(
+            this.source,
             ruleId, 
             this.asNumber(this.getCell(currentRow, columnMap, "priority")),
             conditions,
@@ -273,7 +276,7 @@ class EcdCsvParser {
                 break;
 
             case "challengeid":
-                condition = new EcdRuleCondition.StringCondition(propertyPath, value);
+                condition = new EcdRuleCondition.StringCondition(propertyPath, value, true);
                 break;
 
             case "correct":

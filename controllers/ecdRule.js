@@ -5,9 +5,9 @@ const CharacteristicsCondition = require('./ecdRuleCondition').CharacteristicsCo
 const _ = require('lodash');
 
 class EcdRule {   
-    constructor(id, priority, conditions, concepts, hints) {
+    constructor(source, id, priority, conditions, concepts, hints) {
+        this.source = source;
         this.id = id;
-        this.source = null;
         this.priority = priority;
         this.conditions = conditions;
         this.concepts = concepts;
@@ -33,7 +33,6 @@ class EcdRule {
             this.trait = traits[0];
         } else {
             this.trait = "unknown";
-            console.warn("Unable to determine trait for rule");
         }
 
         for (var concept in this.concepts) {

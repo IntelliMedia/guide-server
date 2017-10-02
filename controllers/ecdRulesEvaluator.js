@@ -5,7 +5,6 @@ const parse = require('csv-parse');
 const StudentModelService = require('./studentModelService');
 const Group = require('../models/Group');
 const TutorAction = require('../models/TutorAction');
-const EcdCsvParser = require("./ecdCsvParser");
 const stringx = require("../utilities/stringx");
 const DashboardService = require('./dashboardService');
 
@@ -14,20 +13,17 @@ const DashboardService = require('./dashboardService');
  * and to provide move-specific hints.
  */
 class EcdRulesEvaluator {
-    constructor(source, csv) {
-        var parser = new EcdCsvParser();
-        this.rules = parser.convertCsvToRules(csv);
-        this.rules.forEach((rule) => {
-            rule.source = source;
-        });
+    constructor(rules) {
+        this.rules = rules;
         this.studentModelService = null;
+        console.info("EcdRulesEvaluator initialized with " + rules.length + " rule(s).");
     }
 
     evaluateAsync(student, session, event) {
         return new Promise((resolve, reject) => {
             try {
                 let challengeId = event.context.challengeId;
-                session.debugAlert("Evaulte rules for: {0} ({1} | {2} | {3})".format(student.id, session.classId, session.groupId, challengeId));                
+                session.debugAlert("Evaluate rules for: {0} ({1} | {2} | {3})".format(student.id, session.classId, session.groupId, challengeId));                
                 
                 var activatedRules = this.evaluateRules(event);
 
@@ -38,7 +34,7 @@ class EcdRulesEvaluator {
                 if (!event.context.correct) {
                     conceptToHint = this.studentModelService.selectHint(negativeConcepts)
                 } else {
-                    session.debugAlert("No need to send hint, organism is correct for user: %s", student.id);
+                    session.debugAlert("No need to send hint, organism is correct for user: " + student.id);
                 }  
 
                 var action = null;

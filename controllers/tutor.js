@@ -256,8 +256,8 @@ function handleUserSubmittedOrganismAsync(student, session, event) {
     checkRequiredProperties(student);
 
     var repo = new EvaluatorRepository(session);
-    return repo.findEvaluatorAsync(session.groupId, event.context.challengeId).then((condition) => {
-        return (condition ? condition.evaluateAsync(student, session, event) : null);
+    return repo.findEvaluatorAsync(session.groupId, event.context.challengeId).then((evaluator) => {
+        return (evaluator ? evaluator.evaluateAsync(student, session, event) : null);
     });
 }
 

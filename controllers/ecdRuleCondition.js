@@ -125,7 +125,7 @@ class StringCondition extends EcdRuleCondition {
     evaluate(obj) {
         let value = this.getValue(obj);
         if (this.normalize) {
-            value = value.sexToString();
+            value = value.toLowerCase();
         }
 
         return this.target == value;
@@ -141,7 +141,7 @@ class BoolCondition extends EcdRuleCondition {
 
     evaluate(obj) {
         let value = this.getValue(obj);
-        return this.isCorrect == value;
+        return this.target == value;
     }
 }
 
