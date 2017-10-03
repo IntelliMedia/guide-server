@@ -66,12 +66,12 @@ class EcdRulesEvaluator {
 
                 if (student.learnPortalEndpoint) {
                     let dashboardService = new DashboardService();
-                    let updatePromise = dashboardService.updateStudentDataAsync(student.studentModel, student.learnPortalEndpoint)
+                    let updatePromise = dashboardService.updateStudentDataAsync(session, student.studentModel, student.learnPortalEndpoint)
                     .then(() => {
                         return action;
                     })
                     .catch((err) => {
-                        session.errorAlert("Unable to upload to dashboard. " + err.toString());
+                        session.errorAlert("Unable to set student data in dashboard db. " + err.toString());
                         return action;
                     });
 

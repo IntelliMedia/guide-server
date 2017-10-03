@@ -27,7 +27,7 @@ class DashboardService {
         }
     }
 
-    updateStudentDataAsync(studentModel, pathToUserITSData) { 
+    updateStudentDataAsync(session, studentModel, pathToUserITSData) { 
 
       let data = null;
       try {
@@ -41,10 +41,14 @@ class DashboardService {
 
           //console.info("Push this to firebase:\n" + JSON.stringify(data, null, 2));
           
-          console.info("Update LearnPortal");          
+          session.debugAlert("Set student data in dashboard db; path=" + pathToUserITSData);      
           let ref = firebaseDb.ref(pathToUserITSData);          
-          ref.set(data).catch((err) => {
-            console.error("Unable to upload to firbase db. ", err);
+          ref.set(data)
+          .then(() => {
+            session.debugAlert("Successfully set student data in dashboard db.");
+          })
+          .catch((err) => {
+            session.errorAlert("Unable to set student data in dashboard db. ", err);
           });
           return Promise.resolve();
 
