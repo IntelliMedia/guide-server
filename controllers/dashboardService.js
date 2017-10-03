@@ -42,8 +42,11 @@ class DashboardService {
           //console.info("Push this to firebase:\n" + JSON.stringify(data, null, 2));
           
           console.info("Update LearnPortal");          
-          let ref = firebaseDb.ref(pathToUserITSData);
-          return ref.set(data);
+          let ref = firebaseDb.ref(pathToUserITSData);          
+          ref.set(data).catch((err) => {
+            console.error("Unable to upload to firbase db. ", err);
+          });
+          return Promise.resolve();
 
         } catch(err) {
           console.error("Failed to write this to dashboard:\n"+ JSON.stringify(data, null, 2));
