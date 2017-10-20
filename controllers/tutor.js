@@ -49,9 +49,10 @@ exports.processEventAsync = (event, session) => {
     })
     .then((action) => {
         // If the tutor has a response message, record it and send it to the client
-        if (action) {
+        if (action) { 
             session.logEvent(action);
             session.emit(GuideProtocol.TutorDialog.Channel, action.context.tutorDialog.toJson());
+            session.debugAlert("Event handled -> ITS action sent to client");
         }
     })
     .then(() => {
