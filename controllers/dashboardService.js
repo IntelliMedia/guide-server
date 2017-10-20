@@ -1,7 +1,7 @@
 'use strict';
 
 const firebase = require("firebase-admin");
-const serviceAccount = require("../private/GVDemo-a034f68fba6f.json"); 
+const serviceAccount = require("../private/GVDemo-d6f050998c64.json"); 
 
 // Singletons so that we don't have to reinitilize this each time
 let firebaseApp = null;
