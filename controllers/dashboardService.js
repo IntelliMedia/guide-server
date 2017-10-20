@@ -41,16 +41,20 @@ class DashboardService {
 
           //console.info("Push this to firebase:\n" + JSON.stringify(data, null, 2));
           
-          session.debugAlert("Set student data in dashboard db; path=" + pathToUserITSData);      
-          let ref = firebaseDb.ref(pathToUserITSData);          
-          ref.set(data)
-          .then(() => {
-            session.debugAlert("Successfully set student data in dashboard db.");
-          })
-          .catch((err) => {
-            session.errorAlert("Unable to set student data in dashboard db. ", err);
+          return new Promise((resolve, reject) => {
+            session.debugAlert("Set student data in dashboard db; path=" + pathToUserITSData);      
+            let ref = firebaseDb.ref(pathToUserITSData);          
+            ref.set(data)
+            .then(() => {
+              session.debugAlert("Successfully set student data in dashboard db.");
+              resolve();
+            })
+            .catch((err) => {
+              session.errorAlert("Unable to set student data in dashboard db. ", err);
+              // Don't fail the ITS handling if the push fails
+              resolve();
+            });
           });
-          return Promise.resolve();
 
         } catch(err) {
           console.error("Failed to write this to dashboard:\n"+ JSON.stringify(data, null, 2));
