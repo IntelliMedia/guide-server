@@ -53,7 +53,7 @@ class EvaluatorRepository {
             } 
         };
         
-        this.session.debugAlert("Load rules from: " + options.uri);
+        this.session.debugAlert("Load rules from: " + docUrl);
         return rp(options)
             .then( response => {
                 return this.parseCsvAsync(response, docUrl);
