@@ -18,6 +18,7 @@ class EcdRuleCondition {
         }
 
         this.propertyPath = propertyPath;
+        this.isUserSelection = this.propertyPath.includes("userSelections");
         this.value = value; 
         this.trait = null;
     }

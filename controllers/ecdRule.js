@@ -21,14 +21,14 @@ class EcdRule {
 
         let traits = [];
         this.conditions.forEach((condition) => {
-            if (condition.trait) {
+            if (condition.isUserSelection && condition.trait) {
                 traits.push(condition.trait);
             }
         });
 
         traits = _.uniq(traits);
         if (traits.length > 1) {
-            this.trait = "multiple";
+            this.trait = traits.join(",");
         } else if (traits.length == 1) {
             this.trait = traits[0];
         } else {
