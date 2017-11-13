@@ -87,7 +87,7 @@ class EvaluatorRepository {
 
     // Returns as array of GoogleSheet IDs that contain ECD rules
     getEcdRuleDocIdsAsync(groupName, challengeId, includeWildcards) {
-        return Group.findOne({ "name": groupName }).then((group) => {
+        return Group.findOne({ "name": "Slice2-June26" }).then((group) => {
             if (!group) {
                 throw new Error("Unable to find group with name: " + groupName);
             }
