@@ -58,7 +58,7 @@ const studentModelSchema = new mongoose.Schema({
   conceptsAggregated: [conceptStateSchema],
   conceptsByChallenge: [conceptsByChallengeIdSchema],
   conceptsByTrait: [conceptsByTraitSchema],
-  snapshotsByConceptId: [snapshotsByConceptIdSchema],
+//  snapshotsByConceptId: [snapshotsByConceptIdSchema],
   hintHistory: [hintDeliveredSchema]
 }, { timestamps: true });
 
@@ -66,7 +66,7 @@ studentModelSchema.methods.reset = function() {
   this.conceptsAggregated = [];
   this.conceptsByChallenge = [];
   this.conceptsByTrait = [];
-  this.snapshotsByConceptId = [];
+//  this.snapshotsByConceptId = [];
   this.hintHistory = [];
 }
 

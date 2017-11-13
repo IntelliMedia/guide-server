@@ -159,7 +159,7 @@ class StudentModelService {
         this.updateConceptState(this.studentModel.getConceptAggregated(conceptId), isCorrect);
         this.updateConceptState(this.studentModel.getConceptByChallenge(conceptId, challengeId), isCorrect);
         this.updateConceptState(this.studentModel.getConceptByTrait(conceptId, trait), isCorrect);
-        this.updateConceptState(this.studentModel.getConceptSnapshot(conceptId, timestamp), isCorrect);
+        //this.updateConceptState(this.studentModel.getConceptSnapshot(conceptId, timestamp), isCorrect);
 
         ConceptObservation.record(conceptId, this.student.id, challengeId, isCorrect);
     }
@@ -174,7 +174,7 @@ class StudentModelService {
         this.addHintTotals(this.studentModel.getConceptAggregated(conceptId), isBottomOutHint);
         this.addHintTotals(this.studentModel.getConceptByChallenge(conceptId, challengeId), isBottomOutHint);
         this.addHintTotals(this.studentModel.getConceptByTrait(conceptId, trait), isBottomOutHint);
-        this.addHintTotals(this.studentModel.getConceptSnapshot(conceptId, timestamp), isBottomOutHint);
+        //this.addHintTotals(this.studentModel.getConceptSnapshot(conceptId, timestamp), isBottomOutHint);
     }
 
     addHintTotals(conceptState, isBottomOutHint) {
