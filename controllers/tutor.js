@@ -105,7 +105,8 @@ function handleSystemStartedSessionAsync(student, session, event) {
         }
 
         if (!event.context.hasOwnProperty("groupId") || !event.context.groupId) {
-            throw new Error("context.groupId is missing or undefined");
+            event.context.groupId = "Slice2-June26";
+            //throw new Error("student.groupId is missing or undefined");
         }
 
         student.lastSignIn = new Date(event.time);
@@ -264,6 +265,7 @@ function handleUserSubmittedOrganismAsync(student, session, event) {
 
 function checkRequiredProperties(student) {
     if (!student.groupId) {
-        throw new Error("student.groupId is missing or undefined");
+        student.groupId = "Slice2-June26";
+        //throw new Error("student.groupId is missing or undefined");
     }
 }
