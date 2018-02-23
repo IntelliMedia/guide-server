@@ -165,7 +165,7 @@ function handleSystemEndedSessionAsync(student, session, event) {
 }
 
 function handleUserNavigatedChallengeAsync(student, session, event) {
-    checkRequiredProperties(student);
+    checkRequiredProperties(student);   
 
     // Is there tutoring available for this challenge?
     var repo = new EvaluatorRepository(session);
@@ -223,6 +223,12 @@ function handleUserNavigatedChallengeAsync(student, session, event) {
 function handleUserChangedAlleleAsync(student, session, event) {
     checkRequiredProperties(student);
 
+    // GroupId is set when the session starts, but in case the session has been started without an
+    // open session, pick up the groupId from the submit message.
+    if (event.context.groupId) {
+        session.groupId = event.context.groupId;
+    }    
+
     return new Promise((resolve, reject) => {
         var dialogMessage = null;
 
@@ -256,6 +262,12 @@ function handleUserChangedAlleleAsync(student, session, event) {
 
 function handleUserSubmittedOrganismAsync(student, session, event) {
     checkRequiredProperties(student);
+
+    // GroupId is set when the session starts, but in case the session has been started without an
+    // open session, pick up the groupId from the submit message.
+    if (event.context.groupId) {
+        session.groupId = event.context.groupId;
+    }
 
     var repo = new EvaluatorRepository(session);
     return repo.findEvaluatorAsync(session.groupId, event.context.challengeId).then((evaluator) => {
