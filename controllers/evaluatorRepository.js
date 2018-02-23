@@ -87,10 +87,14 @@ class EvaluatorRepository {
 
     // Returns as array of GoogleSheet IDs that contain ECD rules
     getEcdRuleDocIdsAsync(groupName, challengeId, includeWildcards) {
-        return Group.findOne({ "name": "Slice2-June26" }).then((group) => {
+        return Group.findOne({ "name": groupName }).then((group) => {
             if (!group) {
                 throw new Error("Unable to find group with name: " + groupName);
             }
+
+            // Trailing number on the challenge ID should be ignored since they
+            // represent different trials of the same challenege
+            challengeId = challengeId.replace(/\d+$/,"");
 
             var matchingChallenges = group.challenges.filter(function(item) {
                 return item.challengeId == challengeId || (includeWildcards && item.challengeId == "*");
