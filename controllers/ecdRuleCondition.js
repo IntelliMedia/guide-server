@@ -154,7 +154,17 @@ class CharacteristicsCondition extends EcdRuleCondition {
     }
 
     normalizeCharacterisitics(phenotype) {
-        return phenotype.map((item) => item.toLowerCase().trim());
+        if (!phenotype || phenotype.length == 0) {
+            throw new Error("Empty phenotype.")
+        }
+
+        return phenotype.map((item) => {
+            try {
+                return item.toLowerCase().trim();
+            } catch(e) {
+                throw e;
+            }
+        });
     }
 
     evaluate(obj) {

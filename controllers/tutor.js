@@ -22,7 +22,8 @@ var eventRoutes = [
  //   new EventToFunction('USER', 'CHANGED', 'ALLELE', handleUserChangedAlleleAsync),
     new EventToFunction('USER', 'SUBMITTED', 'ORGANISM', handleUserSubmittedOrganismAsync),
     new EventToFunction('USER', 'SUBMITTED', 'EGG', handleUserSubmittedOrganismAsync),
-    new EventToFunction('USER', 'SUBMITTED', 'OFFSPRING', handleUserSubmittedOrganismAsync)
+    new EventToFunction('USER', 'SUBMITTED', 'OFFSPRING', handleUserSubmittedOrganismAsync),
+    new EventToFunction('USER', 'SUBMITTED', 'PARENTS', handleUserSubmittedParentsAsync)
 ];
 
 exports.initialize = () => {
@@ -262,6 +263,25 @@ function handleUserChangedAlleleAsync(student, session, event) {
 
 function handleUserSubmittedOrganismAsync(student, session, event) {
     checkRequiredProperties(student);
+
+    // GroupId is set when the session starts, but in case the session has been started without an
+    // open session, pick up the groupId from the submit message.
+    if (event.context.groupId) {
+        session.groupId = event.context.groupId;
+    }
+
+    var repo = new EvaluatorRepository(session);
+    return repo.findEvaluatorAsync(session.groupId, event.context.challengeId).then((evaluator) => {
+        return (evaluator ? evaluator.evaluateAsync(student, session, event) : null);
+    });
+}
+
+// Temporary method to convert from old event context to new
+function handleUserSubmittedParentsAsync(student, session, event) {
+    checkRequiredProperties(student);
+
+    event.context.challengeCriteria.characteristicsSibling1 = event.context.challengeCriteria[0].phenotype;
+    event.context.challengeCriteria.characteristicsSibling2 = event.context.challengeCriteria[1].phenotype;
 
     // GroupId is set when the session starts, but in case the session has been started without an
     // open session, pick up the groupId from the submit message.

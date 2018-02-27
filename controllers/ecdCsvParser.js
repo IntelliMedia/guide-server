@@ -69,9 +69,18 @@ class EcdCsvParser {
         if (this.isDominantRecessiveRule(currentRow)) {
             var rules = [];
 
+            var characterisitcColumnName = "criteria-characteristics";
+            if (!columnMap.hasOwnProperty(characterisitcColumnName)) {
+                characterisitcColumnName = "criteria-characteristics-sibling2";  
+            }
+
+            if (!columnMap.hasOwnProperty(characterisitcColumnName)) {
+                throw new Error("Unable to identify characteristic row for Dominant/Recessive generic rule");
+            }
+
             DominantRecessiveMap.forEach((traitMap) => {
                 var clonedRow = currentRow.slice();
-                var targetCharacterisitic = clonedRow[columnMap["criteria-characteristics"]].toLowerCase();
+                var targetCharacterisitic = clonedRow[columnMap[characterisitcColumnName]].toLowerCase();
                 var isTargetTraitDominant = targetCharacterisitic === "dominant";
                 var motherHasDominantAllele = false;
                 var motherHasRecessiveAllele = false;
@@ -246,7 +255,8 @@ class EcdCsvParser {
     // Assume last word specifies the type of rule
     // E.g., Criteria-Sex -> Sex
     extractRuleTypeFromColumnName(columnName) {
-        var words = columnName.split("-");
+        var columnNameWithoutSibling = columnName.replace(/-Sibling\d+$/, "");
+        var words = columnNameWithoutSibling.split("-");
         return words[words.length - 1];
     }
 

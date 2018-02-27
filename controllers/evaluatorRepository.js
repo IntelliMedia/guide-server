@@ -94,7 +94,7 @@ class EvaluatorRepository {
 
             // Trailing number on the challenge ID should be ignored since they
             // represent different trials of the same challenege
-            challengeId = challengeId.replace(/\d+$/,"");
+            challengeId = challengeId.replace(/-?\d*$/,"");
 
             var matchingChallenges = group.challenges.filter(function(item) {
                 return item.challengeId == challengeId || (includeWildcards && item.challengeId == "*");
