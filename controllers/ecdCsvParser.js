@@ -338,8 +338,9 @@ class EcdCsvParser {
                     var replacementBlock = value.match(findReplacementBlock);
                     if (replacementBlock != null) {
                         var block = replacementBlock[0];
-                        var selector = (replacementBlock[1] ? replacementBlock[1] : "selector?");
-                        var phrases = (replacementBlock[2] ? replacementBlock[2] : "phrases?");
+                        var missingValue = block.replace("[","<").replace("]",">");
+                        var selector = (replacementBlock[1] ? replacementBlock[1] : missingValue);
+                        var phrases = (replacementBlock[2] ? replacementBlock[2] : missingValue);
 
                         var substitutionPhrase = selector;
                         if (selectorMap.hasOwnProperty(selector)) {
@@ -351,6 +352,10 @@ class EcdCsvParser {
                             } else {
                                 substitutionPhrase = "[" + phraseRegex + "?]";
                             }
+                        }
+                        else 
+                        {
+                            console.warn("Unable to find substitution for: " + block);
                         }
 
                         value = value.replace(block, substitutionPhrase.trim());
