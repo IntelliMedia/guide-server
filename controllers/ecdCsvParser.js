@@ -12,6 +12,7 @@ const Stringx = require("../utilities/stringx");
  */
 class EcdCsvParser {
     constructor() {
+        this.findReplacementBlock = new RegExp("\\[(?:([^\\]\\:]+)\\:)?([^\\]]*)\\]", "i");
         this.source = null;
     }
 
@@ -69,18 +70,9 @@ class EcdCsvParser {
         if (this.isDominantRecessiveRule(currentRow)) {
             var rules = [];
 
-            var characterisitcColumnName = "criteria-characteristics";
-            if (!columnMap.hasOwnProperty(characterisitcColumnName)) {
-                characterisitcColumnName = "criteria-characteristics-sibling2";  
-            }
-
-            if (!columnMap.hasOwnProperty(characterisitcColumnName)) {
-                throw new Error("Unable to identify characteristic row for Dominant/Recessive generic rule");
-            }
-
             DominantRecessiveMap.forEach((traitMap) => {
                 var clonedRow = currentRow.slice();
-                var targetCharacterisitic = clonedRow[columnMap[characterisitcColumnName]].toLowerCase();
+                var targetCharacterisitic = this.getTraitTarget(traitMap, clonedRow, columnMap, headerRow);
                 var isTargetTraitDominant = targetCharacterisitic === "dominant";
                 var motherHasDominantAllele = false;
                 var motherHasRecessiveAllele = false;
@@ -154,6 +146,42 @@ class EcdCsvParser {
                 this.createRule(ruleId, columnMap, headerRow, currentRow)
             ];
         }
+    }
+
+    getTraitTarget(traitInfo, row, columnMap, headerRow) {
+        // The characteristic is specified as criteria in the rule
+        var characterisitcColumnName = "criteria-characteristics";
+        if (columnMap.hasOwnProperty(characterisitcColumnName)) {
+            return row[columnMap[characterisitcColumnName]].toLowerCase(); 
+        }
+
+        // Otherwise, we need to infer the trait from the hint substitution text        
+        for (var i = 0; i < headerRow.length; ++i) {
+            if (this.isHint(headerRow[i])) {
+                var value = row[i].trim();
+                do {
+                    var replacementBlock = value.match(this.findReplacementBlock);
+                    if (replacementBlock != null) {
+                        var block = replacementBlock[0];
+                        var missingValue = block.replace("[","<").replace("]",">");
+                        var selector = (replacementBlock[1] ? replacementBlock[1] : missingValue);
+                        var phrases = (replacementBlock[2] ? replacementBlock[2] : missingValue);
+                        if (selector.includes("correctTrait")) {
+                            if (phrases.toLowerCase().indexOf(traitInfo.characterisiticName.recessive) >= 0) {
+                                return "recessive";
+                            } else {
+                                return "dominant";
+                            }
+                        }
+                    }
+                } while (replacementBlock != null);    
+            }
+        }   
+        
+        //console.warn("Unable to identify characteristic row for Dominant/Recessive generic rule");  
+        // TODO rgtaylor 2018-02-27 Return and gracefully handle null as 'indeterminate' value
+        // Default to dominant
+        return "dominant";   
     }
 
     getColumnName(columnMap, index) {
@@ -328,14 +356,12 @@ class EcdCsvParser {
     }
 
     makeHintSpecificFor(selectorMap, headerRow, currentRow) {
-        var findReplacementBlock = new RegExp("\\[(?:([^\\]\\:]+)\\:)?([^\\]]*)\\]", "i");
-
         var hints = [];
          for (var i = 0; i < headerRow.length; ++i) {
             if (this.isHint(headerRow[i])) {
                 var value = currentRow[i].trim();
                 do {
-                    var replacementBlock = value.match(findReplacementBlock);
+                    var replacementBlock = value.match(this.findReplacementBlock);
                     if (replacementBlock != null) {
                         var block = replacementBlock[0];
                         var missingValue = block.replace("[","<").replace("]",">");
