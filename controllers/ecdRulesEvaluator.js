@@ -58,7 +58,7 @@ class EcdRulesEvaluator {
                     action = TutorAction.create(session, "SPOKETO", "USER", "hint",
                                 new GuideProtocol.TutorDialog(dialogMessage, reason));
                     action.context.hintLevel = conceptToHint.hintLevel;
-                    action.context.selectionCriteria = conceptToHint.selectionCriteria;
+                    action.context.selectionTarget = conceptToHint.selectionTarget;
                     action.context.challengeId = challengeId;
                     action.context.ruleId = conceptToHint.rule.id;
                     action.context.ruleSource = conceptToHint.rule.source;

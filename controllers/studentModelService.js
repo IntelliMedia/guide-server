@@ -87,7 +87,7 @@ class StudentModelService {
         this.session.debugAlert("Select hint for: " + this.student.id);
 
         var conceptToHint = null;
-        var selectionCriteria = null;
+        var selectionTarget = null;
 
         // Prioritize the most recently hinted concept (don't jump around between hints)
         var mostRecentHint = this.studentModel.mostRecentHint(this.challengeId);
@@ -95,7 +95,7 @@ class StudentModelService {
             for (let negativeConcept of negativeConcepts) {
                 if (negativeConcept.rule.conditionsAsString() == mostRecentHint.ruleConditions) {
                         conceptToHint = negativeConcept;
-                        selectionCriteria = {
+                        selectionTarget = {
                             description:"staying with previous hint",
                             conceptId:conceptToHint.conceptId,
                             scoreByChallenge:conceptToHint.scoreByChallenge
@@ -111,7 +111,7 @@ class StudentModelService {
             for (let negativeConcept of negativeConcepts) {
                 if (negativeConcept.rule.hints.length > 0) {
                     conceptToHint = negativeConcept;
-                    selectionCriteria = {
+                    selectionTarget = {
                       description:"most negative concept",
                       ruleConditions:conceptToHint.rule.conditionsAsString()
                     };
@@ -129,7 +129,7 @@ class StudentModelService {
                     this.challengeId,
                     conceptToHint.rule.conditionsAsString()) + 1;
 
-            conceptToHint.selectionCriteria = selectionCriteria;
+            conceptToHint.selectionTarget = selectionTarget;
 
             // Don't let hint level exceed the number of hints available
             conceptToHint.hintLevel = Math.min(conceptToHint.rule.hints.length, conceptToHint.hintLevel);

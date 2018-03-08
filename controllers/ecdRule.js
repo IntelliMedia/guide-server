@@ -1,7 +1,7 @@
 'use strict';
 
 const EcdRuleCondition = require('./ecdRuleCondition');
-const CharacteristicsCondition = require('./ecdRuleCondition').CharacteristicsCondition;
+const TraitCondition = require('./ecdRuleCondition').TraitCondition;
 const _ = require('lodash');
 
 class EcdRule {   

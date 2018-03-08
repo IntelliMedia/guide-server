@@ -146,11 +146,11 @@ class BoolCondition extends EcdRuleCondition {
     }
 }
 
-class CharacteristicsCondition extends EcdRuleCondition {
+class TraitCondition extends EcdRuleCondition {
     constructor(propertyPath, value) { 
         super(propertyPath, value);
-        this.targetCharacteristics = this.normalizeCharacterisitics(value.split(","));
-        this.trait = BiologicaX.getTrait(BioLogica.Species.Drake, this.targetCharacteristics[0]);
+        this.targetTraits = this.normalizeCharacterisitics(value.split(","));
+        this.trait = BiologicaX.getMetallicTraitIfTraitIsColor(BioLogica.Species.Drake, this.targetTraits[0]);
     }
 
     normalizeCharacterisitics(phenotype) {
@@ -188,7 +188,7 @@ class CharacteristicsCondition extends EcdRuleCondition {
         }
 
         var characterisitics = this.normalizeCharacterisitics(Object.keys(phenotype).map(key => phenotype[key]));
-        var result = this.targetCharacteristics.every((item) => {
+        var result = this.targetTraits.every((item) => {
             if (item === "metallic") {
                 return BiologicaX.isColorMetallic(phenotype.color);
             } else if (item === "nonmetallic") {
@@ -228,6 +228,6 @@ class CharacteristicsCondition extends EcdRuleCondition {
 
 module.exports.AllelesCondition = AllelesCondition;
 module.exports.SexCondition = SexCondition;
-module.exports.CharacteristicsCondition = CharacteristicsCondition;
+module.exports.TraitCondition = TraitCondition;
 module.exports.StringCondition = StringCondition;
 module.exports.BoolCondition = BoolCondition;

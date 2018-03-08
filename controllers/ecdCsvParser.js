@@ -81,27 +81,36 @@ class EcdCsvParser {
 
                 for (var i = 0; i < clonedRow.length; ++i) {
                     var columnName = this.getColumnName(columnMap, i);
-                     var value = clonedRow[i];
-                    if (value) {                        
+                    var value = clonedRow[i];
+                    if (!value) {
+                        continue;
+                    }
+
+                    if (columnName.includes("trait")) {
                         if (value.toLowerCase() === "dominant") {
                             value = traitMap.dominant;
                         } else if (value.toLowerCase() === "recessive") {
                             value = traitMap.recessive;
-                        } else if (columnName.includes("mother-alleles")) {
-                            motherHasDominantAllele = ((value.match(/:Q/g) || []).length > 0);
-                            motherHasRecessiveAllele = ((value.match(/:q/g) || []).length > 0);
-                            value = value.replace(/\:Q/g, traitMap[":Q"])
-                                         .replace(/\:q/g, traitMap[":q"]);
-                        } else if (columnName.includes("father-alleles")) {
-                            fatherHasDominantAllele = ((value.match(/:Q/g) || []).length > 0);
-                            fatherHasRecessiveAllele = ((value.match(/:q/g) || []).length > 0);
-                            value = value.replace(/\:Q/g, traitMap[":Q"])
-                                         .replace(/\:q/g, traitMap[":q"]);
+                        } else {
+                            // Don't change the value since it is a specific trait
                         }
                         clonedRow[i] = value;
                     }
-                }
 
+                    if (columnName.includes("alleles")) {                    
+                        if (columnName.includes("mother-alleles")) {
+                            motherHasDominantAllele = ((value.match(/:Q/g) || []).length > 0);
+                            motherHasRecessiveAllele = ((value.match(/:q/g) || []).length > 0);
+
+                        } else if (columnName.includes("father-alleles")) {
+                            fatherHasDominantAllele = ((value.match(/:Q/g) || []).length > 0);
+                            fatherHasRecessiveAllele = ((value.match(/:q/g) || []).length > 0);
+                        }
+                        value = value.replace(/\:Q/g, traitMap[":Q"])
+                                     .replace(/\:q/g, traitMap[":q"]);                        
+                        clonedRow[i] = value;
+                    }
+                }
 
                 var substitutionSelectorMap = {};
 
@@ -149,8 +158,8 @@ class EcdCsvParser {
     }
 
     getTraitTarget(traitInfo, row, columnMap, headerRow) {
-        // The characteristic is specified as criteria in the rule
-        var characterisitcColumnName = "criteria-characteristics";
+        // The characteristic is specified as target in the rule
+        var characterisitcColumnName = "target-characteristics";
         if (columnMap.hasOwnProperty(characterisitcColumnName)) {
             return row[columnMap[characterisitcColumnName]].toLowerCase(); 
         }
@@ -196,12 +205,12 @@ class EcdCsvParser {
 
     createRule(ruleId, columnMap, headerRow, currentRow) {
         var conditions = [];
-        conditions = conditions.concat(this.extractConditions("context.challengeCriteria", "criteria", headerRow, currentRow));
+        conditions = conditions.concat(this.extractConditions("context.challengeCriteria", "target", headerRow, currentRow));
         conditions = conditions.concat(this.extractConditions("context.userSelections","selected", headerRow, currentRow));
         conditions = conditions.concat(this.extractConditions("context","condition", headerRow, currentRow));
 
         if (conditions.length == 0) {
-            throw new Error("Missing conditions in CSV. Unable to find columns with condition prefixes: Criteria-, Selected-, or Condition-");
+            throw new Error("Missing conditions in CSV. Unable to find columns with condition prefixes: Target-, Selected-, or Condition-");
         }
 
         return new EcdRule(
@@ -281,7 +290,7 @@ class EcdCsvParser {
     }
 
     // Assume last word specifies the type of rule
-    // E.g., Criteria-Sex -> Sex
+    // E.g., Target-Sex -> Sex
     extractRuleTypeFromColumnName(columnName) {
         var columnNameWithoutSibling = columnName.replace(/-Sibling\d+$/, "");
         var words = columnNameWithoutSibling.split("-");
@@ -297,7 +306,7 @@ class EcdCsvParser {
     }
 
     createCondition(type, value, propertyPath) {
-        // The last word indicates the type of condition (e.g., sex or characteristics)
+        // The last word indicates the type of condition (e.g., sex or trait)
         let condition = null;
         switch(type.toLowerCase()) {
 
@@ -309,8 +318,8 @@ class EcdCsvParser {
                 condition = new EcdRuleCondition.SexCondition(propertyPath, value);
                 break;
 
-            case "characteristics":
-                condition = new EcdRuleCondition.CharacteristicsCondition(propertyPath, value);
+            case "trait":
+                condition = new EcdRuleCondition.TraitCondition(propertyPath, value);
                 break;
 
             case "challengeid":

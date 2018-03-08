@@ -200,7 +200,7 @@ class StudentDataVisualization {
 
             xAxis: {
                 categories: chartInfo.xLabels,
-                title: "Criteria"
+                title: "Target"
             },
 
             yAxis: {
