@@ -5,7 +5,7 @@ const TraitCondition = require('./ecdRuleCondition').TraitCondition;
 const _ = require('lodash');
 
 class EcdRule {   
-    constructor(source, id, priority, conditions, concepts, hints) {
+    constructor(source, id, priority, conditions, isCorrect, concepts, hints) {
         this.source = source;
         this.id = id;
         this.priority = priority;
@@ -13,7 +13,7 @@ class EcdRule {
         this.concepts = concepts;
         this.hints = hints;
         this.trait = null;
-        this.isMisconception = false;
+        this.isCorrect = isCorrect;
 
         if (!this.conditions || this.conditions.length == 0) {
             throw new Error("No conditions defined for ECD rule.")
@@ -33,16 +33,6 @@ class EcdRule {
             this.trait = traits[0];
         } else {
             this.trait = "unknown";
-        }
-
-        for (var concept in this.concepts) {
-            if (!this.concepts.hasOwnProperty(concept)) {
-                continue;
-            }
-            if (this.concepts[concept] < 0) {
-                this.isMisconception = true;
-                break;
-            }
         }
     }
 

@@ -96,7 +96,7 @@ class EcdRulesEvaluator {
 
         for (let rule of this.rules) {
             if (rule.evaluate(event)) {
-                if (!rule.isMisconception) {
+                if (rule.isCorrect) {
                     activatedRules.correct.push(rule);
                 } else {
                     activatedRules.misconceptions.push(rule);

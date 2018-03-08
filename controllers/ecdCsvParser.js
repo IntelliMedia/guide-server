@@ -218,6 +218,7 @@ class EcdCsvParser {
             ruleId, 
             this.asNumber(this.getCell(currentRow, columnMap, "priority")),
             conditions,
+            this.asBoolean(this.getCell(currentRow, columnMap, "correct", false)),
             this.extractConcepts(headerRow, currentRow),
             this.extractHints(headerRow, currentRow));
     }
@@ -236,14 +237,18 @@ class EcdCsvParser {
         return false;
     }
 
-    getCell(currentRow, columnMap, columnName) {
+    getCell(currentRow, columnMap, columnName, defaultValue) {
         if (!columnMap.hasOwnProperty(columnName) && columnMap[columnName] < currentRow.length) {
             throw new Error("Unable to find column named: " + columnName);
         }
 
         var value = currentRow[columnMap[columnName]];
         if (!value) {
-            throw new Error("Unable to find value for column: " + columnName);
+            if (defaultValue != undefined) {
+                value = defaultValue;
+            } else {
+                throw new Error("Unable to find value for column: " + columnName);
+            }
         }
         return value;
     }
@@ -261,6 +266,19 @@ class EcdCsvParser {
         }
         return (value ? Number(value) : 0);
     }
+
+    asBoolean(value) {
+        if (typeof value === "boolean") {
+            return value;
+        }
+
+        if (value) {
+            let normalizedValue = value.toString().toLowerCase();
+            return (normalizedValue == "true" || normalizedValue == "1" || normalizedValue == "x");
+        }
+        
+        return false;        
+    }    
 
     extractHeadingValue(heading) {
         let value = heading.trimThroughFirst("-");
@@ -344,7 +362,7 @@ class EcdCsvParser {
                 var value = currentRow[i].trim();
                 if (value) {
                     var conceptId = this.extractHeadingValue(headerRow[i]);
-                    concepts[conceptId] = this.asNumber(value);
+                    concepts[conceptId] = this.asBoolean(value);
                 }
             }
          }
