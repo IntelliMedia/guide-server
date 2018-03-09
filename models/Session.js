@@ -95,9 +95,9 @@ sessionSchema.methods.logEvent = function(event) {
   this.events.push(event);
 }
 
-sessionSchema.methods.errorAlert = function(msg) {
-    console.error(msg);
-    return this.sendAlert(GuideProtocol.Alert.Error, msg);
+sessionSchema.methods.errorAlert = function(e) {
+    console.error(e); 
+    return this.sendAlert(GuideProtocol.Alert.Error, e.toString(), true);
 }
 
 sessionSchema.methods.warningAlert = function(msg) {
@@ -115,13 +115,26 @@ sessionSchema.methods.debugAlert = function(msg) {
     return this.sendAlert(GuideProtocol.Alert.Debug, msg);
 }
 
-sessionSchema.methods.sendAlert = function(type, msg) {
+sessionSchema.methods.sendAlert = function(type, msg, writeToEventLog) {
+
   var alert = new GuideProtocol.Alert(type, msg);
   if (!this.emit) {
     console.error("Unable to send alert message to client. Emit method is not defined.");
   } else {
     this.emit(GuideProtocol.Alert.Channel, alert.toJson());
   }
+
+  if (writeToEventLog) {
+    let event = new GuideProtocol.Event(
+      this.studentId,
+      this.id, 
+      this.sequenceNumber++,
+      "ITS", "ISSUED", type.toString().toUpperCase(), alert
+    );
+    this.logEvent(event);
+    this.save();
+  }
+   
   return alert;
 }
 

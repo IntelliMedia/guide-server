@@ -1,4 +1,3 @@
-const consolex = require('../utilities/consolex');
 const Student = require('../models/Student');
 const Concept = require('../models/Concept');
 
@@ -28,7 +27,7 @@ exports.index = (req, res) => {
       }
     })
     .catch((err) => {
-      consolex.exception(err);
+      console.error(err);
       req.flash('errors', { msg: 'Unable to load student. ' + err.toString()});
       return res.redirect('/students');
     });
@@ -47,7 +46,7 @@ exports.reset = (req, res) => {
         return res.redirect('/student/' + studentId);
       })
       .catch((err) => {
-        consolex.exception(err);
+        console.error(err);
         req.flash('errors', { msg: 'Unable to reset student. ' + err.toString()});
         return res.redirect('/students');
       });

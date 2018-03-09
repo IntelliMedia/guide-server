@@ -1,4 +1,3 @@
-const consolex = require('../utilities/consolex');
 const http = require('http');
 const socketio = require('socket.io');
 const WebSocketServer = require('websocket').server;
@@ -72,29 +71,18 @@ function handleEvent(socket, data) {
         currentSession = session;
         return tutor.processEventAsync(receivedEvent, session);
     })        
-    .catch((err) => {
-        consolex.exception(err);
+    .catch((err) => {        
+        if (currentSession) {
+            currentSession.errorAlert(err);
+        } else {
+            console.error(err);
+        }
 
         const newAlert = Alert();
         newAlert.type = 'error';
         newAlert.timestamp = Date.now();
         newAlert.message = err.message;
-        newAlert.save();
-        
-        if (currentSession) {
-            // Send alert to client
-            var alert = currentSession.errorAlert(err.message);
-            var event = new GuideProtocol.Event(
-                currentSession.studentId,
-                currentSession.id, 
-                currentSession.sequenceNumber++,
-                "ITS", "ISSUED", "ALERT", alert
-            );
-            currentSession.logEvent(event);
-            currentSession.save();
-        } else {
-            console.error("Unable to find session -> " + err.message);
-        }
+        newAlert.save();        
     });
 }
 
@@ -138,7 +126,7 @@ function findSession(socket, studentId, sessionId) {
                 initializeSessionSocket(session, socket);
                 resolve(session);         
             }).catch((err) => {
-                consolex.exception(err);
+                console.error(err);
                 reject(err);                
             });            
 

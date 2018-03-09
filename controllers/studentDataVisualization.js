@@ -3,7 +3,6 @@
 const concept = require('../models/Concept');
 const Student = require('../models/Student');
 const StudentModel = require('../models/StudentModel');
-const consolex = require('../utilities/consolex');
 const _ = require('lodash');
 
 /**
@@ -45,7 +44,7 @@ class StudentDataVisualization {
             res.end(JSON.stringify(chartData));
         })
         .catch((err) => {
-            consolex.exception(err);
+            console.error(err);
             req.flash('errors', { msg: 'Student with ID is not found: ' + studentId + ". " + err.toString()});
             return res.redirect('/');
         });

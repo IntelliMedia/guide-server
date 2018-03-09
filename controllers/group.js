@@ -1,4 +1,3 @@
-const consolex = require('../utilities/consolex');
 const Group = require('../models/Group');
 const Concept = require('../models/Concept');
 
@@ -20,7 +19,7 @@ exports.index = (req, res) => {
       });
     })
     .catch((err) => {
-      consolex.exception(err);
+      console.error(err);
       req.flash('errors', { msg: 'Group with ID is not found: ' + groupId});
       return res.redirect('/groups');
     });
@@ -37,7 +36,7 @@ exports.delete = (req, res) => {
       return res.send({redirect: '/groups'});
     })
     .catch((err) => {
-      consolex.exception(err);
+      console.error(err);
       req.flash('errors', { msg: 'Group with ID is not found: ' + groupId});
       return res.send({redirect: '/groups'});
     });
@@ -61,7 +60,7 @@ exports.duplicate = (req, res) => {
         return res.send({redirect: '/group/' + duplicateGroup.id});
       })
       .catch((err) => {
-        consolex.exception(err);
+        console.error(err);
         req.flash('errors', { msg: 'Unable to duplicate group. ' + err.toString()});
         return res.send({redirect: '/groups'});
       });
@@ -81,7 +80,7 @@ exports.modify = (req, res) => {
       return res.send({redirect: '/groups'});
     })
     .catch((err) => {
-      consolex.exception(err);
+      console.error(err);
       req.flash('errors', { msg: 'Unable to update group. ' + err.toString()});
       return next(err);
     });

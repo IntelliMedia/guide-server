@@ -1,4 +1,3 @@
-const consolex = require('../utilities/consolex');
 const async = require('async');
 const crypto = require('crypto');
 const nodemailer = require('nodemailer');
@@ -139,7 +138,7 @@ exports.createUser = (user, cb) => {
     cb(user);
   })
   .catch((err) => {
-    consolex.exception(err);
+    console.error(err);
     cb(null, err);
   });
 };
@@ -272,7 +271,7 @@ exports.postUpdateRoles = (req, res, next) => {
     res.redirect('/account/' + userInfo.url);
   })
   .catch((err) => {
-    consolex.exception(err);
+    console.error(err);
     next(err);
   });
 };
@@ -338,7 +337,7 @@ exports.postDeleteAccount = (req, res, next) => {
   })
   .catch((err) =>
   {
-    consolex.exception(err);
+    console.error(err);
     next(err);
   });
 };

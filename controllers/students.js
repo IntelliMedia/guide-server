@@ -14,7 +14,7 @@ exports.index = (req, res) => {
       })
     })
     .catch((err) => {
-      consolex.exception(err);
+      console.error(err);
       req.flash('errors', { msg: 'Unable to load students. ' + err.toString()});
       return res.redirect('/home');
     }); 
@@ -35,7 +35,7 @@ exports.modify = (req, res) => {
       return res.redirect('/students');
     })
     .catch((err) => {
-      consolex.exception(err);
+      console.error(err);
       req.flash('errors', { msg: 'Unable to delete student. ' + err.toString()});
       return res.redirect('/students');
     });

@@ -1,4 +1,3 @@
-const consolex = require('../utilities/consolex');
 const nodeAcl = require('acl');
 
 /**
@@ -47,7 +46,7 @@ exports.getIsAllowed = (user, cb) => {
   })
   .catch((err) =>
   {
-    consolex.exception(err);
+    console.error(err);
     cb(null, err);
   });
 

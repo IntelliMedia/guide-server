@@ -8,8 +8,6 @@ console.info("%s %s", guideInfo.name, guideInfo.version);
  */
 require('bluebird');
 
-const consolex = require('./utilities/consolex');
-
 /**
  * Module dependencies.
  */
@@ -132,7 +130,7 @@ tutor.initialize().then(() => {
   console.info('Tutor initialized');
 })
   .catch((err) => {
-    consolex.exception(err);
+    console.error(err);
   });
 
 /**

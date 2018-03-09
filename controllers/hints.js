@@ -21,7 +21,7 @@ exports.index = (req, res) => {
       });
     })
     .catch((err) => {
-      consolex.exception(err);
+      console.error(err);
       req.flash('errors', { msg: 'Unable to load student. ' + err.toString()});
       return res.send({redirect: '/students'});
     });

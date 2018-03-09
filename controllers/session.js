@@ -1,4 +1,3 @@
-const consolex = require('../utilities/consolex');
 const Session = require('../models/Session');
 
 /**
@@ -25,7 +24,7 @@ exports.index = (req, res) => {
       }
     })
     .catch((err) => {
-      consolex.exception(err);
+      console.error(err);
       req.flash('errors', { msg: 'Unable to display session data. ' + err.toString()});
       return res.redirect('/sessions');
     }); 
@@ -46,7 +45,7 @@ exports.event = (req, res) => {
       });
     })
     .catch((err) => {
-      consolex.exception(err);
+      console.error(err);
       req.flash('errors', { msg: 'Unable to display session data. ' + err.toString()});
       return res.redirect('/sessions');
     });   

@@ -1,4 +1,3 @@
-const consolex = require('../utilities/consolex');
 const User = require('../models/User');
 const authz = require('./authorization');
 
@@ -26,7 +25,7 @@ exports.index = (req, res) => {
       })
       .catch((err) =>
       {
-        consolex.exception(err);
+        console.error(err);
         if (err) throw err;
       }); 
   });    

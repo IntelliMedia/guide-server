@@ -1,4 +1,3 @@
-const consolex = require('../utilities/consolex');
 const Session = require('../models/Session');
 const moment = require('moment');
 var Archiver = require('archiver');
