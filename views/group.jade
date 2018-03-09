@@ -33,17 +33,17 @@ block content
         table.table
             thead
                 tr
-                th ChallengeId         
-                th ECD Matrix Google Spreadsheet ID
+                th Tags         
+                th Google Sheet Doc ID
                 th
                 th
                     span.table-add.fa.fa-plus
             tbody
-                for challenge in group.challenges
+                for repositoryLink in group.repositoryLinks
                     tr
-                        td.hide #{challenge.id} 
-                        td(contenteditable="true") #{challenge.challengeId}                                  
-                        td(contenteditable="true") #{challenge.googleEcdMatrixId}
+                        td.hide #{repositoryLink.id} 
+                        td(contenteditable="true") #{repositoryLink.tags}                                  
+                        td(contenteditable="true") #{repositoryLink.googleSheetDocId}
                         td
                             span.view-link.fa.fa-external-link
                         td
@@ -52,7 +52,7 @@ block content
                     td.hide
                         | new
                     td(contenteditable="true")
-                        | challengeId
+                        | tags
                     td(contenteditable="true")
                         | GoogleDocId
                     td

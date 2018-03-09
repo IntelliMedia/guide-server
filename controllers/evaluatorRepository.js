@@ -15,9 +15,9 @@ class EvaluatorRepository extends GoogleSheetRepository {
         super(session);
     }
 
-    findEvaluatorAsync(groupName, challengeId) {
+    findEvaluatorAsync(groupName, tags) {
         var docUrl = null;
-        return this._findAsync(groupName, challengeId, new RuleCsvDeserializer()).then((ruleArrays) => {
+        return this._findAsync(groupName, tags, new RuleCsvDeserializer()).then((ruleArrays) => {
             let rules = [];
             ruleArrays.forEach((array) => {
                 rules = rules.concat(array);

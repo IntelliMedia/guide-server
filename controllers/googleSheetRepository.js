@@ -1,5 +1,6 @@
 'use strict';
 
+const _ = require('lodash');
 const rp = require('request-promise');
 const parse = require('csv-parse');
 const Group = require('../models/Group');
@@ -12,9 +13,9 @@ class GoogleSheetRepository {
         this.session = session;
     }
 
-    doesMatchExistAsync(groupName, challengeId) {
-        return this._getGoogleSheetIdsAsync(groupName, challengeId, false).then((docIds) => {
-            return  (docIds && docIds.length > 0 && docIds.some((item) => item == challengeId));
+    doesMatchExistAsync(groupName, tags) {
+        return this._getGoogleSheetIdsAsync(groupName, tags, false).then((docIds) => {
+            return  (docIds && docIds.length > 0 && docIds.some((item) => item == tags));
         })
         .catch(err => {
             return false;
@@ -22,9 +23,9 @@ class GoogleSheetRepository {
     }
 
     // Returns array of objects parsed from one or more sheets
-    _findAsync(groupName, challengeId, csvParser) {
+    _findAsync(groupName, tags, csvParser) {
         var docUrl = null;
-        return this._getGoogleSheetIdsAsync(groupName, challengeId, true).then((docIds) => {
+        return this._getGoogleSheetIdsAsync(groupName, tags, true).then((docIds) => {
             let loadPromises = [];
             docIds.forEach((docId) => {
                 loadPromises.push(this._loadFromGoogleSheetAsync(docId, csvParser));
@@ -77,27 +78,26 @@ class GoogleSheetRepository {
     }
 
     // Returns as array of GoogleSheet IDs that contain ECD rules
-    _getGoogleSheetIdsAsync(groupName, challengeId, includeWildcards) {
+    _getGoogleSheetIdsAsync(groupName, tags, includeWildcards) {
         return Group.findOne({ "name": groupName }).then((group) => {
             if (!group) {
                 throw new Error("Unable to find group with name: " + groupName);
             }
 
-            // Trailing number on the challenge ID should be ignored since they
-            // represent different trials of the same challenege
-            challengeId = challengeId.replace(/-?\d*$/,"");
+            // The tags associated with the Google Sheet to be loaded
+            let targetTags = tags.splitAndTrim(",");
 
-            var matchingChallenges = group.challenges.filter(function(item) {
-                return item.challengeId == challengeId || (includeWildcards && item.challengeId == "*");
-            });
-            
+            var matchingRepositoryLinks = group.repositoryLinks.filter(function(item) {
+                let repoTags = item.tags.splitAndTrim(",");
+                return _.difference(targetTags, repoTags).length === 0;
+            }); 
 
-            if (matchingChallenges.length == 0) {
-                throw new Error("Unable to find challenge id=" + challengeId + " group: " + groupName);  
+            if (matchingRepositoryLinks.length == 0) {
+                throw new Error("Unable to find Google Sheet with tags (" + tags + ") in  group '" + groupName + "'");  
             }
 
-            console.info("Found " + matchingChallenges.length + " rule set(s) for challengeId=" + challengeId + " defined for group: " + groupName);
-            return matchingChallenges.map((c) => { return c.googleEcdMatrixId; });
+            console.info("Found " + matchingRepositoryLinks.length + " Google Sheets for tags (" + tags + ") defined for group '" + groupName + "'");
+            return matchingRepositoryLinks.map((c) => { return c.googleSheetDocId; });
         });
     }
 }

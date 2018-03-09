@@ -1,3 +1,10 @@
+String.prototype.splitAndTrim = function(delimiter) 
+{
+  return this.split(delimiter).map(function(item) {
+    return item.trim();
+  });
+}
+
 String.prototype.lowerCaseFirstChar = function() 
 {
     return this.charAt(0).toLowerCase() + this.slice(1);

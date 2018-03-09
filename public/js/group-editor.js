@@ -31,8 +31,8 @@ function extractGroup() {
             modifiedChallenges.push(
                 {
                     id: $td.eq(0).text().trim(),
-                    challengeId: $td.eq(1).text().trim(),
-                    googleEcdMatrixId: $td.eq(2).text().trim(),
+                    tags: $td.eq(1).text().trim(),
+                    googleSheetDocId: $td.eq(2).text().trim(),
                 }
             );
         }
@@ -41,7 +41,7 @@ function extractGroup() {
       var group = {
         id: $('#id').text().trim(),
         name: $('#name').text().trim(),
-        challenges: modifiedChallenges
+        repositoryLinks: modifiedChallenges
       };
 
       return group;

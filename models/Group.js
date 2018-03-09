@@ -1,27 +1,27 @@
 const mongoose = require('mongoose');
 
-const challengeSchema = new mongoose.Schema({
-  challengeId: String,
-  googleEcdMatrixId: String
+const tagsDocIdSchema = new mongoose.Schema({
+  tags: String,
+  googleSheetDocId: String
 });
 
 const groupSchema = new mongoose.Schema({
   name: String,
-  challenges: [challengeSchema]
+  repositoryLinks: [tagsDocIdSchema]
 }, { timestamps: true });
 
 groupSchema.methods.replace = function(updatedGroup) {
       this.name = updatedGroup.name;
-      if (updatedGroup.hasOwnProperty("challenges") && updatedGroup.challenges != null) {
-        this.challenges = updatedGroup.challenges;
+      if (updatedGroup.hasOwnProperty("repositoryLinks") && updatedGroup.repositoryLinks != null) {
+        this.repositoryLinks = updatedGroup.repositoryLinks;
 
-        for (let challenge of this.challenges) {
-          if (challenge.id == "new") {
-            challenge.id = mongoose.Types.ObjectId()
+        for (let repositoryLink of this.repositoryLinks) {
+          if (repositoryLink.id == "new") {
+            repositoryLink.id = mongoose.Types.ObjectId()
           }
         }
       } else {
-        this.challenges = [];
+        this.repositoryLinks = [];
       }
 }
 
@@ -29,10 +29,10 @@ groupSchema.methods.clone = function() {
       var newGroup = Group.create();
       newGroup.name = this.name + " - copy";
 
-      for (let challenge of this.challenges) {
-        newGroup.challenges.push({
-          challengeId: challenge.challengeId,
-          googleEcdMatrixId: challenge.googleEcdMatrixId
+      for (let repositoryLink of this.repositoryLinks) {
+        newGroup.repositoryLinks.push({
+          tags: repositoryLink.tags,
+          googleSheetDocId: repositoryLink.googleSheetDocId
         });
       }
 
