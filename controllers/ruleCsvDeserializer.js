@@ -1,62 +1,23 @@
 'use strict';
 
-const parse = require('csv-parse');
 const EcdRule = require('./ecdRule');
 const EcdRuleCondition = require('./ecdRuleCondition');
-const Stringx = require("../utilities/stringx");
-
+const CsvDeserializer = require('./csvDeserializer');
 
 /**
  * This class uses parses a CSV to create ECD-based rules
  * used to update a student model
  */
-class EcdCsvParser {
+class RuleCsvDeserializer extends CsvDeserializer {
     constructor() {
-        this.findReplacementBlock = new RegExp("\\[(?:([^\\]\\:]+)\\:)?([^\\]]*)\\]", "i");
-        this.source = null;
+        super();
     }
 
-    convertCsvToRules(source, csv) {
-        this.source = source;
-        var currentRowIndex = 0;
-        try { 
-            var rules = [];
-
-            var headerRow = csv[0];
-            var columnCount = csv[0].length;
-            var columnMap = {};
-            for (var i = 0; i < columnCount; ++i) {
-                if (headerRow[i]) {
-                    headerRow[i] = headerRow[i].trim();
-                    columnMap[headerRow[i].toLowerCase()] = i;
-                }
-            }
-
-            var rowCount = csv.length;
-            for (var i = 1; i < rowCount; ++i) {
-                // Google sheets uses 1-based counting for rows, thus add one so
-                // that this number matches the Google sheets row.
-                currentRowIndex = i + 1;
-                //console.info("Processing row " + currentRowIndex);
-                var currentRow = csv[i];
-
-                // Empty row?
-                if (!this.asText(currentRow[0])) {
-                    continue;
-                }
-
-                rules.push.apply(rules, this.parseRow(currentRowIndex, columnMap, headerRow, currentRow));
-            }
-
-            return rules;
-        } catch(err) {
-            var msg = "Unable to parse '" + this.source + "' - Row: " + currentRowIndex;
-            err.message = msg + err.message;
-            throw err;
-        }
+    convertToObjects(source, csv) {
+        return this._convertToObjects(source, csv, this._parseRuleRow.bind(this));
     }
-
-    parseRow(ruleId, columnMap, headerRow, currentRow) {
+  
+    _parseRuleRow(ruleId, columnMap, headerRow, currentRow) {
         var DominantRecessiveMap = [
             { dominant: "Wings", recessive: "No wings", ":Q":":W", ":q":":w", characterisiticName: {dominant: "wings", recessive: "wingless"}},
             { dominant: "Forelimbs", recessive: "No forelimbs", ":Q":":Fl", ":q":":fl", characterisiticName: {dominant: "arms", recessive: "armless"}},
@@ -67,12 +28,12 @@ class EcdCsvParser {
             { dominant: "Gray", recessive: "Orange", ":Q":":B", ":q":":b", characterisiticName: {dominant: "gray", recessive: "orange"}}
         ];
 
-        if (this.isDominantRecessiveRule(currentRow)) {
+        if (this._isDominantRecessiveRule(currentRow)) {
             var rules = [];
 
             DominantRecessiveMap.forEach((traitMap) => {
                 var clonedRow = currentRow.slice();
-                var targetCharacterisitic = this.getTraitTarget(traitMap, clonedRow, columnMap, headerRow);
+                var targetCharacterisitic = this._getTraitTarget(traitMap, clonedRow, columnMap, headerRow);
                 var isTargetTraitDominant = targetCharacterisitic === "dominant";
                 var motherHasDominantAllele = false;
                 var motherHasRecessiveAllele = false;
@@ -80,7 +41,7 @@ class EcdCsvParser {
                 var fatherHasRecessiveAllele = false;
 
                 for (var i = 0; i < clonedRow.length; ++i) {
-                    var columnName = this.getColumnName(columnMap, i);
+                    var columnName = this._getColumnName(columnMap, i);
                     var value = clonedRow[i];
                     if (!value) {
                         continue;
@@ -146,18 +107,18 @@ class EcdCsvParser {
                     }
                 }
 
-                this.makeHintSpecificFor(substitutionSelectorMap, headerRow, clonedRow);
-                rules.push(this.createRule(ruleId, columnMap, headerRow, clonedRow));
+                this._makeHintSpecificFor(substitutionSelectorMap, headerRow, clonedRow);
+                rules.push(this._createRule(ruleId, columnMap, headerRow, clonedRow));
             });
             return rules;
         } else {
             return [
-                this.createRule(ruleId, columnMap, headerRow, currentRow)
+                this._createRule(ruleId, columnMap, headerRow, currentRow)
             ];
         }
     }
 
-    getTraitTarget(traitInfo, row, columnMap, headerRow) {
+    _getTraitTarget(traitInfo, row, columnMap, headerRow) {
         // The characteristic is specified as target in the rule
         var characterisitcColumnName = "target-characteristics";
         if (columnMap.hasOwnProperty(characterisitcColumnName)) {
@@ -166,7 +127,7 @@ class EcdCsvParser {
 
         // Otherwise, we need to infer the trait from the hint substitution text        
         for (var i = 0; i < headerRow.length; ++i) {
-            if (this.isHint(headerRow[i])) {
+            if (this._isHint(headerRow[i])) {
                 var value = row[i].trim();
                 do {
                     var replacementBlock = value.match(this.findReplacementBlock);
@@ -193,21 +154,11 @@ class EcdCsvParser {
         return "dominant";   
     }
 
-    getColumnName(columnMap, index) {
-        for (var key in columnMap) {
-            if (columnMap[key] == index) {
-                return key;
-            }
-        }
-
-        return null;
-    }
-
-    createRule(ruleId, columnMap, headerRow, currentRow) {
+    _createRule(ruleId, columnMap, headerRow, currentRow) {
         var conditions = [];
-        conditions = conditions.concat(this.extractConditions("context.challengeCriteria", "target", headerRow, currentRow));
-        conditions = conditions.concat(this.extractConditions("context.userSelections","selected", headerRow, currentRow));
-        conditions = conditions.concat(this.extractConditions("context","condition", headerRow, currentRow));
+        conditions = conditions.concat(this._extractConditions("context.challengeCriteria", "target", headerRow, currentRow));
+        conditions = conditions.concat(this._extractConditions("context.userSelections","selected", headerRow, currentRow));
+        conditions = conditions.concat(this._extractConditions("context","condition", headerRow, currentRow));
 
         if (conditions.length == 0) {
             throw new Error("Missing conditions in CSV. Unable to find columns with condition prefixes: Target-, Selected-, or Condition-");
@@ -216,14 +167,14 @@ class EcdCsvParser {
         return new EcdRule(
             this.source,
             ruleId, 
-            this.asNumber(this.getCell(currentRow, columnMap, "priority")),
+            this._asNumber(this._getCell(currentRow, columnMap, "priority")),
             conditions,
-            this.asBoolean(this.getCell(currentRow, columnMap, "correct", false)),
-            this.extractConcepts(headerRow, currentRow),
-            this.extractHints(headerRow, currentRow));
+            this._asBoolean(this._getCell(currentRow, columnMap, "correct", false)),
+            this._extractConcepts(headerRow, currentRow),
+            this._extractHints(headerRow, currentRow));
     }
 
-    isDominantRecessiveRule(row) {
+    _isDominantRecessiveRule(row) {
         for (var i = 0; i < row.length; ++i) {
             var value = row[i];
             if (value) {
@@ -237,69 +188,16 @@ class EcdCsvParser {
         return false;
     }
 
-    getCell(currentRow, columnMap, columnName, defaultValue) {
-        if (!columnMap.hasOwnProperty(columnName) && columnMap[columnName] < currentRow.length) {
-            throw new Error("Unable to find column named: " + columnName);
-        }
-
-        var value = currentRow[columnMap[columnName]];
-        if (!value) {
-            if (defaultValue != undefined) {
-                value = defaultValue;
-            } else {
-                throw new Error("Unable to find value for column: " + columnName);
-            }
-        }
-        return value;
-    }
-
-    asText(value) {
-        if (typeof value === "string") {
-            value = value.trim();
-        }
-        return value;
-    }
-
-    asNumber(value) {
-        if (typeof value === "number") {
-            return value;
-        }
-        return (value ? Number(value) : 0);
-    }
-
-    asBoolean(value) {
-        if (typeof value === "boolean") {
-            return value;
-        }
-
-        if (value) {
-            let normalizedValue = value.toString().toLowerCase();
-            return (normalizedValue == "true" || normalizedValue == "1" || normalizedValue == "x");
-        }
-        
-        return false;        
-    }    
-
-    extractHeadingValue(heading) {
-        let value = heading.trimThroughFirst("-");
-        if (!value) {
-            throw new Error("Unable to extract heading value from: " + heading);
-        } else {
-            value = value.trim();
-        }
-        return value;
-    }
-
-    extractConditions(basePropertyPath, prefix, headerRow, currentRow) {
+    _extractConditions(basePropertyPath, prefix, headerRow, currentRow) {
         let conditions = [];
          for (let i = 0; i < headerRow.length; ++i) {
-            if (this.isCondition(prefix, headerRow[i])) {
+            if (this._isColumnOfType(prefix, headerRow[i])) {
                 let targetValue = currentRow[i].trim();
                 if (targetValue) {
                     let columnName = headerRow[i];
-                    let ruleType = this.extractRuleTypeFromColumnName(columnName);
-                    let propertyPath = basePropertyPath + "." + this.extractProprtyPathFromColumnName(columnName);
-                    conditions.push(this.createCondition(ruleType, targetValue, propertyPath));
+                    let ruleType = this._extractRuleTypeFromColumnName(columnName);
+                    let propertyPath = basePropertyPath + "." + this._extractProprtyPathFromColumnName(columnName);
+                    conditions.push(this._createCondition(ruleType, targetValue, propertyPath));
                 }
             }
          }
@@ -309,7 +207,7 @@ class EcdCsvParser {
 
     // Assume last word specifies the type of rule
     // E.g., Target-Sex -> Sex
-    extractRuleTypeFromColumnName(columnName) {
+    _extractRuleTypeFromColumnName(columnName) {
         var columnNameWithoutSibling = columnName.replace(/-Sibling\d+$/, "");
         var words = columnNameWithoutSibling.split("-");
         return words[words.length - 1];
@@ -317,13 +215,13 @@ class EcdCsvParser {
 
     // Assume last word specifies the type of rule
         // E.g., Selected-Offspring-Sex -> offspringSex
-    extractProprtyPathFromColumnName(columnName) {
+    _extractProprtyPathFromColumnName(columnName) {
         let value = columnName.trimThroughFirst("-");
         value = value.replace("-", "");
         return value.lowerCaseFirstChar();
     }
 
-    createCondition(type, value, propertyPath) {
+    _createCondition(type, value, propertyPath) {
         // The last word indicates the type of condition (e.g., sex or trait)
         let condition = null;
         switch(type.toLowerCase()) {
@@ -355,24 +253,24 @@ class EcdCsvParser {
         return condition;
     }
 
-    extractConcepts(headerRow, currentRow) {
+    _extractConcepts(headerRow, currentRow) {
         var concepts = {};
          for (var i = 0; i < headerRow.length; ++i) {
-            if (this.isConceptId(headerRow[i])) {
+            if (this._isConceptId(headerRow[i])) {
                 var value = currentRow[i].trim();
                 if (value) {
-                    var conceptId = this.extractHeadingValue(headerRow[i]);
-                    concepts[conceptId] = this.asBoolean(value);
+                    var conceptId = this._extractHeadingValue(headerRow[i]);
+                    concepts[conceptId] = this._asBoolean(value);
                 }
             }
          }
          return concepts;
     }
 
-    extractHints(headerRow, currentRow) {
+    _extractHints(headerRow, currentRow) {
         var hints = [];
          for (var i = 0; i < headerRow.length; ++i) {
-            if (this.isHint(headerRow[i])) {
+            if (this._isHint(headerRow[i])) {
                 var value = currentRow[i].trim();
                 if (value) {
                     hints.push(value);
@@ -382,10 +280,10 @@ class EcdCsvParser {
          return hints;
     }
 
-    makeHintSpecificFor(selectorMap, headerRow, currentRow) {
+    _makeHintSpecificFor(selectorMap, headerRow, currentRow) {
         var hints = [];
          for (var i = 0; i < headerRow.length; ++i) {
-            if (this.isHint(headerRow[i])) {
+            if (this._isHint(headerRow[i])) {
                 var value = currentRow[i].trim();
                 do {
                     var replacementBlock = value.match(this.findReplacementBlock);
@@ -420,20 +318,13 @@ class EcdCsvParser {
          return hints;
     }
 
-    isCondition(prefix, text) {
-        var target = text.toLowerCase();
-        return target.includes(prefix.toLowerCase() + "-");
+    _isConceptId(text) {
+        return this._isColumnOfType("concept", text);
     }
 
-    isConceptId(text) {
-        var target = text.toLowerCase();
-        return target.includes("concept-");
-    }
-
-    isHint(text) {
-        var target = text.toLowerCase();
-        return target.includes("hint-");
+    _isHint(text) {
+        return this._isColumnOfType("hint", text);
     }
 }
 
-module.exports = EcdCsvParser;
+module.exports = RuleCsvDeserializer;

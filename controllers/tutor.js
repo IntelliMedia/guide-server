@@ -170,7 +170,7 @@ function handleUserNavigatedChallengeAsync(student, session, event) {
 
     // Is there tutoring available for this challenge?
     var repo = new EvaluatorRepository(session);
-    return repo.doesEvaluatorExistAsync(session.groupId, event.context.challengeId).then((condition) => {
+    return repo.doesMatchExistAsync(session.groupId, event.context.challengeId).then((condition) => {
 
         if (!condition) {
             return null;
