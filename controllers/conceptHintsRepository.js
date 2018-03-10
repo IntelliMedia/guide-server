@@ -1,21 +1,18 @@
 'use strict';
 
-const rp = require('request-promise');
-const EcdRulesEvaluator = require("./ecdRulesEvaluator");
-const RuleCsvDeserializer = require("./ruleCsvDeserializer");
-const GoogleSheetRepository = require("./googleSheetRepository");
+const ConceptHintsCsvDeserializer = require("./conceptHintsCsvDeserializer");
 
 /**
  * This class load rule objects stored as CSV rows from one or more Google Sheets
  */
-class EvaluatorRepository extends GoogleSheetRepository {
+class ConceptHintsRepository extends GoogleSheetRepository {
     constructor(session) {
         super(session);
     }
 
     findEvaluatorAsync(groupName, tags) {
         var docUrl = null;
-        return this._findAsync(groupName, tags, new RuleCsvDeserializer()).then((ruleArrays) => {
+        return this._findAsync(groupName, tags, new ConceptHintsCsvDeserializer()).then((ruleArrays) => {
             let rules = [];
             ruleArrays.forEach((array) => {
                 rules = rules.concat(array);
@@ -25,4 +22,4 @@ class EvaluatorRepository extends GoogleSheetRepository {
     }
 }
 
-module.exports = EvaluatorRepository;
+module.exports = ConceptHintsRepository;
