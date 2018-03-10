@@ -2,7 +2,7 @@ const http = require('http');
 const socketio = require('socket.io');
 const WebSocketServer = require('websocket').server;
 const Session = require('../models/Session');
-const tutor = require('./tutor');
+const EventRouter = require('./eventRouter');
 const Alert = require('../models/Alert');
 const guideProtocol = require('../shared/guide-protocol.js');
 
@@ -69,7 +69,8 @@ function handleEvent(socket, data) {
     })
     .then((session) => { 
         currentSession = session;
-        return tutor.processEventAsync(receivedEvent, session);
+        let eventRouter = new EventRouter();
+        return eventRouter.processAsync(currentSession, receivedEvent);
     })        
     .catch((err) => {        
         if (currentSession) {

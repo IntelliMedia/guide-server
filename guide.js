@@ -64,8 +64,6 @@ const socketManager = require('./controllers/socketManager');
 const StudentDataVisualization = require('./controllers/studentDataVisualization');
 const authz = require('./controllers/authorization');
 
-const tutor = require('./controllers/tutor');
-
 /**
  * API keys and Passport configuration.
  */
@@ -122,16 +120,6 @@ mongoose.connection.on('error', () => {
 mongoose.connection.on('disconnected', () => {
   console.log('Mongoose default connection disconnected');
 });
-
-/**
- * Initialize Tutor
- */
-tutor.initialize().then(() => {
-  console.info('Tutor initialized');
-})
-  .catch((err) => {
-    console.error(err);
-  });
 
 /**
  * Express configuration.

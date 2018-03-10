@@ -1,303 +1,176 @@
-const students = require('./students');
-const Student = require('../models/Student');
 const TutorAction = require('../models/TutorAction');
-const await = require('asyncawait/await');
-const guideProtocol = require('../shared/guide-protocol.js');
 const EvaluatorRepository = require('./evaluatorRepository');
-const EcdRulesEvaluator = require("./ecdRulesEvaluator");
 
-class EventToFunction {
-    constructor(actor, action, target, handler) {
-        this.actor = actor;
-        this.action = action;
-        this.target = target;
-        this.handler = handler;
-    }
-};
-
-var eventRoutes = [
-    new EventToFunction('SYSTEM', 'STARTED', 'SESSION', handleSystemStartedSessionAsync),
-    new EventToFunction('SYSTEM', 'ENDED', 'SESSION', handleSystemEndedSessionAsync),
-    new EventToFunction('USER', 'NAVIGATED', 'CHALLENGE', handleUserNavigatedChallengeAsync),
- //   new EventToFunction('USER', 'CHANGED', 'ALLELE', handleUserChangedAlleleAsync),
-    new EventToFunction('USER', 'SUBMITTED', 'ORGANISM', handleUserSubmittedOrganismAsync),
-    new EventToFunction('USER', 'SUBMITTED', 'EGG', handleUserSubmittedOrganismAsync),
-    new EventToFunction('USER', 'SUBMITTED', 'OFFSPRING', handleUserSubmittedOrganismAsync),
-    new EventToFunction('USER', 'SUBMITTED', 'PARENTS', handleUserSubmittedParentsAsync)
-];
-
-exports.initialize = () => {
-    return Promise.resolve(true);
-}
-
-exports.processEventAsync = (event, session) => {
-
-    // Is this the beginning of the session?
-    if (event.isMatch("SYSTEM", "STARTED", "SESSION")) {
-        session.studentId = event.studentId;
-        session.active = true;
-        session.startTime = event.time;
+class Tutor {
+    constructor() {
     }
 
-    var currentStudent = null;
-    return Student.findOrCreate(session.studentId).then((student) => {
+    processAsync(student, session, event) {
+        try {
+            if (event.isMatch('USER', 'NAVIGATED', 'CHALLENGE')) {
+                return this.handleUserNavigatedChallengeAsync(student, session, event);   
 
-        currentStudent = student;
-        session.logEvent(event);
+            } else if (event.isMatch('USER', 'CHANGED', 'ALLELE')) {
+                return this.handleUserChangedAlleleAsync(student, session, event);
 
-        // Tutor interprets the event
-        return handleEventAsync(student, session, event);
-    })
-    .then((action) => {
-        // If the tutor has a response message, record it and send it to the client
-        if (action) { 
-            session.logEvent(action);
-            session.emit(GuideProtocol.TutorDialog.Channel, action.context.tutorDialog.toJson());
-            session.debugAlert("Event handled -> ITS action sent to client");
+            } else if (event.isMatch('USER', 'SUBMITTED', 'ORGANISM')) {
+                return this.handleUserSubmittedOrganismAsync(student, session, event);
+
+            } else if (event.isMatch('USER', 'SUBMITTED', 'EGG')) {
+                return this.handleUserSubmittedOrganismAsync(student, session, event);
+
+            } else if (event.isMatch('USER', 'SUBMITTED', 'OFFSPRING')) {
+                return this.handleUserSubmittedOrganismAsync(student, session, event);
+
+            } else if (event.isMatch('USER', 'SUBMITTED', 'PARENTS')) { 
+                return this.handleUserSubmittedParentsAsync(student, session, event);                       
+
+            } else {
+                session.warningAlert("Tutor - unhandled: " + event.toString() + " user=" + event.studentId);
+                return Promise.resolve(null);
+            }
+        } catch(err) {
+            return  Promise.reject(err);
         }
-    })
-    .then(() => {
-        return saveAsync(session, currentStudent);
-    });
-}
+    }
 
-function handleEventAsync(student, session, event) {
-    try {
-        var eventRouters = eventRoutes.filter((route) => {
-            return event.isMatch(route.actor, route.action, route.target);
-        });
+    handleUserNavigatedChallengeAsync(student, session, event) {
+        this.checkRequiredProperties(student);   
 
-        if (eventRouters.length > 0) {
-            if (eventRouters.length > 1) {
-                console.error("Multiple handlers were defined for the same event: " + event.toString())
+        // Is there tutoring available for this challenge?
+        var repo = new EvaluatorRepository(session);
+        return repo.doesMatchExistAsync(session.groupId, event.context.challengeId).then((condition) => {
+
+            if (!condition) {
+                return null;
+            };
+
+            // If there is tutoring available, indicate it to the user with a feedback message.
+            var dialogMessage = null;
+
+            switch (Math.floor(Math.random() * 5)) {
+                case 0:
+                    dialogMessage = new GuideProtocol.Text(
+                        'ITS.CHALLENGE.INTRO.1',
+                        'I can help you with this challenge.');
+                    // dialogMessage.args.case = event.context.case;
+                    // dialogMessage.args.challenge = event.context.challenge;
+                    break;
+                case 1:
+                    dialogMessage = new GuideProtocol.Text(
+                        'ITS.CHALLENGE.INTRO.2',
+                        'Ok! Let\'s get to work!');
+                    // dialogMessage.args.case = event.context.case;
+                    // dialogMessage.args.challenge = event.context.challenge;
+                    break;
+                case 2:
+                    dialogMessage = new GuideProtocol.Text(
+                        'ITS.CHALLENGE.INTRO.3',
+                        'I\'m sure you\'re up to the challenge! :-).');
+                    break;
+                case 3:
+                    dialogMessage = new GuideProtocol.Text(
+                        'ITS.CHALLENGE.INTRO.4',
+                        'We\'re going to work on this together!');
+                    break;
+                case 4:
+                    dialogMessage = new GuideProtocol.Text(
+                        'ITS.CHALLENGE.INTRO.5',
+                        'You and I are a team and we\'re going to work on this together!');
+                    break;
             }
 
-            session.debugAlert("Tutor - handling: " + event.toString() + " user=" + event.studentId);
-            return eventRouters[0].handler(student, session, event);
-        }
+            var reason = {
+                why: "ChallengeWithTutoringAvailableStarted",
+                challengeId: event.context.challengeId
+            };
 
-        session.warningAlert("Tutor - unhandled: " + event.toString() + " user=" + event.studentId);
-        return new Promise((resolve, reject) => {
-            resolve(null);
+            return TutorAction.create(session, "SPOKETO", "USER", "navigatedChallenge",
+                new GuideProtocol.TutorDialog(dialogMessage, reason));
         });
-    } catch(err) {
-        return new Promise((resolve, reject) => {
-            reject(err);
-        });
-    }
-}
-
-/**
- * Returns promise for saving both session and student
- * @param {*} session 
- * @param {*} student 
- */
-function saveAsync(session, student) {
-    return session.save().then(() => {
-        return student.save();
-    });
-}
-
-function handleSystemStartedSessionAsync(student, session, event) {
-    return new Promise((resolve, reject) => {
-
-        if (!event.context.hasOwnProperty("classId") || !event.context.classId) {
-            throw new Error("context.classId is missing or undefined");
-        }
-
-        if (!event.context.hasOwnProperty("groupId") || !event.context.groupId) {
-            event.context.groupId = "Slice2-June26";
-            //throw new Error("student.groupId is missing or undefined");
-        }
-
-        student.lastSignIn = new Date(event.time);
-        student.classId = event.context.classId;
-        student.groupId = event.context.groupId;
-        student.learnPortalEndpoint = event.context.itsDBEndpoint;
-        student.totalSessions += 1;
-
-        session.classId = event.context.classId;
-        session.groupId = event.context.groupId;
-
-        checkRequiredProperties(student);
-
-        var dialogMessage = null;
-        var studentId = (event.studentId.toLowerCase().includes("test") ? "there" : event.studentId);
-        switch (Math.floor(Math.random() * 3)) {
-            case 0:
-                dialogMessage = new GuideProtocol.Text(
-                    'ITS.HELLO.1',
-                    'Hello! I\'m ready to help you learn about genetics.')
-                    // TODO user student's first name (studentId is a number)
-                    //'Hello {{studentId}}! I\'m ready to help you learn about genetics.')
-                dialogMessage.args.studentId = studentId;
-                break;
-            case 1:
-                dialogMessage = new GuideProtocol.Text(
-                    'ITS.HELLO.2',
-                    'Hi there!');
-                break;
-            case 2:
-                dialogMessage = new GuideProtocol.Text(
-                    'ITS.HELLO.3',
-                    'Let\'s get started!');
-        }
-
-        var reason = {
-            why: "SessionStarted"
-        };
-
-        resolve(TutorAction.create(session, "SPOKETO", "USER", "welcome",
-            new GuideProtocol.TutorDialog(dialogMessage, reason)));
-    });
-}
-
-function handleSystemEndedSessionAsync(student, session, event) {
-    checkRequiredProperties(student);
-
-    return new Promise((resolve, reject) => {
-        session.active = false;
-        session.endTime = event.time;
-
-        resolve(saveAsync(session, student).then(() => {
-            return null;
-        }));
-    });
-}
-
-function handleUserNavigatedChallengeAsync(student, session, event) {
-    checkRequiredProperties(student);   
-
-    // Is there tutoring available for this challenge?
-    var repo = new EvaluatorRepository(session);
-    return repo.doesMatchExistAsync(session.groupId, event.context.challengeId).then((condition) => {
-
-        if (!condition) {
-            return null;
-        };
-
-        // If there is tutoring available, indicate it to the user with a feedback message.
-        var dialogMessage = null;
-
-        switch (Math.floor(Math.random() * 5)) {
-            case 0:
-                dialogMessage = new GuideProtocol.Text(
-                    'ITS.CHALLENGE.INTRO.1',
-                    'I can help you with this challenge.');
-                // dialogMessage.args.case = event.context.case;
-                // dialogMessage.args.challenge = event.context.challenge;
-                break;
-            case 1:
-                dialogMessage = new GuideProtocol.Text(
-                    'ITS.CHALLENGE.INTRO.2',
-                    'Ok! Let\'s get to work!');
-                // dialogMessage.args.case = event.context.case;
-                // dialogMessage.args.challenge = event.context.challenge;
-                break;
-            case 2:
-                dialogMessage = new GuideProtocol.Text(
-                    'ITS.CHALLENGE.INTRO.3',
-                    'I\'m sure you\'re up to the challenge! :-).');
-                break;
-            case 3:
-                dialogMessage = new GuideProtocol.Text(
-                    'ITS.CHALLENGE.INTRO.4',
-                    'We\'re going to work on this together!');
-                break;
-            case 4:
-                dialogMessage = new GuideProtocol.Text(
-                    'ITS.CHALLENGE.INTRO.5',
-                    'You and I are a team and we\'re going to work on this together!');
-                break;
-        }
-
-        var reason = {
-            why: "ChallengeWithTutoringAvailableStarted",
-            challengeId: event.context.challengeId
-        };
-
-        return TutorAction.create(session, "SPOKETO", "USER", "navigatedChallenge",
-            new GuideProtocol.TutorDialog(dialogMessage, reason));
-    });
-}
-
-function handleUserChangedAlleleAsync(student, session, event) {
-    checkRequiredProperties(student);
-
-    // GroupId is set when the session starts, but in case the session has been started without an
-    // open session, pick up the groupId from the submit message.
-    if (event.context.groupId) {
-        session.groupId = event.context.groupId;
     }    
 
-    return new Promise((resolve, reject) => {
-        var dialogMessage = null;
+    handleUserChangedAlleleAsync(student, session, event) {
+        this.checkRequiredProperties(student);
 
-        switch (Math.floor(Math.random() * 4)) {
-            case 0:
-                dialogMessage = new GuideProtocol.Text(
-                    'ITS.ALLELE.FEEDBACK.1',
-                    'Hmmm... something doesn\'t look quite right about that allele selection.');
-                break;
-            case 1:
-                dialogMessage = new GuideProtocol.Text(
-                    'ITS.ALLELE.FEEDBACK.2',
-                    'That allele selection looks correct to me.');
-                break;
-            case 2:
-                dialogMessage = new GuideProtocol.Text(
-                    'ITS.ALLELE.FEEDBACK.3',
-                    'You are on the right track. Keep going!');
-                break;
-            case 3:
-                dialogMessage = new GuideProtocol.Text(
-                    'ITS.ALLELE.FEEDBACK.4',
-                    'Perhaps you should review the info on recessive genes?');
-                break;
+        // GroupId is set when the session starts, but in case the session has been started without an
+        // open session, pick up the groupId from the submit message.
+        if (event.context.groupId) {
+            session.groupId = event.context.groupId;
+        }    
+
+        return new Promise((resolve, reject) => {
+            var dialogMessage = null;
+
+            switch (Math.floor(Math.random() * 4)) {
+                case 0:
+                    dialogMessage = new GuideProtocol.Text(
+                        'ITS.ALLELE.FEEDBACK.1',
+                        'Hmmm... something doesn\'t look quite right about that allele selection.');
+                    break;
+                case 1:
+                    dialogMessage = new GuideProtocol.Text(
+                        'ITS.ALLELE.FEEDBACK.2',
+                        'That allele selection looks correct to me.');
+                    break;
+                case 2:
+                    dialogMessage = new GuideProtocol.Text(
+                        'ITS.ALLELE.FEEDBACK.3',
+                        'You are on the right track. Keep going!');
+                    break;
+                case 3:
+                    dialogMessage = new GuideProtocol.Text(
+                        'ITS.ALLELE.FEEDBACK.4',
+                        'Perhaps you should review the info on recessive genes?');
+                    break;
+            }
+
+            resolve(TutorAction.create(session, "SPOKETO", "USER", "changedAllele",
+                new GuideProtocol.TutorDialog(dialogMessage)));
+        });
+    }
+
+    handleUserSubmittedOrganismAsync(student, session, event) {
+        this.checkRequiredProperties(student);
+
+        // GroupId is set when the session starts, but in case the session has been started without an
+        // open session, pick up the groupId from the submit message.
+        if (event.context.groupId) {
+            session.groupId = event.context.groupId;
         }
 
-        resolve(TutorAction.create(session, "SPOKETO", "USER", "changedAllele",
-            new GuideProtocol.TutorDialog(dialogMessage)));
-    });
-}
-
-function handleUserSubmittedOrganismAsync(student, session, event) {
-    checkRequiredProperties(student);
-
-    // GroupId is set when the session starts, but in case the session has been started without an
-    // open session, pick up the groupId from the submit message.
-    if (event.context.groupId) {
-        session.groupId = event.context.groupId;
+        var repo = new EvaluatorRepository(session);
+        return repo.findEvaluatorAsync(session.groupId, event.context.challengeId).then((evaluator) => {
+            return (evaluator ? evaluator.evaluateAsync(student, session, event) : null);
+        });
     }
 
-    var repo = new EvaluatorRepository(session);
-    return repo.findEvaluatorAsync(session.groupId, event.context.challengeId).then((evaluator) => {
-        return (evaluator ? evaluator.evaluateAsync(student, session, event) : null);
-    });
-}
+    // Temporary method to convert from old event context to new
+    handleUserSubmittedParentsAsync(student, session, event) {
+        this.checkRequiredProperties(student);
 
-// Temporary method to convert from old event context to new
-function handleUserSubmittedParentsAsync(student, session, event) {
-    checkRequiredProperties(student);
+        event.context.challengeCriteria.characteristicsSibling1 = event.context.challengeCriteria[0].phenotype;
+        event.context.challengeCriteria.characteristicsSibling2 = event.context.challengeCriteria[1].phenotype;
 
-    event.context.challengeCriteria.characteristicsSibling1 = event.context.challengeCriteria[0].phenotype;
-    event.context.challengeCriteria.characteristicsSibling2 = event.context.challengeCriteria[1].phenotype;
+        // GroupId is set when the session starts, but in case the session has been started without an
+        // open session, pick up the groupId from the submit message.
+        if (event.context.groupId) {
+            session.groupId = event.context.groupId;
+        }
 
-    // GroupId is set when the session starts, but in case the session has been started without an
-    // open session, pick up the groupId from the submit message.
-    if (event.context.groupId) {
-        session.groupId = event.context.groupId;
+        var repo = new EvaluatorRepository(session);
+        return repo.findEvaluatorAsync(session.groupId, event.context.challengeId).then((evaluator) => {
+            return (evaluator ? evaluator.evaluateAsync(student, session, event) : null);
+        });
     }
 
-    var repo = new EvaluatorRepository(session);
-    return repo.findEvaluatorAsync(session.groupId, event.context.challengeId).then((evaluator) => {
-        return (evaluator ? evaluator.evaluateAsync(student, session, event) : null);
-    });
+    checkRequiredProperties(student) {
+        if (!student.groupId) {
+            student.groupId = "Slice2-June26";
+            //throw new Error("student.groupId is missing or undefined");
+        }
+    }
+    
 }
 
-function checkRequiredProperties(student) {
-    if (!student.groupId) {
-        student.groupId = "Slice2-June26";
-        //throw new Error("student.groupId is missing or undefined");
-    }
-}
+module.exports = Tutor;
