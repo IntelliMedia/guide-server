@@ -20,7 +20,7 @@ class EvaluatorRepository extends GoogleSheetRepository {
             ruleArrays.forEach((array) => {
                 rules = rules.concat(array);
             });
-            return new EcdRulesEvaluator(rules);
+            return (rules.length > 0 ? new EcdRulesEvaluator(rules) : null);
         });
     }
 }

@@ -22,59 +22,15 @@ class StudentModelService {
         this.studentModel = student.studentModel;
         this.session = session;
         this.challengeId = challengeId;
-        this.timestamp = null;
     }
 
-    updateStudentModel(activatedRules) {
-        this.session.debugAlert("Update student model for: " + this.student.id);
-
-        this.timestamp = new Date();
-        var negativeConcepts = [];
-        var rulesFired = [];
-
-        for (let rule of activatedRules.correct) {
-            for (var conceptId in rule.concepts) {
-                if (!rule.concepts.hasOwnProperty(conceptId)) {
-                    continue;
-                }
-                var adjustment = rule.concepts[conceptId];
-                this.processConceptDataPoint(conceptId, true, this.challengeId, rule.trait, this.timestamp);
-                rulesFired.push("+Rule Triggered: {0} -> {1} | ruleId: {2} source: {3}".format( 
-                    conceptId, adjustment, rule.id, rule.source));
-            }
-        }
-
-        for (let rule of activatedRules.misconceptions) {
-            for (let conceptId in rule.concepts) {
-                if (!rule.concepts.hasOwnProperty(conceptId)) {
-                    continue;
-                }
-                let adjustment = rule.concepts[conceptId];
-                this.processConceptDataPoint(conceptId, false, this.challengeId, rule.trait, this.timestamp);
-                let scoreByChallenge = this.getScoreByChallenge(conceptId, this.challengeId);
-                // TODO - only include negative concept state scores?
-                //if (state.score < 0) {
-                    negativeConcepts.push(new NegativeConcept(
-                        conceptId, 
-                        scoreByChallenge, 
-                        rule)); 
-                //}
-                rulesFired.push("-Rule Triggered: {0} -> {1} | ruleId: {2} source: {3}".format( 
-                    conceptId, adjustment, rule.id, rule.source));            
-            }
-        }
-
-        var msg = (rulesFired.length == 0 ? "no rules fired" : rulesFired.length + " rules fired\n" + rulesFired.join("\n"));
-        this.session.debugAlert("Rules Triggered: " + msg);
-
-        // Sort by priority (highest to lowest) and then concept score (lowest to highest)
-        return negativeConcepts.sort(function(a, b) {
-            if (b.rule.priority != a.rule.priority) {
-                return b.rule.priority - a.rule.priority;
-            } else {
-                return a.score - b.score;
-            }
-        });
+    incorrectConceptsAsync(event) {
+      
+        return ConceptObservation.find({
+                timestamp: new Date(event.time), 
+                studentId: event.studentId, 
+                challengeId: event.context.challengeId, 
+                isCorrect: false}).exec();
     }
     
     selectHint(negativeConcepts) {
@@ -151,6 +107,24 @@ class StudentModelService {
         return conceptToHint;
     }
 
+    updateDashboardAsync(student) {
+        if (student.learnPortalEndpoint) {
+            let dashboardService = new DashboardService();
+            return dashboardService.updateStudentDataAsync(this.session, this.student.studentModel, this.student.learnPortalEndpoint)
+                .then(() => {
+                    return true;
+                })
+                .catch((err) => {
+                    // It's ok for the dashboard push to fail, we should continue to return an action
+                    return false;
+                });
+        }
+        else
+        {
+            return Promise.resolve(true);
+        }          
+    }
+
     getScoreByChallenge(conceptId, challengeId) {
         return this.studentModel.getConceptByChallenge(conceptId, challengeId).score;
     }
@@ -161,7 +135,7 @@ class StudentModelService {
         this.updateConceptState(this.studentModel.getConceptByTrait(conceptId, trait), isCorrect);
         //this.updateConceptState(this.studentModel.getConceptSnapshot(conceptId, timestamp), isCorrect);
 
-        ConceptObservation.record(conceptId, this.student.id, challengeId, isCorrect);
+        return ConceptObservation.record(timestamp, conceptId, trait, this.student.id, challengeId, isCorrect);
     }
 
     updateConceptState(conceptState, isCorrect) {

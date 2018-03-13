@@ -1,45 +1,55 @@
 const TutorAction = require('../models/TutorAction');
 const EvaluatorRepository = require('./evaluatorRepository');
+const TutorialPlanner = require('./tutorialPlanner');
 
 class Tutor {
-    constructor() {
+    constructor(student, session) {
+        this.student = student;
+        this.session = session;
     }
 
-    processAsync(student, session, event) {
+    processAsync(event) {
         try {
-            if (event.isMatch('USER', 'NAVIGATED', 'CHALLENGE')) {
-                return this.handleUserNavigatedChallengeAsync(student, session, event);   
+            return this.evaluateAsync(event).then(() => this.makeDecisionAsync(event));
 
-            } else if (event.isMatch('USER', 'CHANGED', 'ALLELE')) {
-                return this.handleUserChangedAlleleAsync(student, session, event);
-
-            } else if (event.isMatch('USER', 'SUBMITTED', 'ORGANISM')) {
-                return this.handleUserSubmittedOrganismAsync(student, session, event);
-
-            } else if (event.isMatch('USER', 'SUBMITTED', 'EGG')) {
-                return this.handleUserSubmittedOrganismAsync(student, session, event);
-
-            } else if (event.isMatch('USER', 'SUBMITTED', 'OFFSPRING')) {
-                return this.handleUserSubmittedOrganismAsync(student, session, event);
-
-            } else if (event.isMatch('USER', 'SUBMITTED', 'PARENTS')) { 
-                return this.handleUserSubmittedParentsAsync(student, session, event);                       
-
-            } else {
-                session.warningAlert("Tutor - unhandled: " + event.toString() + " user=" + event.studentId);
-                return Promise.resolve(null);
-            }
         } catch(err) {
             return  Promise.reject(err);
         }
-    }
+    }    
 
-    handleUserNavigatedChallengeAsync(student, session, event) {
-        this.checkRequiredProperties(student);   
+    evaluateAsync(event) {
+        try {
+            console.info("evaluateAsync");
+
+            // Use the event's action and target to find an evaluator. E.g., "changed, allele"
+            let evaluatorTags = event.action.toLowerCase() + ", " + event.target.toLowerCase();
+
+            let repo = new EvaluatorRepository(this.session);
+            return repo.findEvaluatorAsync(this.session.groupId, evaluatorTags).then((evaluator) => {
+                return (evaluator ? evaluator.evaluateAsync(this.student, this.session, event) : Promise.resolve(false));
+            });
+
+        } catch(err) {
+            return  Promise.reject(err);
+        }
+    }   
+    
+    makeDecisionAsync(event) {
+        try {
+            console.info("makeDecisionAsync");
+            let tutorialPlanner = new TutorialPlanner(this.student, this.session);
+            return tutorialPlanner.evaluateAsync(event);
+        } catch(err) {
+            return  Promise.reject(err);
+        }
+    } 
+
+    handleUserNavigatedChallengeAsync(event) {
+        this.checkRequiredProperties(this.student);   
 
         // Is there tutoring available for this challenge?
-        var repo = new EvaluatorRepository(session);
-        return repo.doesMatchExistAsync(session.groupId, event.context.challengeId).then((condition) => {
+        var repo = new EvaluatorRepository(this.session);
+        return repo.doesMatchExistAsync(this.session.groupId, event.context.challengeId).then((condition) => {
 
             if (!condition) {
                 return null;
@@ -85,19 +95,15 @@ class Tutor {
                 challengeId: event.context.challengeId
             };
 
-            return TutorAction.create(session, "SPOKETO", "USER", "navigatedChallenge",
+            return TutorAction.create(this.session, "SPOKETO", "USER", "navigatedChallenge",
                 new GuideProtocol.TutorDialog(dialogMessage, reason));
         });
     }    
 
-    handleUserChangedAlleleAsync(student, session, event) {
-        this.checkRequiredProperties(student);
+    handleUserChangedAlleleAsync(event) {
+        this.checkRequiredProperties();
 
-        // GroupId is set when the session starts, but in case the session has been started without an
-        // open session, pick up the groupId from the submit message.
-        if (event.context.groupId) {
-            session.groupId = event.context.groupId;
-        }    
+  
 
         return new Promise((resolve, reject) => {
             var dialogMessage = null;
@@ -125,49 +131,49 @@ class Tutor {
                     break;
             }
 
-            resolve(TutorAction.create(session, "SPOKETO", "USER", "changedAllele",
+            resolve(TutorAction.create(this.session, "SPOKETO", "USER", "changedAllele",
                 new GuideProtocol.TutorDialog(dialogMessage)));
         });
     }
 
-    handleUserSubmittedOrganismAsync(student, session, event) {
-        this.checkRequiredProperties(student);
+    handleUserSubmittedOrganismAsync(event) {
+        this.checkRequiredProperties();
 
-        // GroupId is set when the session starts, but in case the session has been started without an
-        // open session, pick up the groupId from the submit message.
+        // GroupId is set when the this.session starts, but in case the this.session has been started without an
+        // open this.session, pick up the groupId from the submit message.
         if (event.context.groupId) {
-            session.groupId = event.context.groupId;
+            this.session.groupId = event.context.groupId;
         }
 
-        var repo = new EvaluatorRepository(session);
-        return repo.findEvaluatorAsync(session.groupId, event.context.challengeId).then((evaluator) => {
-            return (evaluator ? evaluator.evaluateAsync(student, session, event) : null);
+        var repo = new EvaluatorRepository(this.session);
+        return repo.findEvaluatorAsync(this.session.groupId, event.context.challengeId).then((evaluator) => {
+            return (evaluator ? evaluator.evaluateAsync(this.student, this.session, event) : null);
         });
     }
 
     // Temporary method to convert from old event context to new
-    handleUserSubmittedParentsAsync(student, session, event) {
-        this.checkRequiredProperties(student);
+    handleUserSubmittedParentsAsync(event) {
+        this.checkRequiredProperties();
 
         event.context.challengeCriteria.characteristicsSibling1 = event.context.challengeCriteria[0].phenotype;
         event.context.challengeCriteria.characteristicsSibling2 = event.context.challengeCriteria[1].phenotype;
 
-        // GroupId is set when the session starts, but in case the session has been started without an
-        // open session, pick up the groupId from the submit message.
+        // GroupId is set when the this.session starts, but in case the this.session has been started without an
+        // open this.session, pick up the groupId from the submit message.
         if (event.context.groupId) {
-            session.groupId = event.context.groupId;
+            this.session.groupId = event.context.groupId;
         }
 
-        var repo = new EvaluatorRepository(session);
-        return repo.findEvaluatorAsync(session.groupId, event.context.challengeId).then((evaluator) => {
-            return (evaluator ? evaluator.evaluateAsync(student, session, event) : null);
+        var repo = new EvaluatorRepository(this.session);
+        return repo.findEvaluatorAsync(this.session.groupId, event.context.challengeId).then((evaluator) => {
+            return (evaluator ? evaluator.evaluateAsync(this.student, this.session, event) : null);
         });
     }
 
-    checkRequiredProperties(student) {
-        if (!student.groupId) {
-            student.groupId = "Slice2-June26";
-            //throw new Error("student.groupId is missing or undefined");
+    checkRequiredProperties() {
+        if (!this.student.groupId) {
+            this.student.groupId = "Slice2-June26";
+            //throw new Error("this.student.groupId is missing or undefined");
         }
     }
     

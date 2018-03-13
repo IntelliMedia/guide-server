@@ -1,15 +1,19 @@
 const mongoose = require('mongoose');
 
 const conceptObservationSchema = new mongoose.Schema({
+  timestamp: Date,
   conceptId: String,
+  trait: String,
   studentId: String,
   challengeId: String,
   isCorrect: Boolean
-}, { timestamps: true });
+});
 
-conceptObservationSchema.statics.record = function(conceptId, studentId, challengeId, isCorrect) {
+conceptObservationSchema.statics.record = function(timestamp, conceptId, trait, studentId, challengeId, isCorrect) {
   let observation = new ConceptObservation({
+    timestamp: timestamp,
     conceptId: conceptId,
+    trait: trait,
     studentId: studentId,
     challengeId: challengeId,
     isCorrect: isCorrect

@@ -12,6 +12,12 @@ class EventRouter {
     }
 
     processAsync(session, event) {
+        // GroupId is set when the this.session starts, but in case the this.session has been started without an
+        // open this.session, pick up the groupId from the submit message.
+        if (event.context.groupId) {
+            session.groupId = event.context.groupId;
+        } 
+
         // Is this the beginning of the session?
         if (event.isMatch("SYSTEM", "STARTED", "SESSION")) {
             session.studentId = event.studentId;
@@ -54,8 +60,8 @@ class EventRouter {
                     || event.isMatch('USER', 'SUBMITTED', 'EGG')
                     || event.isMatch('USER', 'SUBMITTED', 'OFFSPRING')
                     || event.isMatch('USER', 'SUBMITTED', 'PARENTS')) {
-                let tutor = new Tutor();
-                return tutor.processAsync(student, session, event);
+                let tutor = new Tutor(student, session);
+                return tutor.processAsync(event);
 
             } else {
                 session.warningAlert("EventRouter - unhandled: " + event.toString() + " user=" + event.studentId);
@@ -130,7 +136,7 @@ class EventRouter {
             session.active = false;
             session.endTime = event.time;
 
-            resolve(saveAsync(session, student).then(() => {
+            resolve(this.saveAsync(session, student).then(() => {
                 return null;
             }));
         });

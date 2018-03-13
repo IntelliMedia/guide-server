@@ -1,6 +1,7 @@
 'use strict';
 
 const ConceptHintsCsvDeserializer = require("./conceptHintsCsvDeserializer");
+const GoogleSheetRepository = require("./googleSheetRepository");
 
 /**
  * This class load rule objects stored as CSV rows from one or more Google Sheets

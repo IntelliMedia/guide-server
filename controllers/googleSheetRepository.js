@@ -93,7 +93,8 @@ class GoogleSheetRepository {
             }); 
 
             if (matchingRepositoryLinks.length == 0) {
-                throw new Error("Unable to find Google Sheet with tags (" + tags + ") in  group '" + groupName + "'");  
+                this.session.warningAlert("Unable to find Google Sheet with tags (" + tags + ") in  group '" + groupName + "'");  
+                return [];
             }
 
             console.info("Found " + matchingRepositoryLinks.length + " Google Sheets for tags (" + tags + ") defined for group '" + groupName + "'");

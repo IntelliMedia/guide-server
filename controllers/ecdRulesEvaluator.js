@@ -15,7 +15,6 @@ const DashboardService = require('./dashboardService');
 class EcdRulesEvaluator {
     constructor(rules) {
         this.rules = rules;
-        this.studentModelService = null;
         console.info("EcdRulesEvaluator initialized with " + rules.length + " rule(s).");
     }
 
@@ -25,62 +24,25 @@ class EcdRulesEvaluator {
                 let challengeId = event.context.challengeId;
                 session.debugAlert("Evaluate rules for: {0} ({1} | {2} | {3})".format(student.id, session.classId, session.groupId, challengeId));                
                 
-                var activatedRules = this.evaluateRules(event);
+                let savePromises = [];
+                let rulesFiredMsgs = [];
 
-                this.studentModelService = new StudentModelService(student, session, challengeId);
-                var negativeConcepts = this.studentModelService.updateStudentModel(activatedRules);
-
-                var conceptToHint = null;
-                if (!event.context.correct) {
-                    conceptToHint = this.studentModelService.selectHint(negativeConcepts)
-                } else {
-                    session.debugAlert("No need to send hint, organism is correct for user: " + student.id);
-                }  
-
-                var action = null;
-                if (conceptToHint != null) {
-        
-                    var dialogMessage = new GuideProtocol.Text(
-                        'ITS.CONCEPT.FEEDBACK',
-                        conceptToHint.Text);
-                    if (conceptToHint.rule.trait) {
-                        dialogMessage.args.trait = conceptToHint.rule.trait;
-                    } else {
-                        dialogMessage.args.trait = conceptToHint.rule.conditionsAsString();
-                    }
-        
-                    var reason = {
-                        why: "MisconceptionDetected",
-                        ruleId: conceptToHint.rule.id,
-                        ruleSource: conceptToHint.rule.source,
-                        trait: conceptToHint.rule.trait
-                    };
-                    action = TutorAction.create(session, "SPOKETO", "USER", "hint",
-                                new GuideProtocol.TutorDialog(dialogMessage, reason));
-                    action.context.hintLevel = conceptToHint.hintLevel;
-                    action.context.selectionTarget = conceptToHint.selectionTarget;
-                    action.context.challengeId = challengeId;
-                    action.context.ruleId = conceptToHint.rule.id;
-                    action.context.ruleSource = conceptToHint.rule.source;
+                let activatedRules = this.evaluateRules(event);
+                if (activatedRules.length > 0) {
+                    let studentModelService = new StudentModelService(student, session, challengeId);              
+                    for (let rule of activatedRules) {
+                        for (let conceptId in rule.concepts) {
+                            savePromises.push(studentModelService.processConceptDataPoint(conceptId, rule.isCorrect, challengeId, rule.trait, event.time));
+                            rulesFiredMsgs.push("Rule Triggered ->  Correct:{0} | {1} | {2} | ruleId: {3} source: {4}".format( 
+                                rule.isCorrect, conceptId, rule.trait, rule.id, rule.source));
+                        }
+                    }                
                 }
 
-                if (student.learnPortalEndpoint) {
-                    let dashboardService = new DashboardService();
-                    let updatePromise = dashboardService.updateStudentDataAsync(session, student.studentModel, student.learnPortalEndpoint)
-                        .then(() => {
-                            return action;
-                        })
-                        .catch((err) => {
-                            // It's ok for the dashboard push to fail, we should continue to return an action
-                            return action;
-                        });
+                var msg = (rulesFiredMsgs.length == 0 ? "no rules fired" : rulesFiredMsgs.length + " rules fired\n" + rulesFiredMsgs.join("\n"));
+                session.debugAlert("Rules Triggered: " + msg);
+                resolve(Promise.all(savePromises));
 
-                    resolve(updatePromise);
-                }
-                else
-                {
-                    resolve(action);
-                }
             } catch(err) {
                 reject(err);
             }
@@ -89,24 +51,15 @@ class EcdRulesEvaluator {
 
     evaluateRules(event) {
 
-        var activatedRules = {
-            correct: [],
-            misconceptions: []
-        }
-
+        var activatedRules = []
         for (let rule of this.rules) {
             if (rule.evaluate(event)) {
-                if (rule.isCorrect) {
-                    activatedRules.correct.push(rule);
-                } else {
-                    activatedRules.misconceptions.push(rule);
-                }
+                 activatedRules.push(rule);
             }
         }
 
-        activatedRules.correct = this.sortRulesByPriority(activatedRules.correct);
-        activatedRules.misconceptions = this.sortRulesByPriority(activatedRules.misconceptions);
-
+        activatedRules = this.sortRulesByPriority(activatedRules);
+        
         return activatedRules;
     }
 
