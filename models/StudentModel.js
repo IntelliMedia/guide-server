@@ -54,12 +54,22 @@ const hintDeliveredSchema = new mongoose.Schema({
 }, { _id : false });
 const HintDelivered = mongoose.model('HintDelivered', hintDeliveredSchema);
 
+const misconceptionSchema = new mongoose.Schema({
+  conceptId: { type: String, required: true},
+  challengeId: String,
+  trait: String,
+  timestamp: Date,
+  source: String
+}, { _id : false });
+const Misconception = mongoose.model('Misconception', misconceptionSchema);
+
 const studentModelSchema = new mongoose.Schema({
   conceptsAggregated: [conceptStateSchema],
   conceptsByChallenge: [conceptsByChallengeIdSchema],
   conceptsByTrait: [conceptsByTraitSchema],
 //  snapshotsByConceptId: [snapshotsByConceptIdSchema],
-  hintHistory: [hintDeliveredSchema]
+  hintHistory: [hintDeliveredSchema],
+  mostRecentMisconceptions: [misconceptionSchema]
 }, { timestamps: true });
 
 studentModelSchema.methods.reset = function() {
@@ -68,6 +78,7 @@ studentModelSchema.methods.reset = function() {
   this.conceptsByTrait = [];
 //  this.snapshotsByConceptId = [];
   this.hintHistory = [];
+  this.mostRecentMisconceptions = [];
 }
 
 // Reusable method that is used to find/create ConceptState in a collection
@@ -131,7 +142,7 @@ studentModelSchema.methods.getConceptByTrait = function(conceptId, trait) {
   // Get concept collection by challenge
   let conceptsByTrait = this.conceptsByTrait.find((c) => c.trait === trait);
   if (!conceptsByTrait) {
-    // Create new concept collection for this challenge
+    // Create new concept collection for this trait
     this.conceptsByTrait.unshift(new ConceptsByTrait({
       trait: trait }));
 
@@ -168,6 +179,34 @@ studentModelSchema.methods.addHintToHistory = function(conceptId, scoreByChallen
   });
 
   return this.hintHistory[0];
+}
+
+studentModelSchema.methods.getMisconceptionsForEvent = function(event) {
+  return this.mostRecentMisconceptions.filter((misconception) => {
+    return (misconception.challengeId == event.context.challengeId
+      && misconception.timestamp.getTime() == event.time);
+  });
+}
+
+studentModelSchema.methods.addMisconception = function(conceptId, challengeId, trait, timestamp, source) {
+
+    if (!this.mostRecentMisconceptions ||
+        (this.mostRecentMisconceptions.length > 0 
+          && this.mostRecentMisconceptions[0].challengeId != challengeId
+          && this.mostRecentMisconceptions[0].timestamp.getTime() < timestamp)) {
+        // Reset list
+        this.mostRecentMisconceptions = [];
+    }
+
+  this.mostRecentMisconceptions.push({
+    conceptId: conceptId,
+    challengeId: challengeId,
+    trait: trait,
+    timestamp: timestamp,
+    source: source
+  });
+
+  return this.mostRecentMisconceptions[0];
 }
 
 studentModelSchema.methods.mostRecentHint = function(challengeId) {

@@ -36,6 +36,10 @@ class EcdRule {
         }
     }
 
+    sourceUrl() {
+        return this.source + '/edit#gid=0?range=' + this.id + ':' + this.id;
+    }
+
     evaluate(event) {
 
         let allConditionsMatched = this.conditions.every((condition) => {

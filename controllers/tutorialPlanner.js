@@ -19,18 +19,80 @@ class TutorialPlanner {
     }
 
     evaluateAsync(event) {
-        let studentModelService = new StudentModelService(this.student, this.session, event.challengeId);  
-        return studentModelService.incorrectConceptsAsync(event).then((observations) => {
-            if (observations && observations.length > 0) {
-                console.info("Observed incorrect concepts:");
-                for (let observation of observations) {
-                    console.info("   " + observation.conceptId + " | " + observation.trait);
-                }
+        // Hint delivery order of preference:
+        // On incorrect selection:
+        // - Is hint available?
+        // - Hint previously delivered for concept/trait IF BKT score is below threshold
+        // - Hint for concept/trait IF BKT score below threshold (ordered by lowest score)
 
-                let conceptHintsRepository = new ConceptHintsRepository();
-                // TODO get hints, cross refernce with current wrong answer AND most recent hint 
+        let challengeId = event.context.challengeId;
+        let studentModelService = new StudentModelService(this.student, this.session, challengeId);   
+        let misconceptions = this.student.studentModel.getMisconceptionsForEvent(event);
+        if (misconceptions.length > 0) {
+            misconceptions.forEach((misconception) => {
+                let concept = this.student.studentModel.getConceptByTrait(misconception.conceptId, misconception.trait);
+                misconception.score = concept.score;
+            });
+
+            let mostRecentHint = this.student.studentModel.mostRecentHint(challengeId);
+            let misconception = this._selectHint(misconceptions, mostRecentHint);
+            return Promise.resolve(this._createHintAction(
+                "Place holder hint text for " + misconception.conceptId,
+                9,
+                misconception.trait,
+                challengeId,
+                misconception.source
+            ));
+
+            //let conceptHintsRepository = new ConceptHintsRepository();
+            // TODO get hints, cross refernce with current wrong answer AND most recent hint 
+        }
+        
+
+        return Promise.resolve(null);
+
+    }
+
+    _selectHint(misconceptions, mostRecentHint) {
+        console.info("Observed incorrect concepts:");
+        misconceptions = this._sortMisconceptionsByPreviousHintAndThenAscendingScore(misconceptions, mostRecentHint);
+        for (let misconception of misconceptions) {
+            console.info("   " + misconception.conceptId + " | " + misconception.trait+ " | " + misconception.score + " | " + misconception.source);
+        }
+
+        for (let misconception of misconceptions) {
+            return misconception;
+        }
+    };
+
+    _sortMisconceptionsByPreviousHintAndThenAscendingScore(misconceptions, mostRecentHint) {
+        return misconceptions.sort(function(a, b) {
+            if (mostRecentHint && a.conceptId == b.conceptId) {
+                return (a.conceptId == mostRecentHint.conceptId ? 1 : -1);
+            } else {
+                return a.score -  b.score;
             }
         });
+    }
+
+    _createHintAction(hintText, hintLevel, trait, challengeId, source) {        
+        let dialogMessage = new GuideProtocol.Text(
+            'ITS.CONCEPT.FEEDBACK',
+            hintText);
+        dialogMessage.args.trait = trait;
+
+        let reason = {
+            why: "MisconceptionDetected",
+            source: source,
+            trait: trait
+        };
+        let action = TutorAction.create(this.session, "SPOKETO", "USER", "hint",
+                    new GuideProtocol.TutorDialog(dialogMessage, reason));
+        action.context.hintLevel = hintLevel;
+        action.context.challengeId = challengeId;
+        action.context.source = source;    
+
+        return action;
     }
 
     /*
@@ -97,35 +159,6 @@ class TutorialPlanner {
         });
     }
     */
-
-    evaluateRules(event) {
-
-        var activatedRules = {
-            correct: [],
-            misconceptions: []
-        }
-
-        for (let rule of this.rules) {
-            if (rule.evaluate(event)) {
-                if (rule.isCorrect) {
-                    activatedRules.correct.push(rule);
-                } else {
-                    activatedRules.misconceptions.push(rule);
-                }
-            }
-        }
-
-        activatedRules.correct = this.sortRulesByPriority(activatedRules.correct);
-        activatedRules.misconceptions = this.sortRulesByPriority(activatedRules.misconceptions);
-
-        return activatedRules;
-    }
-
-    sortRulesByPriority(rules) {
-        return rules.sort(function(a, b) {
-            return b.priority - a.priority;
-        });
-    }
 }
 
 module.exports = TutorialPlanner;

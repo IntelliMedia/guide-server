@@ -31,10 +31,10 @@ class EcdRulesEvaluator {
                 if (activatedRules.length > 0) {
                     let studentModelService = new StudentModelService(student, session, challengeId);              
                     for (let rule of activatedRules) {
-                        for (let conceptId in rule.concepts) {
-                            savePromises.push(studentModelService.processConceptDataPoint(conceptId, rule.isCorrect, challengeId, rule.trait, event.time));
-                            rulesFiredMsgs.push("Rule Triggered ->  Correct:{0} | {1} | {2} | ruleId: {3} source: {4}".format( 
-                                rule.isCorrect, conceptId, rule.trait, rule.id, rule.source));
+                        for (let conceptId in rule.concepts) { 
+                            savePromises.push(studentModelService.processConceptDataPoint(conceptId, rule.isCorrect, challengeId, rule.trait, event.time, rule.sourceUrl()));
+                            rulesFiredMsgs.push("Rule Triggered ->  Correct:{0} | {1} | {2} | rule: {3}".format( 
+                                rule.isCorrect, conceptId, rule.trait, rule.sourceUrl()));
                         }
                     }                
                 }
