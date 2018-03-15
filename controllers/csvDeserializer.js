@@ -41,7 +41,10 @@ class CsvDeserializer {
                     continue;
                 }
 
-                rules.push.apply(rules, parseRowMethod(currentRowIndex, columnMap, headerRow, currentRow));
+                let obj = parseRowMethod(currentRowIndex, columnMap, headerRow, currentRow);
+                if (obj && obj.length > 0) {
+                    rules.push.apply(rules, obj);
+                }
             }
 
             return rules;

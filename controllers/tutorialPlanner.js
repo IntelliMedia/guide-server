@@ -35,34 +35,36 @@ class TutorialPlanner {
             });
 
             let mostRecentHint = this.student.studentModel.mostRecentHint(challengeId);
-            let misconception = this._selectHint(misconceptions, mostRecentHint);
-            return Promise.resolve(this._createHintAction(
-                "Place holder hint text for " + misconception.conceptId,
-                9,
-                misconception.trait,
-                challengeId,
-                misconception.source
-            ));
-
-            //let conceptHintsRepository = new ConceptHintsRepository();
-            // TODO get hints, cross refernce with current wrong answer AND most recent hint 
+            return this._selectHintAsync(event.context.groupId, challengeId, misconceptions, mostRecentHint);
         }
         
-
         return Promise.resolve(null);
-
     }
 
-    _selectHint(misconceptions, mostRecentHint) {
+    _selectHintAsync(groupId, challengeId, misconceptions, mostRecentHint) {
         console.info("Observed incorrect concepts:");
         misconceptions = this._sortMisconceptionsByPreviousHintAndThenAscendingScore(misconceptions, mostRecentHint);
         for (let misconception of misconceptions) {
             console.info("   " + misconception.conceptId + " | " + misconception.trait+ " | " + misconception.score + " | " + misconception.source);
         }
 
-        for (let misconception of misconceptions) {
-            return misconception;
-        }
+        let conceptHintsRepository = new ConceptHintsRepository(this.session);
+        return conceptHintsRepository.loadAsync(groupId).then(() => {
+            for (let misconception of misconceptions) {
+                let conceptHints = conceptHintsRepository.find("Sim", misconception.conceptId);
+                if (conceptHints && conceptHints.length > 0) {
+                    let conceptHint = conceptHints[0];
+                    return this._createHintAction(
+                        conceptHint.hints[0],
+                        9,
+                        misconception.trait,
+                        challengeId,
+                        "Rule: " + misconception.source + "\nHint: " + conceptHint.source
+                    );
+                }
+            }
+            return null;
+        });        
     };
 
     _sortMisconceptionsByPreviousHintAndThenAscendingScore(misconceptions, mostRecentHint) {

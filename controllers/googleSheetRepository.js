@@ -71,8 +71,9 @@ class GoogleSheetRepository {
                         msg += err.message;
                     }
                     reject(new Error(msg));
+                } else {
+                    resolve(csv);
                 }
-                resolve(csv);
             });
         });  
     }
