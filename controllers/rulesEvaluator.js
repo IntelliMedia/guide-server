@@ -12,10 +12,10 @@ const DashboardService = require('./dashboardService');
  * This class uses ECD-derived rules to evaluate student moves
  * and to provide move-specific hints.
  */
-class EcdRulesEvaluator {
+class RulesEvaluator {
     constructor(rules) {
         this.rules = rules;
-        console.info("EcdRulesEvaluator initialized with " + rules.length + " rule(s).");
+        console.info("RulesEvaluator initialized with " + rules.length + " rule(s).");
     }
 
     evaluateAsync(student, session, event) {
@@ -70,4 +70,4 @@ class EcdRulesEvaluator {
     }
 }
 
-module.exports = EcdRulesEvaluator;
+module.exports = RulesEvaluator;

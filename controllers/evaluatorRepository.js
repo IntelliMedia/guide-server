@@ -1,7 +1,7 @@
 'use strict';
 
 const rp = require('request-promise');
-const EcdRulesEvaluator = require("./ecdRulesEvaluator");
+const RulesEvaluator = require("./rulesEvaluator");
 const RuleCsvDeserializer = require("./ruleCsvDeserializer");
 const GoogleSheetRepository = require("./googleSheetRepository");
 
@@ -20,7 +20,7 @@ class EvaluatorRepository extends GoogleSheetRepository {
             ruleArrays.forEach((array) => {
                 rules = rules.concat(array);
             });
-            return (rules.length > 0 ? new EcdRulesEvaluator(rules) : null);
+            return (rules.length > 0 ? new RulesEvaluator(rules) : null);
         });
     }
 }

@@ -1,10 +1,10 @@
 'use strict';
 
-const EcdRuleCondition = require('./ecdRuleCondition');
-const TraitCondition = require('./ecdRuleCondition').TraitCondition;
+const RuleCondition = require('./ruleCondition');
+const TraitCondition = require('./ruleCondition').TraitCondition;
 const _ = require('lodash');
 
-class EcdRule {   
+class Rule {   
     constructor(source, id, priority, conditions, isCorrect, concepts, hints) {
         this.source = source;
         this.id = id;
@@ -73,4 +73,4 @@ class EcdRule {
     }
 }
 
-module.exports = EcdRule;
+module.exports = Rule;

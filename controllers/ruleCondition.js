@@ -5,7 +5,7 @@ const Biologicax = require('../shared/biologicax');
 const Stringx = require("../utilities/stringx");
 const propPath = require('property-path');
 
-class EcdRuleCondition {   
+class RuleCondition {   
 
     constructor(propertyPath, value) {
 
@@ -28,7 +28,7 @@ class EcdRuleCondition {
     }
 
     evaluate(obj) {
-        throw new Error("EcdRuleCondition.evaluate() must be overriden in a child class");
+        throw new Error("RuleCondition.evaluate() must be overriden in a child class");
     }
 
     getPropertyPath(propertyOverride) {
@@ -73,7 +73,7 @@ class EcdRuleCondition {
     }
 }
 
-class AllelesCondition extends EcdRuleCondition {
+class AllelesCondition extends RuleCondition {
     constructor(propertyPath, value) { 
         super(propertyPath, value);
         this.targetAlleles = this.normalizeAlleles(value);
@@ -94,7 +94,7 @@ class AllelesCondition extends EcdRuleCondition {
     }
 }
 
-class SexCondition extends EcdRuleCondition {
+class SexCondition extends RuleCondition {
     constructor(propertyPath, value) { 
         super(propertyPath, value);
         this.trait = "sex";
@@ -112,7 +112,7 @@ class SexCondition extends EcdRuleCondition {
     }
 }
 
-class StringCondition extends EcdRuleCondition {
+class StringCondition extends RuleCondition {
     constructor(propertyPath, value, normalize) { 
         super(propertyPath, value);
  
@@ -133,7 +133,7 @@ class StringCondition extends EcdRuleCondition {
     }
 }
 
-class BoolCondition extends EcdRuleCondition {
+class BoolCondition extends RuleCondition {
     constructor(propertyPath, value) { 
         super(propertyPath, value);
  
@@ -146,7 +146,7 @@ class BoolCondition extends EcdRuleCondition {
     }
 }
 
-class TraitCondition extends EcdRuleCondition {
+class TraitCondition extends RuleCondition {
     constructor(propertyPath, value) { 
         super(propertyPath, value);
         this.targetTraits = this.normalizeCharacterisitics(value.split(","));

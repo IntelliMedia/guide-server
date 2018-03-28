@@ -1,7 +1,7 @@
 'use strict';
 
-const EcdRule = require('./ecdRule');
-const EcdRuleCondition = require('./ecdRuleCondition');
+const Rule = require('./rule');
+const RuleCondition = require('./ruleCondition');
 const CsvDeserializer = require('./csvDeserializer');
 
 /**
@@ -164,7 +164,7 @@ class RuleCsvDeserializer extends CsvDeserializer {
             throw new Error("Missing conditions in CSV. Unable to find columns with condition prefixes: Target-, Selected-, or Condition-");
         }
 
-        return new EcdRule(
+        return new Rule(
             this.source,
             ruleId, 
             this._asNumber(this._getCell(currentRow, columnMap, "priority")),
@@ -227,27 +227,27 @@ class RuleCsvDeserializer extends CsvDeserializer {
         switch(type.toLowerCase()) {
 
             case "alleles":
-                condition = new EcdRuleCondition.AllelesCondition(propertyPath, value);
+                condition = new RuleCondition.AllelesCondition(propertyPath, value);
                 break;
 
             case "sex":
-                condition = new EcdRuleCondition.SexCondition(propertyPath, value);
+                condition = new RuleCondition.SexCondition(propertyPath, value);
                 break;
 
             case "trait":
-                condition = new EcdRuleCondition.TraitCondition(propertyPath, value);
+                condition = new RuleCondition.TraitCondition(propertyPath, value);
                 break;
 
             case "challengeid":
-                condition = new EcdRuleCondition.StringCondition(propertyPath, value, true);
+                condition = new RuleCondition.StringCondition(propertyPath, value, true);
                 break;
 
             case "correct":
-                condition = new EcdRuleCondition.BoolCondition(propertyPath, value);
+                condition = new RuleCondition.BoolCondition(propertyPath, value);
                 break;
 
             default:
-                throw new Error("Unknown EcdRuleCondition type: " + type);
+                throw new Error("Unknown RuleCondition type: " + type);
         }
 
         return condition;
