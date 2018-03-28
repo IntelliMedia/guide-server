@@ -13,6 +13,7 @@ class EcdRule {
         this.concepts = concepts;
         this.hints = hints;
         this.trait = null;
+        this.characteristic = null;
         this.isCorrect = isCorrect;
 
         if (!this.conditions || this.conditions.length == 0) {
@@ -34,6 +35,8 @@ class EcdRule {
         } else {
             this.trait = "unknown";
         }
+
+        this.characteristic = this.trait;
     }
 
     sourceUrl() {
@@ -42,10 +45,15 @@ class EcdRule {
 
     evaluate(event) {
 
-        let allConditionsMatched = this.conditions.every((condition) => {
-            let result = condition.evaluate(event);
-            return result;
-        });
+        let allConditionsMatched = false;
+        // Is the characteristic editable by the user in the client?
+        if (event.context.editableAttributes.indexOf(this.characteristic) >= 0) {
+            // If so evaluate the event
+            allConditionsMatched = this.conditions.every((condition) => {
+                let result = condition.evaluate(event);
+                return result;
+            });
+        }
 
         return allConditionsMatched;
     }
