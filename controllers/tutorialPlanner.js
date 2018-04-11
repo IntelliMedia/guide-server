@@ -45,7 +45,7 @@ class TutorialPlanner {
         console.info("Observed incorrect concepts:");
         misconceptions = this._sortMisconceptionsByPreviousHintAndThenAscendingScore(misconceptions, mostRecentHint);
         for (let misconception of misconceptions) {
-            console.info("   " + misconception.conceptId + " | " + misconception.trait+ " | " + misconception.score + " | " + misconception.source);
+            console.info("   " + misconception.conceptId + " | " + misconception.trait + " | " + misconception.score + " | " + misconception.source);
         }
 
         let conceptHintsRepository = new ConceptHintsRepository(this.session);

@@ -47,7 +47,7 @@ class Rule {
 
         let allConditionsMatched = false;
         // Is the characteristic editable by the user in the client?
-        if (event.context.editableAttributes.indexOf(this.characteristic) >= 0) {
+        if (event.context.selectableAttributes.indexOf(this.characteristic) >= 0) {
             // If so evaluate the event
             allConditionsMatched = this.conditions.every((condition) => {
                 let result = condition.evaluate(event);
