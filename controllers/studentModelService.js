@@ -96,12 +96,12 @@ class StudentModelService {
                 conceptToHint.conceptId, 
                 conceptToHint.scoreByChallenge, 
                 this.challengeId,
-                conceptToHint.rule.trait, 
+                conceptToHint.rule.attribute, 
                 conceptToHint.rule.conditionsAsString(), 
                 conceptToHint.hintLevel,
                 isBottomOutHint);
 
-            this.updateHintTotals(conceptToHint.conceptId, this.challengeId, conceptToHint.rule.trait, this.timestamp, isBottomOutHint);
+            this.updateHintTotals(conceptToHint.conceptId, this.challengeId, conceptToHint.rule.attribute, this.timestamp, isBottomOutHint);
         }
 
         return conceptToHint;
@@ -129,18 +129,18 @@ class StudentModelService {
         return this.studentModel.getConceptByChallenge(conceptId, challengeId).score;
     }
 
-    processConceptDataPoint(conceptId, isCorrect, challengeId, trait, timestamp, source) {
+    processConceptDataPoint(conceptId, isCorrect, challengeId, attribute, timestamp, source) {
 
         this.updateConceptState(this.studentModel.getConceptAggregated(conceptId), isCorrect);
         this.updateConceptState(this.studentModel.getConceptByChallenge(conceptId, challengeId), isCorrect);
-        this.updateConceptState(this.studentModel.getConceptByTrait(conceptId, trait), isCorrect);
+        this.updateConceptState(this.studentModel.getConceptByAttribute(conceptId, attribute), isCorrect);
         //this.updateConceptState(this.studentModel.getConceptSnapshot(conceptId, timestamp), isCorrect);
 
         if (isCorrect != true) {
-            this.studentModel.addMisconception(conceptId, challengeId, trait, timestamp, source);
+            this.studentModel.addMisconception(conceptId, challengeId, attribute, timestamp, source);
         }
 
-        return ConceptObservation.record(timestamp, conceptId, trait, this.student.id, challengeId, isCorrect);
+        return ConceptObservation.record(timestamp, conceptId, attribute, this.student.id, challengeId, isCorrect);
     }
 
     updateConceptState(conceptState, isCorrect) {
@@ -149,10 +149,10 @@ class StudentModelService {
         conceptState.score = conceptState.totalCorrect / conceptState.totalAttempts;     
     }
 
-    updateHintTotals(conceptId, challengeId, trait, timestamp, isBottomOutHint) {
+    updateHintTotals(conceptId, challengeId, attribute, timestamp, isBottomOutHint) {
         this.addHintTotals(this.studentModel.getConceptAggregated(conceptId), isBottomOutHint);
         this.addHintTotals(this.studentModel.getConceptByChallenge(conceptId, challengeId), isBottomOutHint);
-        this.addHintTotals(this.studentModel.getConceptByTrait(conceptId, trait), isBottomOutHint);
+        this.addHintTotals(this.studentModel.getConceptByAttribute(conceptId, attribute), isBottomOutHint);
         //this.addHintTotals(this.studentModel.getConceptSnapshot(conceptId, timestamp), isBottomOutHint);
     }
 

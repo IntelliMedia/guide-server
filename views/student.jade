@@ -70,7 +70,7 @@ block content
             var myChart3 = null;   
             
             function updateChart3() {
-                $.getJSON("/api/student/#{student.id}?view=concept-by-trait-heatmap", function(options) {
+                $.getJSON("/api/student/#{student.id}?view=concept-by-attribute-heatmap", function(options) {
                     if (myChart3 != null) {
                         myChart3.destroy();
                     }       

@@ -29,7 +29,7 @@ class StudentDataVisualization {
                     chartData = StudentDataVisualization.createConceptByChallengeHeatmap(student);
                     break;
 
-                case 'concept-by-trait-heatmap':
+                case 'concept-by-attribute-heatmap':
                     chartData = StudentDataVisualization.createConceptByTraitHeatmap(student);
                     break;
 
@@ -162,7 +162,7 @@ class StudentDataVisualization {
         let chartInfo = StudentDataVisualization.getConceptScores(
             student.studentModel.conceptsByTrait, 
             "concepts", 
-            "trait", 
+            "attribute", 
             "conceptId");
 
         return StudentDataVisualization.createConceptHeatmap(chartInfo, "Trait");

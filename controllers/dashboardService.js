@@ -35,7 +35,7 @@ class DashboardService {
               "studentModel": {
                 "conceptsAggregated": this._filterConceptsAggregated(studentModel.conceptsAggregated),
                 "conceptsByChallenge": this._convertConceptsByChallengeToProperties(studentModel.conceptsByChallenge),
-                "traitScores": this._averageConceptScoreByTrait(studentModel.conceptsByTrait)
+                "attributeScores": this._averageConceptScoreByTrait(studentModel.conceptsByTrait)
               }
             };
 
@@ -99,12 +99,12 @@ class DashboardService {
             totalAttempts += concept.totalAttempts;
           });
 
-          let traitAverageScore = {
-            trait: current.trait,
+          let attributeAverageScore = {
+            attribute: current.attribute,
             score: (totalAttempts > 0 ? totalCorrect/totalAttempts : 0)
           };
 
-          concepts.push(traitAverageScore);
+          concepts.push(attributeAverageScore);
         });
       }
 

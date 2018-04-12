@@ -19,14 +19,8 @@ class ConceptHints {
         return this.source + '/edit#gid=0?range=' + this.id + ':' + this.id;
     }
 
-    evaluate(event) {
+    getHint(hintLevel, attribute, correct, incorrect) {
 
-        let allConditionsMatched = this.conditions.every((condition) => {
-            let result = condition.evaluate(event);
-            return result;
-        });
-
-        return allConditionsMatched;
     }
 
     _makeHintSpecificFor(selectorMap, headerRow, currentRow) {

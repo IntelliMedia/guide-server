@@ -107,7 +107,6 @@ class RuleCsvDeserializer extends CsvDeserializer {
                     }
                 }
 
-                this._makeHintSpecificFor(substitutionSelectorMap, headerRow, clonedRow);
                 rules.push(this._createRule(ruleId, columnMap, headerRow, clonedRow));
             });
             return rules;
@@ -123,30 +122,7 @@ class RuleCsvDeserializer extends CsvDeserializer {
         var characterisitcColumnName = "target-characteristics";
         if (columnMap.hasOwnProperty(characterisitcColumnName)) {
             return row[columnMap[characterisitcColumnName]].toLowerCase(); 
-        }
-
-        // Otherwise, we need to infer the trait from the hint substitution text        
-        for (var i = 0; i < headerRow.length; ++i) {
-            if (this._isHint(headerRow[i])) {
-                var value = row[i].trim();
-                do {
-                    var replacementBlock = value.match(this.findReplacementBlock);
-                    if (replacementBlock != null) {
-                        var block = replacementBlock[0];
-                        var missingValue = block.replace("[","<").replace("]",">");
-                        var selector = (replacementBlock[1] ? replacementBlock[1] : missingValue);
-                        var phrases = (replacementBlock[2] ? replacementBlock[2] : missingValue);
-                        if (selector.includes("correctTrait")) {
-                            if (phrases.toLowerCase().indexOf(traitInfo.characterisiticName.recessive) >= 0) {
-                                return "recessive";
-                            } else {
-                                return "dominant";
-                            }
-                        }
-                    }
-                } while (replacementBlock != null);    
-            }
-        }   
+        } 
         
         //console.warn("Unable to identify characteristic row for Dominant/Recessive generic rule");  
         // TODO rgtaylor 2018-02-27 Return and gracefully handle null as 'indeterminate' value
@@ -170,8 +146,7 @@ class RuleCsvDeserializer extends CsvDeserializer {
             this._asNumber(this._getCell(currentRow, columnMap, "priority")),
             conditions,
             this._asBoolean(this._getCell(currentRow, columnMap, "correct", false)),
-            this._extractConcepts(headerRow, currentRow),
-            this._extractHints(headerRow, currentRow));
+            this._extractConcepts(headerRow, currentRow));
     }
 
     _isDominantRecessiveRule(row) {
@@ -267,63 +242,8 @@ class RuleCsvDeserializer extends CsvDeserializer {
          return concepts;
     }
 
-    _extractHints(headerRow, currentRow) {
-        var hints = [];
-         for (var i = 0; i < headerRow.length; ++i) {
-            if (this._isHint(headerRow[i])) {
-                var value = currentRow[i].trim();
-                if (value) {
-                    hints.push(value);
-                }
-            }
-         }
-         return hints;
-    }
-
-    _makeHintSpecificFor(selectorMap, headerRow, currentRow) {
-        var hints = [];
-         for (var i = 0; i < headerRow.length; ++i) {
-            if (this._isHint(headerRow[i])) {
-                var value = currentRow[i].trim();
-                do {
-                    var replacementBlock = value.match(this.findReplacementBlock);
-                    if (replacementBlock != null) {
-                        var block = replacementBlock[0];
-                        var missingValue = block.replace("[","<").replace("]",">");
-                        var selector = (replacementBlock[1] ? replacementBlock[1] : missingValue);
-                        var phrases = (replacementBlock[2] ? replacementBlock[2] : missingValue);
-
-                        var substitutionPhrase = selector;
-                        if (selectorMap.hasOwnProperty(selector)) {
-                            var phraseRegex = selectorMap[selector];
-                            var findPhrase = new RegExp("([^,\\[]*" + phraseRegex + "[^,\\]]*)", "i");
-                            var phraseMatch = phrases.match(findPhrase);
-                            if (phraseMatch != null) {
-                                substitutionPhrase = phraseMatch[0];
-                            } else {
-                                substitutionPhrase = "[" + phraseRegex + "?]";
-                            }
-                        }
-                        else 
-                        {
-                            console.warn("Unable to find substitution for: " + block);
-                        }
-
-                        value = value.replace(block, substitutionPhrase.trim());
-                    }
-                } while (replacementBlock != null);
-                currentRow[i] = value.upperCaseFirstChar();
-            }
-         }
-         return hints;
-    }
-
     _isConceptId(text) {
         return this._isColumnOfType("concept", text);
-    }
-
-    _isHint(text) {
-        return this._isColumnOfType("hint", text);
     }
 }
 

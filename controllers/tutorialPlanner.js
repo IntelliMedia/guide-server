@@ -22,15 +22,15 @@ class TutorialPlanner {
         // Hint delivery order of preference:
         // On incorrect selection:
         // - Is hint available?
-        // - Hint previously delivered for concept/trait IF BKT score is below threshold
-        // - Hint for concept/trait IF BKT score below threshold (ordered by lowest score)
+        // - Hint previously delivered for concept/attribute IF BKT score is below threshold
+        // - Hint for concept/attribute IF BKT score below threshold (ordered by lowest score)
 
         let challengeId = event.context.challengeId;
         let studentModelService = new StudentModelService(this.student, this.session, challengeId);   
         let misconceptions = this.student.studentModel.getMisconceptionsForEvent(event);
         if (misconceptions.length > 0) {
             misconceptions.forEach((misconception) => {
-                let concept = this.student.studentModel.getConceptByTrait(misconception.conceptId, misconception.trait);
+                let concept = this.student.studentModel.getConceptByAttribute(misconception.conceptId, misconception.attribute);
                 misconception.score = concept.score;
             });
 
@@ -45,7 +45,7 @@ class TutorialPlanner {
         console.info("Observed incorrect concepts:");
         misconceptions = this._sortMisconceptionsByPreviousHintAndThenAscendingScore(misconceptions, mostRecentHint);
         for (let misconception of misconceptions) {
-            console.info("   " + misconception.conceptId + " | " + misconception.trait + " | " + misconception.score + " | " + misconception.source);
+            console.info("   " + misconception.conceptId + " | " + misconception.attribute + " | " + misconception.score + " | " + misconception.source);
         }
 
         let conceptHintsRepository = new ConceptHintsRepository(this.session);
@@ -57,7 +57,7 @@ class TutorialPlanner {
                     return this._createHintAction(
                         conceptHint.hints[0],
                         9,
-                        misconception.trait,
+                        misconception.attribute,
                         challengeId,
                         "Rule: " + misconception.source + "\nHint: " + conceptHint.source
                     );
@@ -77,16 +77,16 @@ class TutorialPlanner {
         });
     }
 
-    _createHintAction(hintText, hintLevel, trait, challengeId, source) {        
+    _createHintAction(hintText, hintLevel, attribute, challengeId, source) {        
         let dialogMessage = new GuideProtocol.Text(
             'ITS.CONCEPT.FEEDBACK',
             hintText);
-        dialogMessage.args.trait = trait;
+        dialogMessage.args.attribute = attribute;
 
         let reason = {
             why: "MisconceptionDetected",
             source: source,
-            trait: trait
+            attribute: attribute
         };
         let action = TutorAction.create(this.session, "SPOKETO", "USER", "hint",
                     new GuideProtocol.TutorDialog(dialogMessage, reason));
@@ -116,17 +116,17 @@ class TutorialPlanner {
                     var dialogMessage = new GuideProtocol.Text(
                         'ITS.CONCEPT.FEEDBACK',
                         conceptToHint.Text);
-                    if (conceptToHint.rule.trait) {
-                        dialogMessage.args.trait = conceptToHint.rule.trait;
+                    if (conceptToHint.rule.attribute) {
+                        dialogMessage.args.attribute = conceptToHint.rule.attribute;
                     } else {
-                        dialogMessage.args.trait = conceptToHint.rule.conditionsAsString();
+                        dialogMessage.args.attribute = conceptToHint.rule.conditionsAsString();
                     }
         
                     var reason = {
                         why: "MisconceptionDetected",
                         ruleId: conceptToHint.rule.id,
                         ruleSource: conceptToHint.rule.source,
-                        trait: conceptToHint.rule.trait
+                        attribute: conceptToHint.rule.attribute
                     };
                     action = TutorAction.create(session, "SPOKETO", "USER", "hint",
                                 new GuideProtocol.TutorDialog(dialogMessage, reason));

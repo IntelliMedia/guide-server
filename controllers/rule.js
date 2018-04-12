@@ -2,41 +2,37 @@
 
 const RuleCondition = require('./ruleCondition');
 const TraitCondition = require('./ruleCondition').TraitCondition;
+const arrayx = require("../utilities/arrayx");
 const _ = require('lodash');
 
 class Rule {   
-    constructor(source, id, priority, conditions, isCorrect, concepts, hints) {
+    constructor(source, id, priority, conditions, isCorrect, concepts) {
         this.source = source;
         this.id = id;
         this.priority = priority;
         this.conditions = conditions;
         this.concepts = concepts;
-        this.hints = hints;
-        this.trait = null;
-        this.characteristic = null;
+        this.attribute = null;
         this.isCorrect = isCorrect;
 
         if (!this.conditions || this.conditions.length == 0) {
             throw new Error("No conditions defined for ECD rule.")
         }
 
-        let traits = [];
+        let attributes = [];
         this.conditions.forEach((condition) => {
-            if (condition.isUserSelection && condition.trait) {
-                traits.push(condition.trait);
+            if (condition.isUserSelection && condition.attribute) {
+                attributes.push(condition.attribute);
             }
         });
 
-        traits = _.uniq(traits);
-        if (traits.length > 1) {
-            this.trait = traits.join(",");
-        } else if (traits.length == 1) {
-            this.trait = traits[0];
-        } else {
-            this.trait = "unknown";
+        attributes = _.uniq(attributes);
+        if (attributes.length > 1) {
+            throw new Error("Rule specifies more than one attribute: ", attributes.join(", "));
         }
 
-        this.characteristic = this.trait;
+        // Remove duplicates
+        this.attribute = (attributes.length > 0 ? attributes[0] : "n/a");
     }
 
     sourceUrl() {
@@ -47,7 +43,7 @@ class Rule {
 
         let allConditionsMatched = false;
         // Is the characteristic editable by the user in the client?
-        if (event.context.selectableAttributes.indexOf(this.characteristic) >= 0) {
+        if (this.attribute === "n/a" || event.context.selectableAttributes.indexOf(this.attribute) >= 0) {
             // If so evaluate the event
             allConditionsMatched = this.conditions.every((condition) => {
                 let result = condition.evaluate(event);

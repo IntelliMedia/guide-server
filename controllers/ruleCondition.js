@@ -20,7 +20,7 @@ class RuleCondition {
         this.propertyPath = propertyPath;
         this.isUserSelection = this.propertyPath.includes("userSelections");
         this.value = value; 
-        this.trait = null;
+        this.attribute = null;
     }
 
     description() {
@@ -77,7 +77,7 @@ class AllelesCondition extends RuleCondition {
     constructor(propertyPath, value) { 
         super(propertyPath, value);
         this.targetAlleles = this.normalizeAlleles(value);
-        this.trait = BiologicaX.getGene(BioLogica.Species.Drake, this.targetAlleles[0]);
+        this.attribute = BiologicaX.getGene(BioLogica.Species.Drake, this.targetAlleles[0]);
     }
 
     normalizeAlleles(alleles) {
@@ -97,7 +97,7 @@ class AllelesCondition extends RuleCondition {
 class SexCondition extends RuleCondition {
     constructor(propertyPath, value) { 
         super(propertyPath, value);
-        this.trait = "sex";
+        this.attribute = "sex";
 
         this.target = value.toLowerCase();
         if (this.target !== "female" && this.target !== "male") { 
@@ -150,7 +150,7 @@ class TraitCondition extends RuleCondition {
     constructor(propertyPath, value) { 
         super(propertyPath, value);
         this.targetTraits = this.normalizeCharacterisitics(value.split(","));
-        this.trait = BiologicaX.getMetallicTraitIfTraitIsColor(BioLogica.Species.Drake, this.targetTraits[0]);
+        this.attribute = BiologicaX.getMetallicTraitIfTraitIsColor(BioLogica.Species.Drake, this.targetTraits[0]);
     }
 
     normalizeCharacterisitics(phenotype) {
