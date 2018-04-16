@@ -1,5 +1,6 @@
 'use strict';
 
+const Biologicax = require('../shared/biologicax');
 const RuleCondition = require('./ruleCondition');
 const TraitCondition = require('./ruleCondition').TraitCondition;
 const arrayx = require("../utilities/arrayx");
@@ -39,6 +40,24 @@ class Rule {
         return this.source + '/edit#gid=0?range=' + this.id + ':' + this.id;
     }
 
+    substitutionVariables() {
+        let targetCondition = this._findTargetCondition(); 
+        return {
+            attribute: BiologicaX.getDisplayName(this.attribute),
+            correct: this._findTargetCondition("challengeCriteria").getDisplayValue(),
+            incorrect: this._findTargetCondition("userSelections").getDisplayValue()
+        };
+    }
+
+    _findTargetCondition(path) {
+        for(let condition of this.conditions) {
+            // Does this condition represent the target?
+            if (condition.propertyPath.includes(path)) {
+                return condition;
+            }
+        }
+    }
+
     evaluate(event) {
 
         let allConditionsMatched = false;
@@ -61,7 +80,7 @@ class Rule {
             if (prependAnd) {
                 s += " && ";
             }
-            s += condition.description();
+            s += condition.value;
             prependAnd = true;
         });
 

@@ -32,7 +32,15 @@ class RulesEvaluator {
                     let studentModelService = new StudentModelService(student, session, challengeId);              
                     for (let rule of activatedRules) {
                         for (let conceptId in rule.concepts) { 
-                            savePromises.push(studentModelService.processConceptDataPoint(conceptId, rule.isCorrect, challengeId, rule.attribute, event.time, rule.sourceUrl()));
+                            savePromises.push(studentModelService.processConceptDataPoint(
+                                conceptId, 
+                                rule.isCorrect, 
+                                challengeId, 
+                                rule.attribute, 
+                                rule.substitutionVariables(),
+                                event.time, 
+                                rule.sourceUrl()));
+
                             rulesFiredMsgs.push("Rule Triggered ->  Correct:{0} | {1} | {2} | rule: {3}".format( 
                                 rule.isCorrect, conceptId, rule.attribute, rule.sourceUrl()));
                         }

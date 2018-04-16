@@ -10,6 +10,38 @@ if (typeof exports === 'undefined') {
 
 (function () {
 
+    // Helper method
+
+    // Warn if overriding existing method
+    if(Array.prototype.equals)
+    console.warn("Overriding existing Array.prototype.equals. Possible causes: New API defines the method, there's a framework conflict or you've got double inclusions in your code.");
+    // attach the .equals method to Array's prototype to call it on any array
+    Array.prototype.equals = function (array) {
+    // if the other array is a falsy value, return
+    if (!array)
+        return false;
+
+    // compare lengths - can save a lot of time 
+    if (this.length != array.length)
+        return false;
+
+    for (var i = 0, l=this.length; i < l; i++) {
+        // Check if we have nested arrays
+        if (this[i] instanceof Array && array[i] instanceof Array) {
+            // recurse into the nested arrays
+            if (!this[i].equals(array[i]))
+                return false;       
+        }           
+        else if (this[i] != array[i]) { 
+            // Warning - two different object instances will never be equal: {x:20} != {x:20}
+            return false;   
+        }           
+    }       
+    return true;
+    }
+    // Hide method from for-in loops
+    Object.defineProperty(Array.prototype, "equals", {enumerable: false});
+
     BiologicaX = {};
     exports.BiologicaX = BiologicaX;
 
@@ -98,52 +130,6 @@ if (typeof exports === 'undefined') {
         return geneName;
     }
 
-     BiologicaX.getMetallicTraitIfTraitIsColor = function(species, targetTrait) {
-         var isMetallicCharacteristic = false;
-         var targetLowercaseTrait = targetTrait.toLowerCase();
-         if (targetLowercaseTrait.includes("metallic")) {
-             return "metallic";
-         }
-
-        if (targetLowercaseTrait.includes("color")) {
-            return "color";
-        }
-
-         var foundTrait = null;
-         for (var characteristic in species.traitRules) {
-             if (!species.traitRules.hasOwnProperty(characteristic)) {
-                 continue;
-             }
-             
-             for (var trait in species.traitRules[characteristic]) {
-                if (!species.traitRules[characteristic].hasOwnProperty(trait)) {
-                    continue;
-                }
-
-                if (trait.toLowerCase() == targetLowercaseTrait) {
-                    foundTrait = trait;
-                    break;
-                }
-             }
-             if (foundTrait) {
-                 break;
-             }
-         }
-
-         if (isMetallicCharacteristic) {
-            if (foundTrait == 'Steel'
-                || foundTrait == 'Copper'
-                || foundTrait == 'Silver'
-                || foundTrait == 'Gold') {
-                    foundTrait = 'Metallic';
-                } else {
-                    foundTrait = 'Nonmetallic';
-                }
-         }
-
-        return foundTrait;
-    }
-
     BiologicaX.getCharacteristic = function(organism, trait) {
         var characteristic = null; 
         if (trait.includes("metallic")) {
@@ -176,6 +162,18 @@ if (typeof exports === 'undefined') {
                 || color == 'Gold'
                 || color == 'Lava'
                 || color == 'Sand');
+    }
+
+    BiologicaX.colorAsTrait = function(color) {
+        if (BiologicaX.isColorMetallic(color)) {
+            return "Metallic";
+        } else if (BiologicaX.isAlbino(color)) {
+            return "Albino";
+        } else if (BiologicaX.isOrange(color)) {
+            return "Orange";
+        } else {
+            return color;
+        }       
     }
 
     BiologicaX.hasAnyArmor = function(armor) {
@@ -221,8 +219,8 @@ if (typeof exports === 'undefined') {
 
         // NOTE: This function assusmes that capital letter in the allele indicates
         // present while a lowercase letter indicates the gene is not present.
-        var leftH = sideA[0] == sideA[0].toUpperCase() ? 'H' : 'h';
-        var rightH = sideB[0] == sideB[0].toUpperCase() ? 'H' : 'h'; 
+        var leftH = sideA[0] == sideA[0].toUpperCase() ? 'Q' : 'q';
+        var rightH = sideB[0] == sideB[0].toUpperCase() ? 'Q' : 'q'; 
         
         return leftH + '-' + rightH;
     }    
@@ -249,23 +247,105 @@ if (typeof exports === 'undefined') {
         return pattern;
     }      
 
-    BiologicaX.getCharacteristicFromPhenotype = function(phenotype, gene) {
-        var characteristic = null; 
-        if (gene == 'metallic') {
-            characteristic = phenotype['color'];
-            if (characteristic == 'Steel'
-                || characteristic == 'Copper'
-                || characteristic == 'Silver'
-                || characteristic == 'Gold') {
-                    characteristic = 'Metallic';
-                } else {
-                    characteristic = 'Nonmetallic';
-                }
+    BiologicaX.getTraitFromPhenotype = function(phenotype, characteristic) {
+        let trait = null; 
+        if (characteristic == 'metallic') {
+            trait = phenotype['color'];
+            if (BiologicaX.isColorMetallic(trait)) {
+                trait = 'Metallic';
+            } else {
+                trait = 'Nonmetallic';
+            }
         } else {
-            characteristic = phenotype[gene];
+            trait = phenotype[characteristic];
         }
 
-        return characteristic;
+        return trait;
     }
+
+    BiologicaX.getTraitFromAlleles = function(species, alleles) {
+        let allelesWithoutSides = alleles.map((allele) => allele.replace(/.+:/, "")).sort();
+
+        for (let characteristic in species.traitRules) {
+            if (!species.traitRules.hasOwnProperty(characteristic)) {
+                continue;
+            }
+            
+            for (let trait in species.traitRules[characteristic]) {
+                if (!species.traitRules[characteristic].hasOwnProperty(trait)) {
+                    continue;
+                }
+
+                for (let traitAlleles of species.traitRules[characteristic][trait]) {
+                    if (BiologicaX.allelesInTraitArray(allelesWithoutSides, traitAlleles)) {
+                        return BiologicaX.colorAsTrait(trait);
+                    }
+                }
+            }
+        }
+   } 
+
+   BiologicaX.allelesInTraitArray = function(targetAlleles, traitAlleles) {
+       if (!targetAlleles || targetAlleles.length == 0 || !traitAlleles || traitAlleles.length == 0) {
+           return false;
+       }
+
+       let clone = traitAlleles.slice(0);
+
+       for (let allele of targetAlleles) {
+           let index = clone.indexOf(allele);
+           if (index < 0) {
+               return false;
+           }
+           clone.splice(index, 1);
+       }
+
+       return true;
+   }
+
+    BiologicaX.getCharacteristicFromTrait = function(species, trait) {
+        var normalizedTrait = trait.toLowerCase();
+
+        if (normalizedTrait.includes('metallic')) {
+            return 'metallic';
+        } else {
+            for (let characteristic in species.traitRules) {
+                if (!species.traitRules.hasOwnProperty(characteristic)) {
+                    continue;
+                }
+                
+                for (let trait in species.traitRules[characteristic]) {
+                    if (!species.traitRules[characteristic].hasOwnProperty(trait)) {
+                        continue;
+                    }
+
+                    if (trait.toLowerCase() == normalizedTrait) {
+                        return characteristic;
+                    }
+                }
+            }
+        }
+   }    
+
+    // If necessary, convert internal name for trait or characteristic to 
+    // a user-friendly display name
+    BiologicaX.getDisplayName = function(trait) {
+        let displayName = trait.toLowerCase();
+        if (displayName === "forelimbs") {
+            displayName = "arms";
+        } else if (displayName === "no forelimbs") {
+            displayName = "armless";
+        } else if (displayName === "hindlimbs") {
+            displayName = "legs";
+        } else if (displayName === "no hindlimbs") {
+            displayName = "legless";
+        } else if (displayName === "metallic") {
+            displayName = "shiny";
+        } else if (displayName === "nonmetallic") {
+            displayName = "dull";
+        }
+
+        return displayName;
+    }    
 
 }).call(this);

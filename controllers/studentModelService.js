@@ -129,7 +129,7 @@ class StudentModelService {
         return this.studentModel.getConceptByChallenge(conceptId, challengeId).score;
     }
 
-    processConceptDataPoint(conceptId, isCorrect, challengeId, attribute, timestamp, source) {
+    processConceptDataPoint(conceptId, isCorrect, challengeId, attribute, substitutionVariables, timestamp, source) {
 
         this.updateConceptState(this.studentModel.getConceptAggregated(conceptId), isCorrect);
         this.updateConceptState(this.studentModel.getConceptByChallenge(conceptId, challengeId), isCorrect);
@@ -137,7 +137,7 @@ class StudentModelService {
         //this.updateConceptState(this.studentModel.getConceptSnapshot(conceptId, timestamp), isCorrect);
 
         if (isCorrect != true) {
-            this.studentModel.addMisconception(conceptId, challengeId, attribute, timestamp, source);
+            this.studentModel.addMisconception(conceptId, challengeId, attribute, substitutionVariables, timestamp, source);
         }
 
         return ConceptObservation.record(timestamp, conceptId, attribute, this.student.id, challengeId, isCorrect);

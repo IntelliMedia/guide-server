@@ -23,9 +23,9 @@ class RuleCondition {
         this.attribute = null;
     }
 
-    description() {
+    getDisplayValue() {
         return this.value;
-    }
+    }   
 
     evaluate(obj) {
         throw new Error("RuleCondition.evaluate() must be overriden in a child class");
@@ -91,7 +91,12 @@ class AllelesCondition extends RuleCondition {
             return alleles.indexOf(item) >= 0;
         });
         return result;
-    }
+    }  
+    
+    getDisplayValue() {
+        let trait = BiologicaX.getTraitFromAlleles(BioLogica.Species.Drake, this.targetAlleles);
+        return BiologicaX.getDisplayName(trait);
+    }     
 }
 
 class SexCondition extends RuleCondition {
@@ -107,9 +112,10 @@ class SexCondition extends RuleCondition {
 
     evaluate(obj) {
         let sex = this.getValue(obj);
-        let result = this.target === BiologicaX.sexToString(sex).toLowerCase();
+        let normalizedSex = BiologicaX.sexToString(sex).toLowerCase();
+        let result = this.target === normalizedSex;
         return result;
-    }
+    }    
 }
 
 class StringCondition extends RuleCondition {
@@ -124,13 +130,14 @@ class StringCondition extends RuleCondition {
     }
 
     evaluate(obj) {
-        let value = this.getValue(obj);
+        let stringValue = this.getValue(obj);
         if (this.normalize) {
-            value = value.toLowerCase();
+            stringValue = stringValue.toLowerCase();
         }
 
-        return this.target == value;
+        return this.target == stringValue;
     }
+ 
 }
 
 class BoolCondition extends RuleCondition {
@@ -141,16 +148,16 @@ class BoolCondition extends RuleCondition {
     }
 
     evaluate(obj) {
-        let value = this.getValue(obj);
-        return this.target == value;
-    }
+        let boolValue = this.getValue(obj);
+        return this.target == boolValue;
+    }      
 }
 
 class TraitCondition extends RuleCondition {
     constructor(propertyPath, value) { 
         super(propertyPath, value);
         this.targetTraits = this.normalizeCharacterisitics(value.split(","));
-        this.attribute = BiologicaX.getMetallicTraitIfTraitIsColor(BioLogica.Species.Drake, this.targetTraits[0]);
+        this.attribute = BiologicaX.getCharacteristicFromTrait(BioLogica.Species.Drake, this.targetTraits[0]);
     }
 
     normalizeCharacterisitics(phenotype) {
@@ -187,7 +194,7 @@ class TraitCondition extends RuleCondition {
             throw new Error("Condition unable to construct phenotype. Unable find any properties: " + this.propertyPath + ", phenotype, alleles, or sex");
         }
 
-        var characterisitics = this.normalizeCharacterisitics(Object.keys(phenotype).map(key => phenotype[key]));
+        let traits = this.normalizeCharacterisitics(Object.keys(phenotype).map(key => phenotype[key]));
         var result = this.targetTraits.every((item) => {
             if (item === "metallic") {
                 return BiologicaX.isColorMetallic(phenotype.color);
@@ -204,12 +211,16 @@ class TraitCondition extends RuleCondition {
             } else if (item === "armor") {
                 return BiologicaX.hasAnyArmor(phenotype.armor);          
             } else {
-                return characterisitics.indexOf(item) >= 0;
+                return traits.indexOf(item) >= 0;
             }
         });
         return result;
     }
 
+    getDisplayValue() {
+        return BiologicaX.getDisplayName(this.value);
+    }    
+     
     createPhenotypeFromAlleles(obj, alleles, sex) {
         var phenotype = null; 
 

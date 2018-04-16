@@ -58,6 +58,7 @@ const misconceptionSchema = new mongoose.Schema({
   conceptId: { type: String, required: true},
   challengeId: String,
   attribute: String,
+  substitutionVariables: mongoose.Schema.Types.Mixed,
   timestamp: Date,
   source: String
 }, { _id : false });
@@ -188,7 +189,7 @@ studentModelSchema.methods.getMisconceptionsForEvent = function(event) {
   });
 }
 
-studentModelSchema.methods.addMisconception = function(conceptId, challengeId, attribute, timestamp, source) {
+studentModelSchema.methods.addMisconception = function(conceptId, challengeId, attribute, substitutionVariables, timestamp, source) {
 
     if (!this.mostRecentMisconceptions ||
         (this.mostRecentMisconceptions.length > 0 
@@ -202,6 +203,7 @@ studentModelSchema.methods.addMisconception = function(conceptId, challengeId, a
     conceptId: conceptId,
     challengeId: challengeId,
     attribute: attribute,
+    substitutionVariables: substitutionVariables,
     timestamp: timestamp,
     source: source
   });

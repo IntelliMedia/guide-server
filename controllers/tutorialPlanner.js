@@ -53,9 +53,10 @@ class TutorialPlanner {
             for (let misconception of misconceptions) {
                 let conceptHints = conceptHintsRepository.find("Sim", misconception.conceptId);
                 if (conceptHints && conceptHints.length > 0) {
+                    let hintLevel = 2;
                     let conceptHint = conceptHints[0];
                     return this._createHintAction(
-                        conceptHint.hints[0],
+                        conceptHint.getHint(hintLevel, misconception.substitutionVariables),
                         9,
                         misconception.attribute,
                         challengeId,

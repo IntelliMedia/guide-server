@@ -8,7 +8,6 @@ const Stringx = require("../utilities/stringx");
  */
 class CsvDeserializer {
     constructor() {
-        this.findReplacementBlock = new RegExp("\\[(?:([^\\]\\:]+)\\:)?([^\\]]*)\\]", "i");
         this.source = null;
     }
 
