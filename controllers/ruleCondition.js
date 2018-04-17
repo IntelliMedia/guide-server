@@ -19,7 +19,7 @@ class RuleCondition {
 
         this.propertyPath = propertyPath;
         this.isUserSelection = this.propertyPath.includes("userSelections");
-        this.value = value ? value.toLowerCase() : undefined;
+        this.value = value;
         this.displayVariable = displayVariable;
         this.attribute = null;
     }
@@ -111,6 +111,7 @@ class AllelesCondition extends RuleCondition {
 class SexCondition extends RuleCondition {
     constructor(propertyPath, value, displayVariable) { 
         super(propertyPath, value, displayVariable);
+        this.value = this.value.toLowerCase();
         this.attribute = "sex";
 
         this.target = value.toLowerCase();
@@ -152,8 +153,8 @@ class StringCondition extends RuleCondition {
 class BoolCondition extends RuleCondition {
     constructor(propertyPath, value, displayVariable) { 
         super(propertyPath, value, displayVariable);
- 
         this.target = (value ? value.toLowerCase() === "true" : false);
+        this.value = this.target.toString().toLowerCase();
     }
 
     evaluate(obj) {

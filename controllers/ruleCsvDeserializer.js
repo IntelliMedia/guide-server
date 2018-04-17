@@ -135,6 +135,7 @@ class RuleCsvDeserializer extends CsvDeserializer {
         var conditions = [];
         conditions = conditions.concat(this._extractConditions("context.challengeCriteria", "target", headerRow, currentRow));
         conditions = conditions.concat(this._extractConditions("context.userSelections","selected", headerRow, currentRow));
+        conditions = conditions.concat(this._extractConditions("context.current","current", headerRow, currentRow));
         conditions = conditions.concat(this._extractConditions("context","condition", headerRow, currentRow));
 
         if (conditions.length == 0) {
