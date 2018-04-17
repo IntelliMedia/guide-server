@@ -19,7 +19,7 @@ class RuleCondition {
 
         this.propertyPath = propertyPath;
         this.isUserSelection = this.propertyPath.includes("userSelections");
-        this.value = value; 
+        this.value = value ? value.toLowerCase() : undefined;
         this.displayVariable = displayVariable;
         this.attribute = null;
     }
