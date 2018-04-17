@@ -7,7 +7,7 @@ const propPath = require('property-path');
 
 class RuleCondition {   
 
-    constructor(propertyPath, value) {
+    constructor(propertyPath, value, displayVariable) {
 
         if (typeof propertyPath === "undefined") {
             throw new Error("Condition propertyPath value cannot be 'undefined'");
@@ -20,10 +20,15 @@ class RuleCondition {
         this.propertyPath = propertyPath;
         this.isUserSelection = this.propertyPath.includes("userSelections");
         this.value = value; 
+        this.displayVariable = displayVariable;
         this.attribute = null;
     }
 
-    getDisplayValue() {
+    populateSubstitutionVariables(variableMap) {
+        variableMap[this.displayVariable] = this._getDisplayValue();
+    }
+
+    _getDisplayValue() {
         return this.value;
     }   
 
@@ -74,8 +79,8 @@ class RuleCondition {
 }
 
 class AllelesCondition extends RuleCondition {
-    constructor(propertyPath, value) { 
-        super(propertyPath, value);
+    constructor(propertyPath, value, displayVariable) { 
+        super(propertyPath, value, displayVariable);
         this.targetAlleles = this.normalizeAlleles(value);
         this.attribute = BiologicaX.getGene(BioLogica.Species.Drake, this.targetAlleles[0]);
     }
@@ -92,16 +97,20 @@ class AllelesCondition extends RuleCondition {
         });
         return result;
     }  
-    
-    getDisplayValue() {
+
+    // Override in order to also include trait name
+    populateSubstitutionVariables(variableMap) {
+        super.populateSubstitutionVariables(variableMap);
+
         let trait = BiologicaX.getTraitFromAlleles(BioLogica.Species.Drake, this.targetAlleles);
-        return BiologicaX.getDisplayName(trait);
+        let displayTrait = BiologicaX.getDisplayName(trait);        
+        variableMap[this.displayVariable.replace("Alleles", "Trait")] = displayTrait;
     }     
 }
 
 class SexCondition extends RuleCondition {
-    constructor(propertyPath, value) { 
-        super(propertyPath, value);
+    constructor(propertyPath, value, displayVariable) { 
+        super(propertyPath, value, displayVariable);
         this.attribute = "sex";
 
         this.target = value.toLowerCase();
@@ -119,8 +128,8 @@ class SexCondition extends RuleCondition {
 }
 
 class StringCondition extends RuleCondition {
-    constructor(propertyPath, value, normalize) { 
-        super(propertyPath, value);
+    constructor(propertyPath, value, displayVariable, normalize) { 
+        super(propertyPath, value, displayVariable);
  
         this.normalize = normalize == true;
         this.target = (value ? value.toLowerCase() : "");
@@ -141,8 +150,8 @@ class StringCondition extends RuleCondition {
 }
 
 class BoolCondition extends RuleCondition {
-    constructor(propertyPath, value) { 
-        super(propertyPath, value);
+    constructor(propertyPath, value, displayVariable) { 
+        super(propertyPath, value, displayVariable);
  
         this.target = (value ? value.toLowerCase() === "true" : false);
     }
@@ -154,8 +163,8 @@ class BoolCondition extends RuleCondition {
 }
 
 class TraitCondition extends RuleCondition {
-    constructor(propertyPath, value) { 
-        super(propertyPath, value);
+    constructor(propertyPath, value, displayVariable) { 
+        super(propertyPath, value, displayVariable);
         this.targetTraits = this.normalizeCharacterisitics(value.split(","));
         this.attribute = BiologicaX.getCharacteristicFromTrait(BioLogica.Species.Drake, this.targetTraits[0]);
     }
@@ -217,7 +226,7 @@ class TraitCondition extends RuleCondition {
         return result;
     }
 
-    getDisplayValue() {
+    _getDisplayValue() {
         return BiologicaX.getDisplayName(this.value);
     }    
      

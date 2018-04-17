@@ -331,7 +331,11 @@ if (typeof exports === 'undefined') {
     // a user-friendly display name
     BiologicaX.getDisplayName = function(trait) {
         let displayName = trait.toLowerCase();
-        if (displayName === "forelimbs") {
+        if (displayName === "wings") {
+            displayName = "wings";
+        } else if (displayName === "no wings") {
+            displayName = "wingless";
+        } else if (displayName === "forelimbs") {
             displayName = "arms";
         } else if (displayName === "no forelimbs") {
             displayName = "armless";

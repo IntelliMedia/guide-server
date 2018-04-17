@@ -41,21 +41,16 @@ class Rule {
     }
 
     substitutionVariables() {
-        let targetCondition = this._findTargetCondition(); 
-        return {
-            attribute: BiologicaX.getDisplayName(this.attribute),
-            correct: this._findTargetCondition("challengeCriteria").getDisplayValue(),
-            incorrect: this._findTargetCondition("userSelections").getDisplayValue()
+        let variableMap = {
+            attribute: BiologicaX.getDisplayName(this.attribute)
         };
-    }
 
-    _findTargetCondition(path) {
         for(let condition of this.conditions) {
             // Does this condition represent the target?
-            if (condition.propertyPath.includes(path)) {
-                return condition;
-            }
-        }
+            condition.populateSubstitutionVariables(variableMap);
+        }   
+        
+        return variableMap;
     }
 
     evaluate(event) {

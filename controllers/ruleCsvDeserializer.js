@@ -3,6 +3,7 @@
 const Rule = require('./rule');
 const RuleCondition = require('./ruleCondition');
 const CsvDeserializer = require('./csvDeserializer');
+const Stringx = require('../utilities/stringx');
 
 /**
  * This class uses parses a CSV to create ECD-based rules
@@ -172,7 +173,7 @@ class RuleCsvDeserializer extends CsvDeserializer {
                     let columnName = headerRow[i];
                     let ruleType = this._extractRuleTypeFromColumnName(columnName);
                     let propertyPath = basePropertyPath + "." + this._extractProprtyPathFromColumnName(columnName);
-                    conditions.push(this._createCondition(ruleType, targetValue, propertyPath));
+                    conditions.push(this._createCondition(ruleType, targetValue, propertyPath, columnName));
                 }
             }
          }
@@ -196,29 +197,31 @@ class RuleCsvDeserializer extends CsvDeserializer {
         return value.lowerCaseFirstChar();
     }
 
-    _createCondition(type, value, propertyPath) {
+    _createCondition(type, value, propertyPath, columnName) {
+        let displayVariable = columnName.toCamelCase();
+
         // The last word indicates the type of condition (e.g., sex or trait)
         let condition = null;
         switch(type.toLowerCase()) {
 
             case "alleles":
-                condition = new RuleCondition.AllelesCondition(propertyPath, value);
+                condition = new RuleCondition.AllelesCondition(propertyPath, value, displayVariable);
                 break;
 
             case "sex":
-                condition = new RuleCondition.SexCondition(propertyPath, value);
+                condition = new RuleCondition.SexCondition(propertyPath, value, displayVariable);
                 break;
 
             case "trait":
-                condition = new RuleCondition.TraitCondition(propertyPath, value);
+                condition = new RuleCondition.TraitCondition(propertyPath, value, displayVariable);
                 break;
 
             case "challengeid":
-                condition = new RuleCondition.StringCondition(propertyPath, value, true);
+                condition = new RuleCondition.StringCondition(propertyPath, value, displayVariable, true);
                 break;
 
             case "correct":
-                condition = new RuleCondition.BoolCondition(propertyPath, value);
+                condition = new RuleCondition.BoolCondition(propertyPath, value, displayVariable);
                 break;
 
             default:
