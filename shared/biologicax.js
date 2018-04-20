@@ -135,10 +135,10 @@ if (typeof exports === 'undefined') {
         if (trait.includes("metallic")) {
             characteristic = organism.getCharacteristic('color');
             if (BiologicaX.isColorMetallic(characteristic)) {
-                    characteristic = 'Metallic';
-                } else {
-                    characteristic = 'Nonmetallic';
-                }
+                characteristic = 'Metallic';
+            } else {
+                characteristic = 'Nonmetallic';
+            }
         } else {
             characteristic = organism.getCharacteristic(trait);
         }
@@ -246,6 +246,19 @@ if (typeof exports === 'undefined') {
 
         return pattern;
     }      
+
+    // Get a trait as it relates to a specific characteristic
+    BiologicaX.getTraitAsCharacteristic = function(trait, characteristic) {
+        if (characteristic.toLowerCase() === "metallic") {
+            if (BiologicaX.isColorMetallic(characteristic)) {
+                trait = 'Metallic';
+            } else {
+                trait = 'Nonmetallic';
+            }
+        }
+
+        return trait;
+    }
 
     BiologicaX.getTraitFromPhenotype = function(phenotype, characteristic) {
         let trait = null; 

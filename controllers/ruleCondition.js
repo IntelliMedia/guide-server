@@ -103,7 +103,8 @@ class AllelesCondition extends RuleCondition {
         super.populateSubstitutionVariables(variableMap);
 
         let trait = BiologicaX.getTraitFromAlleles(BioLogica.Species.Drake, this.targetAlleles);
-        let displayTrait = BiologicaX.getDisplayName(trait);        
+        let traitAsCharacteristic = BiologicaX.getTraitAsCharacteristic(trait, this.attribute);
+        let displayTrait = BiologicaX.getDisplayName(traitAsCharacteristic);        
         variableMap[this.displayVariable.replace("Alleles", "Trait")] = displayTrait;
     }     
 }
