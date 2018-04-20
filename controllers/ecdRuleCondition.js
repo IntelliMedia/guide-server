@@ -125,6 +125,11 @@ class StringCondition extends EcdRuleCondition {
 
     evaluate(obj) {
         let value = this.getValue(obj);
+
+        if (this.propertyPath.includes("challengeId")) {
+            value = BiologicaX.getChallengeIdBase(value);
+        }
+
         if (this.normalize) {
             value = value.toLowerCase();
         }

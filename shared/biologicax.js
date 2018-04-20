@@ -267,4 +267,10 @@ if (typeof exports === 'undefined') {
         return characteristic;
     }
 
+    BiologicaX.getChallengeIdBase = function(challengeId) {
+        // Trailing number on the challenge ID should be ignored since they
+        // represent different trials of the same challenege
+        return challengeId.replace(/-?\d*$/,"");
+    }
+
 }).call(this);

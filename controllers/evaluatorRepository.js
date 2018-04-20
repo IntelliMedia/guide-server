@@ -5,6 +5,7 @@ const parse = require('csv-parse');
 const Group = require('../models/Group');
 const EcdRulesEvaluator = require("./ecdRulesEvaluator");
 const EcdCsvParser = require("./ecdCsvParser");
+const Biologicax = require('../shared/biologicax');
 
 /**
  * This class retrieves rules based on group and challengeId 
@@ -94,7 +95,7 @@ class EvaluatorRepository {
 
             // Trailing number on the challenge ID should be ignored since they
             // represent different trials of the same challenege
-            challengeId = challengeId.replace(/-?\d*$/,"");
+            challengeId = BiologicaX.getChallengeIdBase(challengeId);
 
             var matchingChallenges = group.challenges.filter(function(item) {
                 return item.challengeId == challengeId || (includeWildcards && item.challengeId == "*");
