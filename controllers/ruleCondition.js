@@ -78,37 +78,6 @@ class RuleCondition {
     }
 }
 
-class AllelesCondition extends RuleCondition {
-    constructor(propertyPath, value, displayVariable) { 
-        super(propertyPath, value, displayVariable);
-        this.targetAlleles = this.normalizeAlleles(value);
-        this.attribute = BiologicaX.getGene(BioLogica.Species.Drake, this.targetAlleles[0]);
-    }
-
-    normalizeAlleles(alleles) {
-        return alleles.split(",").map((item) => item.trim());
-    }
-
-    evaluate(obj) {
-        let alleles = this.getValue(obj);
-        alleles = this.normalizeAlleles(alleles);
-        let result = this.targetAlleles.every((item) => {
-            return alleles.indexOf(item) >= 0;
-        });
-        return result;
-    }  
-
-    // Override in order to also include trait name
-    populateSubstitutionVariables(variableMap) {
-        super.populateSubstitutionVariables(variableMap);
-
-        let trait = BiologicaX.getTraitFromAlleles(BioLogica.Species.Drake, this.targetAlleles);
-        let traitAsCharacteristic = BiologicaX.getTraitAsCharacteristic(trait, this.attribute);
-        let displayTrait = BiologicaX.getDisplayName(traitAsCharacteristic);        
-        variableMap[this.displayVariable.replace("Alleles", "Trait")] = displayTrait;
-    }     
-}
-
 class SexCondition extends RuleCondition {
     constructor(propertyPath, value, displayVariable) { 
         super(propertyPath, value, displayVariable);
@@ -142,6 +111,7 @@ class StringCondition extends RuleCondition {
 
     evaluate(obj) {
         let stringValue = this.getValue(obj);
+
         if (this.normalize) {
             stringValue = stringValue.toLowerCase();
         }
@@ -167,22 +137,7 @@ class BoolCondition extends RuleCondition {
 class TraitCondition extends RuleCondition {
     constructor(propertyPath, value, displayVariable) { 
         super(propertyPath, value, displayVariable);
-        this.targetTraits = this.normalizeCharacterisitics(value.split(","));
-        this.attribute = BiologicaX.getCharacteristicFromTrait(BioLogica.Species.Drake, this.targetTraits[0]);
-    }
-
-    normalizeCharacterisitics(phenotype) {
-        if (!phenotype || phenotype.length == 0) {
-            throw new Error("Empty phenotype.")
-        }
-
-        return phenotype.map((item) => {
-            try {
-                return item.toLowerCase().trim();
-            } catch(e) {
-                throw e;
-            }
-        });
+        this.attribute = BiologicaX.getCharacteristicFromTrait(BioLogica.Species.Drake, value);
     }
 
     evaluate(obj) {
@@ -205,26 +160,7 @@ class TraitCondition extends RuleCondition {
             throw new Error("Condition unable to construct phenotype. Unable find any properties: " + this.propertyPath + ", phenotype, alleles, or sex");
         }
 
-        let traits = this.normalizeCharacterisitics(Object.keys(phenotype).map(key => phenotype[key]));
-        var result = this.targetTraits.every((item) => {
-            if (item === "metallic") {
-                return BiologicaX.isColorMetallic(phenotype.color);
-            } else if (item === "nonmetallic") {
-                return !BiologicaX.isColorMetallic(phenotype.color);
-            } else if (item === "albino") {
-                return BiologicaX.isAlbino(phenotype.color);
-            } else if (item === "color") {
-                return !BiologicaX.isAlbino(phenotype.color);
-            } else if (item === "orange") {
-                return BiologicaX.isOrange(phenotype.color);
-            } else if (item === "gray") {
-                return !BiologicaX.isOrange(phenotype.color);
-            } else if (item === "armor") {
-                return BiologicaX.hasAnyArmor(phenotype.armor);          
-            } else {
-                return traits.indexOf(item) >= 0;
-            }
-        });
+        let result = BiologicaX.hasTrait(phenotype, this.attribute, this.value);
         return result;
     }
 
@@ -247,6 +183,44 @@ class TraitCondition extends RuleCondition {
         return phenotype;
     }
 }
+
+class AllelesCondition extends TraitCondition {
+    constructor(propertyPath, value, displayVariable) { 
+
+        let targetAlleles = AllelesCondition.normalizeAlleles(value);
+        let targetTrait = BiologicaX.getTraitFromAlleles(BioLogica.Species.Drake, targetAlleles);        
+
+        super(propertyPath, targetTrait, displayVariable.replace("Alleles", "Trait"));
+
+        this.targetAlleles = targetAlleles;
+        this.displayVariableAlleles = displayVariable;     
+    }
+
+    static normalizeAlleles(alleles) {
+        return alleles.split(",").map((item) => item.trim());
+    }
+
+    evaluate(obj) {
+        let alleles = this._getValue(false, obj);
+        // Fallback to trait evaluation if alleles aren't available
+        if (!alleles) {
+            return super.evaluate(obj);
+        }        
+
+        alleles = AllelesCondition.normalizeAlleles(alleles);
+        let result = this.targetAlleles.every((item) => {
+            return alleles.indexOf(item) >= 0;
+        });
+        return result;
+    }  
+
+    // Override in order to also include trait name
+    populateSubstitutionVariables(variableMap) {
+        super.populateSubstitutionVariables(variableMap);        
+        variableMap[this.displayVariableAlleles] = this.targetAlleles[0];
+    }     
+}
+
 
 module.exports.AllelesCondition = AllelesCondition;
 module.exports.SexCondition = SexCondition;

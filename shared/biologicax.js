@@ -164,20 +164,38 @@ if (typeof exports === 'undefined') {
                 || color == 'Sand');
     }
 
-    BiologicaX.colorAsTrait = function(color) {
-        if (BiologicaX.isColorMetallic(color)) {
+    BiologicaX.colorAsTrait = function(color, alleles) {
+        let allele = alleles[0].replace(/.+:/, "").toLowerCase();
+
+        if (BiologicaX.isColorMetallic(color) && allele == "m") {
             return "Metallic";
-        } else if (BiologicaX.isAlbino(color)) {
+        } else if (BiologicaX.isAlbino(color) && allele == "c") {
             return "Albino";
-        } else if (BiologicaX.isOrange(color)) {
+        } else if (BiologicaX.isOrange(color) && allele == "b") {
             return "Orange";
         } else {
             return color;
-        }       
+        }
     }
 
     BiologicaX.hasAnyArmor = function(armor) {
         return (armor !== 'No armor');
+    }
+
+    BiologicaX.hasTrait = function(phenotype, characteristic, trait) { 
+        if (characteristic === "metallic") {
+            return (trait == "Metallic" ? BiologicaX.isColorMetallic(phenotype.color) : !BiologicaX.isColorMetallic(phenotype.color));
+        } else if (characteristic === "albino") {
+            return BiologicaX.isAlbino(phenotype.color);
+        } else if (characteristic === "color") {
+            return !BiologicaX.isAlbino(phenotype.color);
+        } else if (characteristic === "orange") {
+            return BiologicaX.isOrange(phenotype.color);
+        } else if (characteristic === "gray") {
+            return !BiologicaX.isOrange(phenotype.color);     
+        } else {
+            return phenotype[characteristic] == trait;
+        }
     }
 
     BiologicaX.findAllele = function(species, alleles, side, gene) {
@@ -291,7 +309,7 @@ if (typeof exports === 'undefined') {
 
                 for (let traitAlleles of species.traitRules[characteristic][trait]) {
                     if (BiologicaX.allelesInTraitArray(allelesWithoutSides, traitAlleles)) {
-                        return BiologicaX.colorAsTrait(trait);
+                        return BiologicaX.colorAsTrait(trait, alleles);
                     }
                 }
             }
@@ -364,5 +382,11 @@ if (typeof exports === 'undefined') {
 
         return displayName;
     }    
+
+    BiologicaX.getChallengeIdBase = function(challengeId) {
+        // Trailing number on the challenge ID should be ignored since they
+        // represent different trials of the same challenege
+        return challengeId.replace(/-?\d*$/,"");
+    }
 
 }).call(this);

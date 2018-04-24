@@ -35,13 +35,16 @@ class TutorialPlanner {
             });
 
             let mostRecentHint = this.student.studentModel.mostRecentHint(challengeId);
-            return this._selectHintAsync(event.context.groupId, challengeId, misconceptions, mostRecentHint);
+            return this._selectHintAsync(event.context.groupId, event.context.challengeType, challengeId, misconceptions, mostRecentHint);
         }
         
         return Promise.resolve(null);
     }
 
-    _selectHintAsync(groupId, challengeId, misconceptions, mostRecentHint) {
+    _selectHintAsync(groupId, challengeType, challengeId, misconceptions, mostRecentHint) {
+        if (!challengeType) {
+            throw new Error("challengeType not defined in context")
+        }
         console.info("Observed incorrect concepts:");
         misconceptions = this._sortMisconceptionsByPreviousHintAndThenAscendingScore(misconceptions, mostRecentHint);
         for (let misconception of misconceptions) {
@@ -51,9 +54,9 @@ class TutorialPlanner {
         let conceptHintsRepository = new ConceptHintsRepository(this.session);
         return conceptHintsRepository.loadAsync(groupId).then(() => {
             for (let misconception of misconceptions) {
-                let conceptHints = conceptHintsRepository.find("Sim", misconception.conceptId);
+                let conceptHints = conceptHintsRepository.find(challengeType, misconception.conceptId);
                 if (conceptHints && conceptHints.length > 0) {
-                    let hintLevel = 2;
+                    let hintLevel = 0;
                     let conceptHint = conceptHints[0];
                     return this._createHintAction(
                         conceptHint.getHint(hintLevel, misconception.substitutionVariables),

@@ -55,6 +55,9 @@ class Rule {
 
     evaluate(event) {
 
+        // TODO rgtaylor 2018-04-24 Make this an environment variable configurable log option
+        //console.info("Evaluating Rule: " + this.sourceUrl());
+        
         let allConditionsMatched = false;
         // Is the characteristic editable by the user in the client?
         if (this.attribute === "n/a" || event.context.selectableAttributes.indexOf(this.attribute) >= 0) {
