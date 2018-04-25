@@ -1,5 +1,10 @@
 'use strict';
 
+const fs = require('fs');
+const path = require('path');
+const { promisfy } = require('promisfy');
+const readFileAsync = promisfy(fs.readFile);
+const writeFileAsync = promisfy(fs.writeFile);
 const rp = require('request-promise');
 const parse = require('csv-parse');
 const Group = require('../models/Group');
@@ -30,7 +35,7 @@ class EvaluatorRepository {
         return this.getEcdRuleDocIdsAsync(groupName, challengeId, true).then((docIds) => {
             let loadRulesPromises = [];
             docIds.forEach((docId) => {
-                loadRulesPromises.push(this._loadRulesFromGoogleSheetAsync(docId));
+                loadRulesPromises.push(this._loadRulesAsync(docId));
             });
 
             return Promise.all(loadRulesPromises);
@@ -43,8 +48,18 @@ class EvaluatorRepository {
         });
     }
 
+    _loadRulesAsync(docId) {
+
+        return this._loadRulesFromFileAsync(docId)
+            .catch((e) => {
+                // Fallback and try to load from Google Sheet
+                console.error(e.toString());
+                return this._loadRulesFromGoogleSheetAsync(docId);
+            });
+    }    
+
     _loadRulesFromGoogleSheetAsync(docId) {
-        var docUrl = "https://docs.google.com/spreadsheets/d/" + docId;
+        var docUrl = this._getDocUrl(docId);
         var csvExportUrl = docUrl + "/export?format=csv";
         var options = {
             method: "GET",
@@ -54,15 +69,59 @@ class EvaluatorRepository {
             } 
         };
         
-        this.session.debugAlert("Load rules from: " + docUrl);
         return rp(options)
-            .then( response => {
+            .then(response => {
+                this.session.debugAlert("Loaded rules from Google Sheet: " + docUrl);
+                let filepath = this._getCacheFilename(docId);
+                this.session.debugAlert("Save rules to file: " + filepath);
+                this._ensureDirectoryExistence(filepath);
+                return writeFileAsync(filepath, response)
+                .then(() => {
+                    return response;
+                })
+                .catch(e => {
+                    console.error("Unable to save CSV to cache: " + filepath);
+                    return response;
+                });
+            })
+            .then(response => {
                 return this.parseCsvAsync(response, docUrl);
             })
             .then (csv => {
                 var parser = new EcdCsvParser();
                 return parser.convertCsvToRules(docUrl, csv);
             });
+    }
+
+    _loadRulesFromFileAsync(docId) { 
+        let filepath = this._getCacheFilename(docId);        
+        return readFileAsync(filepath, 'utf8')        
+            .then( response => {
+                this.session.debugAlert("Loaded rules from file: " + filepath);
+                return this.parseCsvAsync(response, this._getDocUrl(docId));
+            })
+            .then (csv => {
+                var parser = new EcdCsvParser();
+                return parser.convertCsvToRules(this._getDocUrl(docId), csv);
+            });
+    }
+
+    // https://stackoverflow.com/questions/13542667/create-directory-when-writing-to-file-in-node-js
+    _ensureDirectoryExistence(filePath) {
+        let dirname = path.dirname(filePath);
+        if (fs.existsSync(dirname)) {
+            return true;
+        }
+        this._ensureDirectoryExistence(dirname);
+        fs.mkdirSync(dirname);
+    }
+
+    _getDocUrl(docId) {
+        return "https://docs.google.com/spreadsheets/d/" + docId;
+    }
+    
+    _getCacheFilename(docId) {
+        return  "./ruleCache/" + docId + ".csv";
     }
 
     parseCsvAsync(text, docUrl) {
