@@ -221,6 +221,7 @@ function initializeRoutes() {
   app.get('/group/:groupId', authz.middleware(1), groupController.index);
   app.delete('/group/:groupId', authz.middleware(1), groupController.delete);
   app.post('/group/modify', authz.middleware(1), groupController.modify);
+  app.post('/group/clear-cache', authz.middleware(1), groupController.clearCache);  
   app.post('/group/duplicate', authz.middleware(1), groupController.duplicate);
   app.get('/alerts', authz.middleware(), alertsController.index);
   app.post('/alerts/clear', authz.middleware(1), alertsController.clear);

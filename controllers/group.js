@@ -1,5 +1,6 @@
 const Group = require('../models/Group');
 const Concept = require('../models/Concept');
+const EvaluatorRepository = require('./evaluatorRepository');
 
 /**
  * GET /
@@ -84,5 +85,21 @@ exports.modify = (req, res) => {
       req.flash('errors', { msg: 'Unable to update group. ' + err.toString()});
       return next(err);
     });
+  }
+};
+
+exports.clearCache = (req, res) => {
+  if (req.body.hasOwnProperty("id")) {
+    var group = req.body;
+    console.info("Clear local file cache for group: " + group.id);
+    try {
+      EvaluatorRepository.clearLocalFileCache(group);
+      req.flash('info',  { msg: 'Cache successfully cleared'});
+      return res.send({redirect: '/group/' + group.id});
+    } catch(e) {
+      consolex.exception(e);
+      req.flash('errors', { msg: 'Unable to clear cache. ' + e.toString()});
+      return res.send({redirect: '/group/' + group.id});
+    }
   }
 };
