@@ -1,6 +1,6 @@
 'use strict';
 
-const ConceptHints = require('./conceptHints');
+const ConceptHints = require('../models/conceptHints');
 const CsvDeserializer = require('./csvDeserializer');
 
 /**

@@ -1,6 +1,6 @@
 const Group = require('../models/Group');
 const Concept = require('../models/Concept');
-const EvaluatorRepository = require('./evaluatorRepository');
+const EvaluatorRepository = require('../storage/evaluatorRepository');
 
 /**
  * GET /

@@ -1,7 +1,7 @@
 'use strict';
 
 const rp = require('request-promise');
-const RulesEvaluator = require("./rulesEvaluator");
+const RulesEvaluator = require("../services/rulesEvaluator");
 const RuleCsvDeserializer = require("./ruleCsvDeserializer");
 const GoogleSheetRepository = require("./googleSheetRepository");
 

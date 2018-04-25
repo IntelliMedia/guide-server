@@ -2,7 +2,6 @@
 
 const Biologicax = require('../shared/biologicax');
 const RuleCondition = require('./ruleCondition');
-const TraitCondition = require('./ruleCondition').TraitCondition;
 const arrayx = require("../utilities/arrayx");
 const _ = require('lodash');
 

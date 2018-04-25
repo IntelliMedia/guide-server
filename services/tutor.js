@@ -1,5 +1,5 @@
 const TutorAction = require('../models/TutorAction');
-const EvaluatorRepository = require('./evaluatorRepository');
+const EvaluatorRepository = require('../storage/evaluatorRepository');
 const TutorialPlanner = require('./tutorialPlanner');
 
 class Tutor {

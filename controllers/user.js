@@ -3,7 +3,7 @@ const crypto = require('crypto');
 const nodemailer = require('nodemailer');
 const passport = require('passport');
 const User = require('../models/User');
-const authz = require('./authorization');
+const authz = require('../services/authorization');
 const _ = require('underscore');
 
 /**

@@ -1,5 +1,5 @@
 const User = require('../models/User');
-const authz = require('./authorization');
+const authz = require('../services/authorization');
 
 exports.index = (req, res) => {
   User.find({}, function(err, users) {

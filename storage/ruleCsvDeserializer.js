@@ -1,7 +1,7 @@
 'use strict';
 
-const Rule = require('./rule');
-const RuleCondition = require('./ruleCondition');
+const Rule = require('../models/rule');
+const RuleCondition = require('../models/ruleCondition');
 const CsvDeserializer = require('./csvDeserializer');
 const Stringx = require('../utilities/stringx');
 

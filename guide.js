@@ -60,9 +60,9 @@ const groupController = require('./controllers/group');
 const alertsController = require('./controllers/alerts');
 const usersController = require('./controllers/users');
 const userController = require('./controllers/user');
-const socketManager = require('./controllers/socketManager');
-const StudentDataVisualization = require('./controllers/studentDataVisualization');
-const authz = require('./controllers/authorization');
+const socketManager = require('./services/socketManager');
+const StudentDataVisualization = require('./services/studentDataVisualization');
+const authz = require('./services/authorization');
 
 /**
  * API keys and Passport configuration.
