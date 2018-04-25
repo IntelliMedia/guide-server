@@ -63,6 +63,8 @@ window.onload = function() {
     var $DELETE_BTN = $('#delete-btn');
     var $CANCEL_BTN = $('#cancel-btn');
 
+    var $CLEAR_CACHE_BTN = $('#clear-cache-btn');
+
     $('.table-add').click(function () {
         var $clone = $TABLE.find('tr.hide').clone(true).removeClass('hide table-line');
         $TABLE.find('table').append($clone);
@@ -119,5 +121,10 @@ window.onload = function() {
     $SAVE_BTN.click(function () {
         console.info("Save group");
         submit("/group/modify", "POST", extractGroup());
+    });
+
+    $CLEAR_CACHE_BTN.click(function () {
+        console.info("Clear cached files associated with this group");
+        submit("/group/clear-cache", "POST", extractGroup());
     });
 }

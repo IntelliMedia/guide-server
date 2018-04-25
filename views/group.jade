@@ -29,7 +29,9 @@ block content
     h3(id="name" contenteditable="true" style="width:50%")     
         | #{group.name}
     div
-    div.table-editable(id="table")
+        button.btn.btn-danger(id="clear-cache-btn" style='margin-right: 5px;')
+            | Clear Cache
+    div.table-editable(id="table" style='margin-top: 10px;')
         table.table
             thead
                 tr

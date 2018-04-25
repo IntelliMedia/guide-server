@@ -59,7 +59,7 @@ class EvaluatorRepository {
     }    
 
     _loadRulesFromGoogleSheetAsync(docId) {
-        var docUrl = this._getDocUrl(docId);
+        var docUrl = EvaluatorRepository._getDocUrl(docId);
         var csvExportUrl = docUrl + "/export?format=csv";
         var options = {
             method: "GET",
@@ -72,7 +72,7 @@ class EvaluatorRepository {
         return rp(options)
             .then(response => {
                 this.session.debugAlert("Loaded rules from Google Sheet: " + docUrl);
-                let filepath = this._getCacheFilename(docId);
+                let filepath = EvaluatorRepository._getCacheFilename(docId);
                 this.session.debugAlert("Save rules to file: " + filepath);
                 this._ensureDirectoryExistence(filepath);
                 return writeFileAsync(filepath, response)
@@ -94,15 +94,15 @@ class EvaluatorRepository {
     }
 
     _loadRulesFromFileAsync(docId) { 
-        let filepath = this._getCacheFilename(docId);        
+        let filepath = EvaluatorRepository._getCacheFilename(docId);        
         return readFileAsync(filepath, 'utf8')        
             .then( response => {
                 this.session.debugAlert("Loaded rules from file: " + filepath);
-                return this.parseCsvAsync(response, this._getDocUrl(docId));
+                return this.parseCsvAsync(response, EvaluatorRepository._getDocUrl(docId));
             })
             .then (csv => {
                 var parser = new EcdCsvParser();
-                return parser.convertCsvToRules(this._getDocUrl(docId), csv);
+                return parser.convertCsvToRules(EvaluatorRepository._getDocUrl(docId), csv);
             });
     }
 
@@ -116,11 +116,11 @@ class EvaluatorRepository {
         fs.mkdirSync(dirname);
     }
 
-    _getDocUrl(docId) {
+    static _getDocUrl(docId) {
         return "https://docs.google.com/spreadsheets/d/" + docId;
     }
     
-    _getCacheFilename(docId) {
+    static _getCacheFilename(docId) {
         return  "./ruleCache/" + docId + ".csv";
     }
 
@@ -168,6 +168,20 @@ class EvaluatorRepository {
             console.info("Found " + matchingChallenges.length + " rule set(s) for challengeId=" + challengeId + " defined for group: " + groupName);
             return matchingChallenges.map((c) => { return c.googleEcdMatrixId; });
         });
+    }
+
+    static clearLocalFileCache(group) {
+        if (!group) {
+            throw new Error("group is undefined");
+        }
+
+        for(let item of group.challenges) {
+            let cacheFilename = EvaluatorRepository._getCacheFilename(item.googleEcdMatrixId);
+            if (fs.existsSync(cacheFilename)) {
+                console.info("Delete: " + item.googleEcdMatrixId);
+                fs.unlinkSync(cacheFilename);
+            }
+        }
     }
 }
 
