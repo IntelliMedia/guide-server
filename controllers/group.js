@@ -1,6 +1,6 @@
 const Group = require('../models/Group');
 const Concept = require('../models/Concept');
-const EvaluatorRepository = require('../storage/evaluatorRepository');
+const FileRepository = require('../storage/fileRepository');
 
 /**
  * GET /
@@ -93,7 +93,11 @@ exports.clearCache = (req, res) => {
     var group = req.body;
     console.info("Clear local file cache for group: " + group.id);
     try {
-      EvaluatorRepository.clearLocalFileCache(group);
+      let cacheRepository = new FileRepository(global.cacheDirectory);
+      for (let id of group.repositoryLinks.map((c) => { return c.googleSheetDocId; })) {
+        cacheRepository.deleteCollection(id);
+      }
+
       req.flash('info',  { msg: 'Cache successfully cleared'});
       return res.send({redirect: '/group/' + group.id});
     } catch(e) {

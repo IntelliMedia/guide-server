@@ -1,5 +1,5 @@
 const TutorAction = require('../models/TutorAction');
-const EvaluatorRepository = require('../storage/evaluatorRepository');
+const RulesEvaluator = require('./rulesEvaluator');
 const TutorialPlanner = require('./tutorialPlanner');
 
 class Tutor {
@@ -24,10 +24,9 @@ class Tutor {
             // Use the event's action and target to find an evaluator. E.g., "changed, allele"
             let evaluatorTags = event.action.toLowerCase() + ", " + event.target.toLowerCase();
 
-            let repo = new EvaluatorRepository(this.session);
-            return repo.findEvaluatorAsync(this.session.groupId, evaluatorTags).then((evaluator) => {
-                return (evaluator ? evaluator.evaluateAsync(this.student, this.session, event) : Promise.resolve(false));
-            });
+            let rulesEvaluator = new RulesEvaluator();
+            return rulesEvaluator.initializeAsync(this.session, this.session.groupId, evaluatorTags)
+                .then(() => rulesEvaluator.evaluateAsync(this.student, this.session, event));
 
         } catch(err) {
             return  Promise.reject(err);
@@ -145,10 +144,9 @@ class Tutor {
             this.session.groupId = event.context.groupId;
         }
 
-        var repo = new EvaluatorRepository(this.session);
-        return repo.findEvaluatorAsync(this.session.groupId, event.context.challengeId).then((evaluator) => {
-            return (evaluator ? evaluator.evaluateAsync(this.student, this.session, event) : null);
-        });
+        let rulesEvaluator = new RulesEvaluator();
+        return rulesEvaluator.initializeAsync(this.session, this.session.groupId, evaluatorTags)
+            .then(() => rulesEvaluator.evaluateAsync(this.student, this.session, event));
     }
 
     // Temporary method to convert from old event context to new
@@ -164,10 +162,9 @@ class Tutor {
             this.session.groupId = event.context.groupId;
         }
 
-        var repo = new EvaluatorRepository(this.session);
-        return repo.findEvaluatorAsync(this.session.groupId, event.context.challengeId).then((evaluator) => {
-            return (evaluator ? evaluator.evaluateAsync(this.student, this.session, event) : null);
-        });
+        let rulesEvaluator = new RulesEvaluator();
+        return rulesEvaluator.initializeAsync(this.session, this.session.groupId, evaluatorTags)
+            .then(() => rulesEvaluator.evaluateAsync(this.student, this.session, event));
     }
 
     checkRequiredProperties() {

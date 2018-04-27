@@ -6,19 +6,14 @@ const CsvDeserializer = require('./csvDeserializer');
 const Stringx = require('../utilities/stringx');
 
 /**
- * This class uses parses a CSV to create ECD-based rules
- * used to update a student model
+ * This class uses parses a CSV to create rules to evaluate the student
  */
 class RuleCsvDeserializer extends CsvDeserializer {
     constructor() {
         super();
     }
-
-    convertToObjects(source, csv) {
-        return this._convertToObjects(source, csv, this._parseRuleRow.bind(this));
-    }
   
-    _parseRuleRow(ruleId, columnMap, headerRow, currentRow) {
+    parseRow(currentRowIndex, source, columnMap, headerRow, currentRow) {
         var DominantRecessiveMap = [
             { dominant: "Wings", recessive: "No wings", ":Q":":W", ":q":":w", characterisiticName: {dominant: "wings", recessive: "wingless"}},
             { dominant: "Forelimbs", recessive: "No forelimbs", ":Q":":Fl", ":q":":fl", characterisiticName: {dominant: "arms", recessive: "armless"}},
@@ -108,12 +103,12 @@ class RuleCsvDeserializer extends CsvDeserializer {
                     }
                 }
 
-                rules.push(this._createRule(ruleId, columnMap, headerRow, clonedRow));
+                rules.push(this._createRule(currentRowIndex, source, columnMap, headerRow, clonedRow));
             });
             return rules;
         } else {
             return [
-                this._createRule(ruleId, columnMap, headerRow, currentRow)
+                this._createRule(currentRowIndex, source, columnMap, headerRow, currentRow)
             ];
         }
     }
@@ -131,7 +126,7 @@ class RuleCsvDeserializer extends CsvDeserializer {
         return "dominant";   
     }
 
-    _createRule(ruleId, columnMap, headerRow, currentRow) {
+    _createRule(ruleId, source, columnMap, headerRow, currentRow) {
         var conditions = [];
         conditions = conditions.concat(this._extractConditions("context.challengeCriteria", "target", headerRow, currentRow));
         conditions = conditions.concat(this._extractConditions("context.userSelections","selected", headerRow, currentRow));
@@ -143,7 +138,7 @@ class RuleCsvDeserializer extends CsvDeserializer {
         }
 
         return new Rule(
-            this.source,
+            source,
             ruleId, 
             this._asNumber(this._getCell(currentRow, columnMap, "priority")),
             conditions,

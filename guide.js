@@ -4,6 +4,11 @@ var guideInfo = require('./package');
 console.info("%s %s", guideInfo.name, guideInfo.version);
 
 /**
+ * Global Variables
+ */
+global.cacheDirectory = "./data/cache";
+
+/**
  * Setup global promise lib
  */
 require('bluebird');

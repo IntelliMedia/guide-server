@@ -1,7 +1,6 @@
 'use strict';
 
-const rp = require('request-promise');
-const parse = require('csv-parse');
+const RulesRepository = require('../storage/rulesRepository');
 const StudentModelService = require('./studentModelService');
 const Group = require('../models/Group');
 const TutorAction = require('../models/TutorAction');
@@ -13,10 +12,19 @@ const DashboardService = require('./dashboardService');
  * and to provide move-specific hints.
  */
 class RulesEvaluator {
-    constructor(rules) {
-        this.rules = rules;
-        console.info("RulesEvaluator initialized with " + rules.length + " rule(s).");
+    constructor() {
+        this.rulesRepository = new RulesRepository(global.cacheDirectory);
     }
+
+    initializeAsync(session, groupName, tags) {
+        return Group.getCollectionIdsAsync(groupName, tags).then((ids) => {
+            if (ids.length == 0) {
+                session.warningAlert("Unable to find Google Sheet with tags (" + tags + ") in  group '" + groupName + "'");
+            }
+
+            return this.rulesRepository.loadCollectionsAsync(ids);
+        });
+    }    
 
     evaluateAsync(student, session, event) {
         return new Promise((resolve, reject) => {
@@ -60,7 +68,7 @@ class RulesEvaluator {
     evaluateRules(event) {
 
         var activatedRules = []
-        for (let rule of this.rules) {
+        for (let rule of this.rulesRepository.objs) {
             if (rule.evaluate(event)) {
                  activatedRules.push(rule);
             }

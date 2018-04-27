@@ -7,12 +7,42 @@ const Stringx = require("../utilities/stringx");
  * Convert data parsed from CSV file into objects
  */
 class CsvDeserializer {
+    // this._parseRuleRow.bind(this)
     constructor() {
-        this.source = null;
     }
 
-    _convertToObjects(source, csv, parseRowMethod) {
-        this.source = source;
+    convertToObjectsAsync(data, source) {
+        return this._parseCsvAsync(data)
+            .then ((csv) => {
+                return this._convertToObjects(csv, source);
+            });
+    }
+    
+    fileType() {
+        return "csv";
+    }
+
+    parseRow(currentRowIndex, source, columnMap, headerRow, currentRow) {
+        throw new Error("This method must be overridden in inherited class");
+    }
+
+    _parseCsvAsync(text) {
+        return new Promise((resolve, reject) => {
+            var parseOptions = {
+                comment: '#',
+                skip_empty_lines: true
+            };
+            parse(text, parseOptions, function(err, csv){
+                if (err) {
+                    reject(new Error("Unable to parse CSV. " + err));
+                } else {
+                    resolve(csv);
+                }
+            });
+        }); 
+    }
+
+    _convertToObjects(csv, source) {
         var currentRowIndex = 0;
         try { 
             var rules = [];
@@ -40,7 +70,7 @@ class CsvDeserializer {
                     continue;
                 }
 
-                let obj = parseRowMethod(currentRowIndex, columnMap, headerRow, currentRow);
+                let obj = this.parseRow(currentRowIndex, source, columnMap, headerRow, currentRow);
                 if (obj && obj.length > 0) {
                     rules.push.apply(rules, obj);
                 }
@@ -48,7 +78,7 @@ class CsvDeserializer {
 
             return rules;
         } catch(err) {
-            var msg = "Unable to deserialize object from '" + this.source + "' [Row: " + currentRowIndex + "] ";
+            var msg = "Unable to deserialize object from '" + source + "' [Row: " + currentRowIndex + "] ";
             err.message = msg + err.message;
             throw err;
         }

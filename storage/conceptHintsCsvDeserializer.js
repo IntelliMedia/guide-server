@@ -11,16 +11,11 @@ class ConceptHintsCsvDeserializer extends CsvDeserializer {
     constructor() {
         super();
     }
-
-    convertToObjects(source, csv) {
-        return this._convertToObjects(source, csv, this._parseHintRow.bind(this));
-    }
   
-    _parseHintRow(ruleId, columnMap, headerRow, currentRow) {
-
+    parseRow(currentRowIndex, source, columnMap, headerRow, currentRow) {
         return [new ConceptHints(
-            this.source,
-            ruleId, 
+            source,
+            currentRowIndex, 
             this._getCell(currentRow, columnMap, "conceptid"),
             this._getCell(currentRow, columnMap, "tags"),
             this._extractHints(headerRow, currentRow))];

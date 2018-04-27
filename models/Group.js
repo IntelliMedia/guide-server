@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const Repository = require('../storage/repository');
 
 const tagsDocIdSchema = new mongoose.Schema({
   tags: String,
@@ -38,6 +39,22 @@ groupSchema.methods.clone = function() {
 
       return newGroup;
 }
+
+    // Returns as array of GoogleSheet IDs that contain ECD rules
+groupSchema.statics.getCollectionIdsAsync = function(groupName, tags) {
+      return Group.findOne({ "name": groupName }).then((group) => {
+          if (!group) {
+              throw new Error("Unable to find group with name: " + groupName);
+          }
+
+          let idRepository = new Repository();
+          idRepository.insert(group.repositoryLinks.map((c) => { return c.toObject(); }));
+          let matchingIds = idRepository.filter(tags).map((c) => { return c.googleSheetDocId; })
+
+          return matchingIds;
+      });
+  }
+
 
 const Group = mongoose.model('Group', groupSchema);
 

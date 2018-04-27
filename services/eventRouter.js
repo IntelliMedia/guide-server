@@ -4,7 +4,6 @@ const TutorAction = require('../models/TutorAction');
 const Tutor = require('./tutor');
 const await = require('asyncawait/await');
 const guideProtocol = require('../shared/guide-protocol.js');
-const EvaluatorRepository = require('../storage/evaluatorRepository');
 const RulesEvaluator = require("./rulesEvaluator");
 
 class EventRouter {
