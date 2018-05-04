@@ -16,7 +16,9 @@ class ConceptHintsCsvDeserializer extends CsvDeserializer {
         return [new ConceptHints(
             source,
             currentRowIndex, 
+            this._asNumber(this._getCell(currentRow, columnMap, "priority")),
             this._getCell(currentRow, columnMap, "conceptid"),
+            this._asNumber(this._getCell(currentRow, columnMap, "threshold")),
             this._getCell(currentRow, columnMap, "tags"),
             this._extractHints(headerRow, currentRow))];
     }    

@@ -3,11 +3,13 @@
 const _ = require('lodash');
 
 class ConceptHints {   
-    constructor(source, id, conceptId, tags, hints) {
+    constructor(source, id, priority, conceptId, threshold, tags, hints) {
         this.findReplacementBlock = new RegExp("\\[(?:([^\\]\\:]+)\\:)?([^\\]]*)\\]", "i");
         this.source = source;
         this.id = id;
+        this.priority = priority;
         this.conceptId = conceptId;
+        this.threshold = threshold;
         this.tags = tags;
         this.hints = hints;
 
