@@ -72,6 +72,7 @@ class HintRecommender {
                 let hintLevel = this._incrementHintLevel(mostRecentHint, conceptHint);
                 return this._createHintAction(
                     session,
+                    conceptHint.priority,
                     conceptHint.getHint(hintLevel, misconception.substitutionVariables),
                     9,
                     misconception.attribute,
@@ -101,7 +102,7 @@ class HintRecommender {
         });
     }
 
-    _createHintAction(session, hintText, hintLevel, attribute, challengeId, source) {        
+    _createHintAction(session, priority, hintText, hintLevel, attribute, challengeId, source) {        
         let dialogMessage = new GuideProtocol.Text(
             'ITS.CONCEPT.FEEDBACK',
             hintText);
@@ -115,6 +116,7 @@ class HintRecommender {
         let action = TutorAction.create(session, "SPOKETO", "USER", "hint",
                     new GuideProtocol.TutorDialog(dialogMessage, reason));
         action.context.hintLevel = hintLevel;
+        action.context.priority = priority;
         action.context.challengeId = challengeId;
         action.context.source = source;    
 

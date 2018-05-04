@@ -29,7 +29,9 @@ class TutorialPlanner {
 
             return Promise.all(actionPromises).then((results) => {
                 // TODO: sort by priority
-                let filteredAndSorted = results.filter((action) => action != null);
+                let filteredAndSorted = results
+                    .filter((action) => action != null)
+                    .sort((a, b) => b.context.priority - a.context.priority);
                 return filteredAndSorted.length > 0 ? filteredAndSorted[0] : null;
 
                 // Update student model with action

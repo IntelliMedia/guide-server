@@ -56,7 +56,8 @@ class FileRepository extends Repository {
       }
 
     _getFilename(id) {
-        return path.join(this.dataPath, id) + "." + this.deserializer.fileType();
+        let ext = this.deserializer.fileType();
+        return path.join(this.dataPath, id) + "." + ext;
     }
 }
 

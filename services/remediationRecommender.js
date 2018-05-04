@@ -67,9 +67,9 @@ class RemediationRecommender {
                 let conceptHint = conceptHints[0];
                 return this._createRemediateAction(
                     session,
+                    conceptHint.priority,
                     "Let's practice this some more",
                     //conceptHint.getHint(hintLevel, misconception.substitutionVariables),
-                    conceptHint.priority,
                     misconception.attribute,
                     challengeId,
                     "Rule: " + misconception.source + "\nHint: " + conceptHint.source
@@ -89,7 +89,7 @@ class RemediationRecommender {
         });
     }
 
-    _createRemediateAction(session, dialogText, priority, attribute, challengeId, source) {        
+    _createRemediateAction(session, priority, dialogText, attribute, challengeId, source) {        
         let dialogMessage = new GuideProtocol.Text(
             'ITS.CONCEPT.FEEDBACK',
             dialogText);

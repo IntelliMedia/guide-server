@@ -1,6 +1,7 @@
 const Group = require('../models/Group');
 const Concept = require('../models/Concept');
 const FileRepository = require('../storage/fileRepository');
+const CsvDeserializer = require('../storage/csvDeserializer');
 
 /**
  * GET /
@@ -93,7 +94,7 @@ exports.clearCache = (req, res) => {
     var group = req.body;
     console.info("Clear local file cache for group: " + group.id);
     try {
-      let cacheRepository = new FileRepository(global.cacheDirectory);
+      let cacheRepository = new FileRepository(global.cacheDirectory, new CsvDeserializer());
       for (let id of group.repositoryLinks.map((c) => { return c.googleSheetDocId; })) {
         cacheRepository.deleteCollection(id);
       }
@@ -101,7 +102,7 @@ exports.clearCache = (req, res) => {
       req.flash('info',  { msg: 'Cache successfully cleared'});
       return res.send({redirect: '/group/' + group.id});
     } catch(e) {
-      consolex.exception(e);
+      console.error(e);
       req.flash('errors', { msg: 'Unable to clear cache. ' + e.toString()});
       return res.send({redirect: '/group/' + group.id});
     }
