@@ -2,6 +2,7 @@
 
 const StudentModelService = require('./studentModelService');
 const HintRecommender = require('./hintRecommender');
+const RemediationRecommender = require('./remediationRecommender');
 
 /**
  * This class decides whether or not to issue a hint based on the student model.
@@ -12,18 +13,33 @@ class TutorialPlanner {
         this.session = session;
     }
 
+    // Returns action or null if the the tutor shouldn't take an action
     evaluateAsync(event) {
 
         // Future: add other possible tutorial actions (other than hinting) like 
         // outer loop problem selection recommendation.
         if (!event.context.correct) {
+            let actionPromises = [];
+
             let hintRecommender = new HintRecommender();
-            return hintRecommender.evaluateAsync(this.student.studentModel, this.session, event); //.then((action) => {
-            //     if (action.target == "HINT") {
-            //         let studentModelService = new StudentModelService(this.student, this.session, event.context.challengeId);
-            //         studentModelService.
-            //     }
-            // });
+            actionPromises.push(hintRecommender.evaluateAsync(this.student.studentModel, this.session, event));
+
+            let remediationRecommender = new RemediationRecommender();
+            actionPromises.push(remediationRecommender.evaluateAsync(this.student.studentModel, this.session, event));
+
+            return Promise.all(actionPromises).then((results) => {
+                // TODO: sort by priority
+                let filteredAndSorted = results.filter((action) => action != null);
+                return filteredAndSorted.length > 0 ? filteredAndSorted[0] : null;
+
+                // Update student model with action
+            //.then((action) => {
+                        //     if (action.target == "HINT") {
+                        //         let studentModelService = new StudentModelService(this.student, this.session, event.context.challengeId);
+                        //         studentModelService.
+                        //     }
+                        // });
+            });
         } else {
             this.session.debugAlert("No need to send hint, organism is correct for user: " + this.student.id);
             return null;

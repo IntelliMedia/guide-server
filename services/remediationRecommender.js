@@ -8,9 +8,9 @@ const TutorAction = require('../models/TutorAction');
  * This evaluates the student model and decides whether or not a hint
  * should be given to the student.
  */
-class HintRecommender {
+class RemediationRecommender {
     constructor() {
-        this.hintRepository = new ConceptHintsRepository(global.cacheDirectory);
+        this.remediationRepository = new ConceptHintsRepository(global.cacheDirectory);
     }
 
     initializeAsync(session, groupName, tags) {
@@ -19,18 +19,14 @@ class HintRecommender {
                 session.warningAlert("Unable to find Google Sheet with tags (" + tags + ") in  group '" + groupName + "'");
             }
 
-            return this.hintRepository.loadCollectionsAsync(ids);
+            return this.remediationRepository.loadCollectionsAsync(ids);
         });
     }    
 
-    // Hint delivery order of preference:
-    // On incorrect selection:
-    // - Is hint available?
-    // - Hint previously delivered for concept/attribute IF BKT score is below threshold
-    // - Hint for concept/attribute IF BKT score below threshold (ordered by lowest score)
+    // Based on current event and student model, determine if remediation is necessary 
     evaluateAsync(studentModel, session, event) {
         let groupName = session.groupId;
-        return this.initializeAsync(session, groupName, "hints").then(() => {
+        return this.initializeAsync(session, groupName, "remediation").then(() => {
             let misconceptions = studentModel.getMisconceptionsForEvent(event);
             if (misconceptions.length > 0) {
                 misconceptions.forEach((misconception) => {
@@ -62,18 +58,18 @@ class HintRecommender {
             console.info("   " + misconception.conceptId + " | " + misconception.attribute + " | " + misconception.score + " | " + misconception.source);
         }
 
-        let hintsForChallengeType = this.hintRepository.filter(challengeType);
+        let hintsForChallengeType = this.remediationRepository.filter(challengeType);
         for (let misconception of misconceptions) {
             let conceptHints = hintsForChallengeType
                 .filter((item) => item.conceptId === misconception.conceptId);
 
             if (conceptHints && conceptHints.length > 0) { 
                 let conceptHint = conceptHints[0];
-                let hintLevel = this._incrementHintLevel(mostRecentHint, conceptHint);
-                return this._createHintAction(
+                return this._createRemediateAction(
                     session,
-                    conceptHint.getHint(hintLevel, misconception.substitutionVariables),
-                    9,
+                    "Let's practice this some more",
+                    //conceptHint.getHint(hintLevel, misconception.substitutionVariables),
+                    conceptHint.priority,
                     misconception.attribute,
                     challengeId,
                     "Rule: " + misconception.source + "\nHint: " + conceptHint.source
@@ -82,14 +78,6 @@ class HintRecommender {
         }
         return null;     
     };
-
-    _incrementHintLevel(mostRecentHint, conceptHint) {
-        if (mostRecentHint == null) {
-            return 0;
-        } else {
-            return Math.min(mostRecentHint.hintLevel + 1, conceptHint.hints.length - 1);
-        }
-    }
 
     _sortMisconceptionsByPreviousHintAndThenAscendingScore(misconceptions, mostRecentHint) {
         return misconceptions.sort(function(a, b) {
@@ -101,10 +89,10 @@ class HintRecommender {
         });
     }
 
-    _createHintAction(session, hintText, hintLevel, attribute, challengeId, source) {        
+    _createRemediateAction(session, dialogText, priority, attribute, challengeId, source) {        
         let dialogMessage = new GuideProtocol.Text(
             'ITS.CONCEPT.FEEDBACK',
-            hintText);
+            dialogText);
         dialogMessage.args.attribute = attribute;
 
         let reason = {
@@ -112,9 +100,9 @@ class HintRecommender {
             source: source,
             attribute: attribute
         };
-        let action = TutorAction.create(session, "SPOKETO", "USER", "hint",
+        let action = TutorAction.create(session, "ACTIVATED", "REMEDIATATION", "misconception",
                     new GuideProtocol.TutorDialog(dialogMessage, reason));
-        action.context.hintLevel = hintLevel;
+        action.context.priority = priority;
         action.context.challengeId = challengeId;
         action.context.source = source;    
 
@@ -122,4 +110,4 @@ class HintRecommender {
     }
 }
 
-module.exports = HintRecommender;
+module.exports = RemediationRecommender;
