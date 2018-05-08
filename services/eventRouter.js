@@ -1,3 +1,5 @@
+'use strict';
+
 const students = require('../controllers/students');
 const Student = require('../models/Student');
 const TutorAction = require('../models/TutorAction');
@@ -13,7 +15,7 @@ class EventRouter {
     processAsync(session, event) {
         // GroupId is set when the this.session starts, but in case the this.session has been started without an
         // open this.session, pick up the groupId from the submit message.
-        if (event.context.groupId) {
+        if (event.context && event.context.groupId) {
             session.groupId = event.context.groupId;
         } 
 
@@ -36,12 +38,18 @@ class EventRouter {
             // If there is a response resulting from the event, send it to the client
             if (action) { 
                 session.logEvent(action);
-                session.emit(GuideProtocol.TutorDialog.Channel, action.context.tutorDialog.toJson());
+                session.emit(GuideProtocol.Event.Channel, action.toJson());
                 session.debugAlert("Event handled -> ITS action sent to client");
             }
         })
         .then(() => {
             return this.saveAsync(session, currentStudent);
+        });
+    }
+
+    saveAsync(session, student) {
+        return session.save().then(() => {
+            return student.save();
         });
     }
 
@@ -71,12 +79,6 @@ class EventRouter {
         }
     }
 
-    saveAsync(session, student) {
-        return session.save().then(() => {
-            return student.save();
-        });
-    }
-
     handleSystemStartedSessionAsync(student, session, event) {
         return new Promise((resolve, reject) => {
 
@@ -98,46 +100,20 @@ class EventRouter {
             session.classId = event.context.classId;
             session.groupId = event.context.groupId;
 
-            var dialogMessage = null;
-            var studentId = (event.studentId.toLowerCase().includes("test") ? "there" : event.studentId);
-            switch (Math.floor(Math.random() * 3)) {
-                case 0:
-                    dialogMessage = new GuideProtocol.Text(
-                        'ITS.HELLO.1',
-                        'Hello! I\'m ready to help you learn about genetics.')
-                        // TODO user student's first name (studentId is a number)
-                        //'Hello {{studentId}}! I\'m ready to help you learn about genetics.')
-                    dialogMessage.args.studentId = studentId;
-                    break;
-                case 1:
-                    dialogMessage = new GuideProtocol.Text(
-                        'ITS.HELLO.2',
-                        'Hi there!');
-                    break;
-                case 2:
-                    dialogMessage = new GuideProtocol.Text(
-                        'ITS.HELLO.3',
-                        'Let\'s get started!');
-            }
+            session.infoAlert("Session Started");
 
-            var reason = {
-                why: "SessionStarted"
-            };
-
-            resolve(TutorAction.create(session, "SPOKETO", "USER", "welcome",
-                new GuideProtocol.TutorDialog(dialogMessage, reason)));
+            resolve();
         });
     }
 
     handleSystemEndedSessionAsync(student, session, event) {
 
+        session.infoAlert("Session Ended");
+
         return new Promise((resolve, reject) => {
             session.active = false;
             session.endTime = event.time;
-
-            resolve(this.saveAsync(session, student).then(() => {
-                return null;
-            }));
+            resolve();
         });
     }
 }

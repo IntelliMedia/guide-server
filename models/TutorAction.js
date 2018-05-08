@@ -1,35 +1,103 @@
 'require strict';
 
+const mongoose = require('mongoose');
 const guideProtocol = require('../shared/guide-protocol.js');
 
-function createEvent(currentUser, currentSessionId, sequenceNumber, actor, action, target, context) {
-    var event = new GuideProtocol.Event(
-        currentUser,
-        currentSessionId,
+const tutorActionSchema = new mongoose.Schema({
+    action: { type: String, required: true},
+    context:  { type: mongoose.Schema.Types.Mixed}
+  });
+
+// Create GUIDE protocol event from TutorAction
+tutorActionSchema.methods.createEvent = function(userId, sessionId, sequenceNumber) {
+    let event = new GuideProtocol.Event(
+        userId,
+        sessionId,
         sequenceNumber,
-        actor,
-        action,
-        target,
-        context);
+        "ITS", this.action, "USER",
+        this.context);
 
     return event;
 }
 
-module.exports.create = function (session, action, target, reason, tutorDialog) {
+tutorActionSchema.statics.createDialogAction = function(
+    reason,
+    priority,
+    source,
+    dialog) {
 
-    var context = {};
-
-    if (reason) {
-        context.reason = reason;
-    }
-
-    if (tutorDialog) {
-        context.tutorDialog = tutorDialog;
-    }
-
-    return createEvent(
-        session.studentId,
-        session.id,
-        session.sequenceNumber++,
-        "ITS", action, target, context);
+    let action = TutorAction({
+        action: "SPOKETO",   
+        context: {
+            reason: reason,
+            priority: priority,
+            source: source, 
+            dialog: dialog
+        },
+    });
 }
+
+tutorActionSchema.statics.createHintAction = function(
+    reason,
+    priority,
+    source,  
+    conceptId,
+    conceptScore,
+    challengeType,
+    challengeId,
+    attribute,
+    hintDialog,
+    hintLevel,
+    isBottomOut) {
+
+    let action = TutorAction({
+        action: "HINT",
+        context: {
+            reason: reason,
+            priority: priority,
+            source: source, 
+            conceptId: conceptId,
+            conceptScore: conceptScore,
+            challengeType: challengeType,
+            challengeId: challengeId,   
+            attribute: attribute,
+            hintDialog: hintDialog,
+            hintLevel: hintLevel,
+            isBottomOut: isBottomOut
+        },
+    });
+
+    return action;
+}
+
+tutorActionSchema.statics.createRemediateAction = function(
+    reason,
+    priority,
+    source, 
+    conceptId,
+    conceptScore,
+    challengeType,
+    challengeId,   
+    attribute,
+    isBottomOut) {
+
+    let action = TutorAction({
+        action: "REMEDIATE", 
+        context: {
+            reason: reason,
+            priority: priority,
+            source: source, 
+            conceptId: conceptId,
+            conceptScore: conceptScore,
+            challengeType: challengeType,
+            challengeId: challengeId, 
+            attribute: attribute,
+            isBottomOut: isBottomOut
+        },
+    });
+
+    return action;
+}
+
+const TutorAction = mongoose.model('TutorAction', tutorActionSchema);
+module.exports = TutorAction;

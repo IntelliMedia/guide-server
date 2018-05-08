@@ -69,16 +69,25 @@ class HintRecommender {
 
             if (conceptHints && conceptHints.length > 0) { 
                 let conceptHint = conceptHints[0];
+
                 let hintLevel = this._incrementHintLevel(mostRecentHint, conceptHint);
-                return this._createHintAction(
-                    session,
+                let hintDialog = conceptHint.getHint(hintLevel, misconception.substitutionVariables);
+                let isBottomOut = hintLevel == conceptHint.hints.length;
+
+                let action = TutorAction.createHintAction(
+                    "MisconceptionDetected",
                     conceptHint.priority,
-                    conceptHint.getHint(hintLevel, misconception.substitutionVariables),
-                    9,
+                    conceptHint.source, 
+                    misconception.conceptId,
+                    misconception.score,
+                    challengeType,
+                    challengeId,   
                     misconception.attribute,
-                    challengeId,
-                    "Rule: " + misconception.source + "\nHint: " + conceptHint.source
-                );
+                    hintDialog,
+                    hintLevel,
+                    isBottomOut);
+
+                return action;
             }
         }
         return null;     
@@ -100,27 +109,6 @@ class HintRecommender {
                 return a.score -  b.score;
             }
         });
-    }
-
-    _createHintAction(session, priority, hintText, hintLevel, attribute, challengeId, source) {        
-        let dialogMessage = new GuideProtocol.Text(
-            'ITS.CONCEPT.FEEDBACK',
-            hintText);
-        dialogMessage.args.attribute = attribute;
-
-        let reason = {
-            why: "MisconceptionDetected",
-            source: source,
-            attribute: attribute
-        };
-        let action = TutorAction.create(session, "SPOKETO", "USER", "hint",
-                    new GuideProtocol.TutorDialog(dialogMessage, reason));
-        action.context.hintLevel = hintLevel;
-        action.context.priority = priority;
-        action.context.challengeId = challengeId;
-        action.context.source = source;    
-
-        return action;
     }
 }
 

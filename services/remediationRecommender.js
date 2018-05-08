@@ -1,6 +1,6 @@
 'use strict';
 
-const ConceptHintsRepository = require('../storage/conceptHintsRepository');
+const RemediationRepository = require('../storage/remediationRepository');
 const Group = require('../models/Group');
 const TutorAction = require('../models/TutorAction');
 
@@ -10,7 +10,7 @@ const TutorAction = require('../models/TutorAction');
  */
 class RemediationRecommender {
     constructor() {
-        this.remediationRepository = new ConceptHintsRepository(global.cacheDirectory);
+        this.remediationRepository = new RemediationRepository(global.cacheDirectory);
     }
 
     initializeAsync(session, groupName, tags) {
@@ -58,22 +58,29 @@ class RemediationRecommender {
             console.info("   " + misconception.conceptId + " | " + misconception.attribute + " | " + misconception.score + " | " + misconception.source);
         }
 
-        let hintsForChallengeType = this.remediationRepository.filter(challengeType);
+        let remediationsForChallengeType = this.remediationRepository.filter(challengeType);
         for (let misconception of misconceptions) {
-            let conceptHints = hintsForChallengeType
+            let remediations = remediationsForChallengeType
                 .filter((item) => item.conceptId === misconception.conceptId);
 
-            if (conceptHints && conceptHints.length > 0) { 
-                let conceptHint = conceptHints[0];
-                return this._createRemediateAction(
-                    session,
-                    conceptHint.priority,
-                    "Let's practice this some more",
-                    //conceptHint.getHint(hintLevel, misconception.substitutionVariables),
+            if (remediations && remediations.length > 0) { 
+                let remediation = remediations[0];
+
+                // TODO: Determine if this is bottom out remediation
+                let isBottomOut = false;
+
+                let action = TutorAction.createRemediateAction(
+                    "MisconceptionDetected",
+                    remediation.priority,
+                    remediation.source,   
+                    misconception.conceptId,
+                    misconception.score,
+                    challengeType,
+                    challengeId, 
                     misconception.attribute,
-                    challengeId,
-                    "Rule: " + misconception.source + "\nHint: " + conceptHint.source
-                );
+                    isBottomOut);
+
+                return action;
             }
         }
         return null;     
@@ -87,26 +94,6 @@ class RemediationRecommender {
                 return a.score -  b.score;
             }
         });
-    }
-
-    _createRemediateAction(session, priority, dialogText, attribute, challengeId, source) {        
-        let dialogMessage = new GuideProtocol.Text(
-            'ITS.CONCEPT.FEEDBACK',
-            dialogText);
-        dialogMessage.args.attribute = attribute;
-
-        let reason = {
-            why: "MisconceptionDetected",
-            source: source,
-            attribute: attribute
-        };
-        let action = TutorAction.create(session, "ACTIVATED", "REMEDIATATION", "misconception",
-                    new GuideProtocol.TutorDialog(dialogMessage, reason));
-        action.context.priority = priority;
-        action.context.challengeId = challengeId;
-        action.context.source = source;    
-
-        return action;
     }
 }
 

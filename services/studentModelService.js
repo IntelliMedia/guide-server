@@ -157,8 +157,7 @@ class StudentModelService {
     }
 
     addHintTotals(conceptState, isBottomOutHint) {
-        conceptState.totalBottomOutHintsDelivered += (isBottomOutHint ? 1 : 0);
-        conceptState.totalHintsDelivered++;     
+        conceptState.totalActionsDelivered++;     
     }
 }
 

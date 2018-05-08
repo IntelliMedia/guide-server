@@ -1,3 +1,6 @@
+'use strict';
+
+const TutorAction = require('./TutorAction');
 const mongoose = require('mongoose');
 const _ = require('lodash');
 
@@ -7,8 +10,7 @@ function createConceptStateSchema(additionalField) {
     score: { type: Number, default: 0},
     totalCorrect: { type: Number, default: 0},
     totalAttempts: { type: Number, default: 0},
-    totalHintsDelivered:{ type: Number, default: 0},
-    totalBottomOutHintsDelivered:{ type: Number, default: 0}
+    totalActionsDelivered:{ type: Number, default: 0}
   }, { _id : false });
 
   if (additionalField) {
@@ -42,18 +44,6 @@ const snapshotsByConceptIdSchema = new mongoose.Schema({
 }, { _id : false });
 const SnapshotsByConceptId = mongoose.model('SnapshotsByConceptId', snapshotsByConceptIdSchema);
 
-const hintDeliveredSchema = new mongoose.Schema({
-  conceptId: { type: String, required: true},
-  scoreByChallenge: { type: Number, default: 0},
-  challengeId: String,
-  attribute: String,
-  ruleConditions: String,
-  isBottomOut: { type: Boolean, default: false},
-  hintLevel: { type: Number, default: 0},
-  timestamp: Date
-}, { _id : false });
-const HintDelivered = mongoose.model('HintDelivered', hintDeliveredSchema);
-
 const misconceptionSchema = new mongoose.Schema({
   conceptId: { type: String, required: true},
   challengeId: String,
@@ -69,7 +59,7 @@ const studentModelSchema = new mongoose.Schema({
   conceptsByChallenge: [conceptsByChallengeIdSchema],
   conceptsByAttribute: [conceptsByAttributeSchema],
 //  snapshotsByConceptId: [snapshotsByConceptIdSchema],
-  hintHistory: [hintDeliveredSchema],
+  tutorActionHistory: [TutorAction.schema],
   mostRecentMisconceptions: [misconceptionSchema]
 }, { timestamps: true });
 
@@ -78,7 +68,7 @@ studentModelSchema.methods.reset = function() {
   this.conceptsByChallenge = [];
   this.conceptsByAttribute = [];
 //  this.snapshotsByConceptId = [];
-  this.hintHistory = [];
+  this.tutorActionHistory = [];
   this.mostRecentMisconceptions = [];
 }
 
@@ -167,21 +157,6 @@ studentModelSchema.methods.getConceptSnapshot = function(conceptId, timestamp) {
   return StudentModel.getConceptSnapshot(conceptSnapshots.snapshots, conceptId, timestamp);
 };
 
-studentModelSchema.methods.addHintToHistory = function(conceptId, scoreByChallenge, challengeId, attribute, ruleConditions, hintLevel, isBottomOut) {
-  this.hintHistory.unshift({
-    conceptId: conceptId,
-    scoreByChallenge: scoreByChallenge,
-    challengeId: challengeId,
-    attribute: attribute,
-    ruleConditions: ruleConditions,
-    hintLevel: hintLevel,
-    isBottomOut: isBottomOut,
-    timestamp: new Date()
-  });
-
-  return this.hintHistory[0];
-}
-
 studentModelSchema.methods.getMisconceptionsForEvent = function(event) {
   return this.mostRecentMisconceptions.filter((misconception) => {
     return (misconception.challengeId == event.context.challengeId
@@ -211,11 +186,26 @@ studentModelSchema.methods.addMisconception = function(conceptId, challengeId, a
   return this.mostRecentMisconceptions[0];
 }
 
+studentModelSchema.methods.addHintToHistory = function(conceptId, scoreByChallenge, challengeId, attribute, ruleConditions, hintLevel, isBottomOut) {
+  this.tutorActionHistory.unshift({
+    conceptId: conceptId,
+    scoreByChallenge: scoreByChallenge,
+    challengeId: challengeId,
+    attribute: attribute,
+    ruleConditions: ruleConditions,
+    hintLevel: hintLevel,
+    isBottomOut: isBottomOut,
+    timestamp: new Date()
+  });
+
+  return this.tutorActionHistory[0];
+}
+
 studentModelSchema.methods.mostRecentHint = function(challengeId) {
-  for (var i = this.hintHistory.length-1; i >= 0; --i) {
-    var hintDelivered = this.hintHistory[i];
-    if (hintDelivered.challengeId == challengeId) {
-      return hintDelivered;
+  for (var i = this.tutorActionHistory.length-1; i >= 0; --i) {
+    var action = this.tutorActionHistory[i];
+    if (action.challengeId == challengeId) {
+      return action;
     }
   }
 
@@ -224,8 +214,8 @@ studentModelSchema.methods.mostRecentHint = function(challengeId) {
 
 studentModelSchema.methods.currentHintLevel = function (challengeId, target, selected) {
   var hintLevel = 0;
-  for (var i = 0; i < this.hintHistory.length; ++i) {
-    var previousHint = this.hintHistory[i];
+  for (var i = 0; i < this.tutorActionHistory.length; ++i) {
+    var previousHint = this.tutorActionHistory[i];
     if (previousHint.challengeId == challengeId
       && previousHint.ruleConditions == target) {
         hintLevel = Math.max(hintLevel, previousHint.hintLevel);
