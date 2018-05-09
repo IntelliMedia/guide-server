@@ -35,8 +35,8 @@ class HintRecommender {
             let misconceptions = studentModel.getMisconceptionsForEvent(event);
             if (misconceptions.length > 0) {
                 misconceptions.forEach((misconception) => {
-                    let concept = studentModel.getConceptByAttribute(misconception.conceptId, misconception.attribute);
-                    misconception.score = concept.score;
+                    let conceptState = studentModel.getConceptByAttribute(misconception.conceptId, misconception.attribute);
+                    misconception.conceptState = conceptState;
                 });
     
                 let challengeId = event.context.challengeId;
@@ -61,32 +61,34 @@ class HintRecommender {
         let mostRecentHint = student.mostRecentAction("HINT", challengeId);
         misconceptions = this._sortMisconceptionsByPreviousHintAndThenAscendingScore(misconceptions, mostRecentHint);
         for (let misconception of misconceptions) {
-            console.info("   " + misconception.conceptId + " | " + misconception.attribute + " | " + misconception.score + " | " + misconception.source);
+            console.info("   " + misconception.conceptId + " | " + misconception.attribute + " | " + misconception.conceptState.score + " | " + misconception.source);
         }
 
         let hintsForChallengeType = this.hintRepository.filter(challengeType);
         for (let misconception of misconceptions) {
             let conceptHints = hintsForChallengeType.filter((item) =>
-                item.conceptId === misconception.conceptId && misconception.score < item.threshold);
+                item.conceptId === misconception.conceptId 
+                && misconception.conceptState.totalAttempts >= item.minimumAttempts
+                && misconception.conceptState.score <= item.scoreThreshold);
 
             if (conceptHints && conceptHints.length > 0) { 
                 let conceptHint = conceptHints[0];
 
                 mostRecentHint = student.mostRecentAction("HINT", challengeId, misconception.attribute);
                 let hintIndex = this._incrementHintIndex(mostRecentHint, conceptHint);
-                let hintDialog = conceptHint.getHint(hintIndex, misconception.substitutionVariables);
-                let isBottomOut = hintIndex == conceptHint.hints.length;
+                let hintDialog = conceptHint.getHint(hintIndex, misconception.substitutionVariables); 
 
                 // HintLevel is 1-based counting to align with levels defined in Hint sheet and
                 // to make it more comfortable for non-CompSci authors to understand.
                 let hintLevel = hintIndex + 1;
+                let isBottomOut = hintLevel == conceptHint.hints.length;
 
                 let action = TutorAction.createHintAction(
                     "MisconceptionDetected",
                     conceptHint.priority,
                     conceptHint.source, 
                     misconception.conceptId,
-                    misconception.score,
+                    misconception.conceptState.score,
                     challengeType,
                     challengeId,   
                     misconception.attribute,

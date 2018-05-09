@@ -31,8 +31,8 @@ class RemediationRecommender {
             let misconceptions = studentModel.getMisconceptionsForEvent(event);
             if (misconceptions.length > 0) {
                 misconceptions.forEach((misconception) => {
-                    let concept = studentModel.getConceptByAttribute(misconception.conceptId, misconception.attribute);
-                    misconception.score = concept.score;
+                    let conceptState = studentModel.getConceptByAttribute(misconception.conceptId, misconception.attribute);
+                    misconception.conceptState = conceptState;
                 });
     
                 let challengeId = event.context.challengeId;
@@ -42,8 +42,7 @@ class RemediationRecommender {
                     groupName, 
                     event.context.challengeType, 
                     challengeId, 
-                    misconceptions, 
-                    mostRecentRemediation);
+                    misconceptions);
             }
 
             return null;
@@ -58,13 +57,15 @@ class RemediationRecommender {
         let mostRecentRemediation = student.mostRecentAction("REMEDIATE", challengeId);
         misconceptions = this._sortMisconceptionsByPreviousHintAndThenAscendingScore(misconceptions, mostRecentRemediation);
         for (let misconception of misconceptions) {
-            console.info("   " + misconception.conceptId + " | " + misconception.attribute + " | " + misconception.score + " | " + misconception.source);
+            console.info("   " + misconception.conceptId + " | " + misconception.attribute + " | " + misconception.conceptState.score + " | " + misconception.source);
         }
 
         let remediationsForChallengeType = this.remediationRepository.filter(challengeType);
         for (let misconception of misconceptions) {
             let remediations = remediationsForChallengeType.filter((item) => 
-                item.conceptId === misconception.conceptId && misconception.score < item.threshold);
+                item.conceptId === misconception.conceptId 
+                && misconception.conceptState.totalAttempts >= item.minimumAttempts
+                && misconception.conceptState.score <= item.scoreThreshold);
 
             if (remediations && remediations.length > 0) { 
                 let remediation = remediations[0];
@@ -78,7 +79,7 @@ class RemediationRecommender {
                     remediation.priority,
                     remediation.source,   
                     misconception.conceptId,
-                    misconception.score,
+                    misconception.conceptState.score,
                     challengeType,
                     challengeId, 
                     misconception.attribute,
