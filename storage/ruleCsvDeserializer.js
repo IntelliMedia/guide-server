@@ -128,9 +128,9 @@ class RuleCsvDeserializer extends CsvDeserializer {
 
     _createRule(ruleId, source, columnMap, headerRow, currentRow) {
         var conditions = [];
-        conditions = conditions.concat(this._extractConditions("context.challengeCriteria", "target", headerRow, currentRow));
-        conditions = conditions.concat(this._extractConditions("context.userSelections","selected", headerRow, currentRow));
-        conditions = conditions.concat(this._extractConditions("context.current","current", headerRow, currentRow));
+        conditions = conditions.concat(this._extractConditions("context.target", "target", headerRow, currentRow));
+        conditions = conditions.concat(this._extractConditions("context.selected","selected", headerRow, currentRow));
+        conditions = conditions.concat(this._extractConditions("context.previous","previous", headerRow, currentRow));
         conditions = conditions.concat(this._extractConditions("context","condition", headerRow, currentRow));
 
         if (conditions.length == 0) {

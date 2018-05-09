@@ -18,7 +18,7 @@ class RuleCondition {
         }
 
         this.propertyPath = propertyPath;
-        this.isUserSelection = this.propertyPath.includes("userSelections");
+        this.isUserSelection = this.propertyPath.includes("selected");
         this.value = value;
         this.displayVariable = displayVariable;
         this.attribute = null;
