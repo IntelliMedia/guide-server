@@ -28,7 +28,8 @@ class HintRecommender {
     // - Is hint available?
     // - Hint previously delivered for concept/attribute IF BKT score is below threshold
     // - Hint for concept/attribute IF BKT score below threshold (ordered by lowest score)
-    evaluateAsync(studentModel, session, event) {
+    evaluateAsync(student, session, event) {
+        let studentModel = student.studentModel;
         let groupName = session.groupId;
         return this.initializeAsync(session, groupName, "hints").then(() => {
             let misconceptions = studentModel.getMisconceptionsForEvent(event);
@@ -39,24 +40,25 @@ class HintRecommender {
                 });
     
                 let challengeId = event.context.challengeId;
-                let mostRecentHint = studentModel.mostRecentHint(challengeId);
-                return this._selectHint(session, 
+                return this._selectHint(
+                    student,
+                    session, 
                     groupName, 
                     event.context.challengeType, 
                     challengeId, 
-                    misconceptions, 
-                    mostRecentHint);
+                    misconceptions);
             }
 
             return null;
         });
     }
 
-    _selectHint(session, groupId, challengeType, challengeId, misconceptions, mostRecentHint) {
+    _selectHint(student, session, groupId, challengeType, challengeId, misconceptions) {
         if (!challengeType) {
             throw new Error("challengeType not defined in context")
         }
         console.info("Observed incorrect concepts:");
+        let mostRecentHint = student.mostRecentAction("HINT", challengeId);
         misconceptions = this._sortMisconceptionsByPreviousHintAndThenAscendingScore(misconceptions, mostRecentHint);
         for (let misconception of misconceptions) {
             console.info("   " + misconception.conceptId + " | " + misconception.attribute + " | " + misconception.score + " | " + misconception.source);
@@ -64,15 +66,20 @@ class HintRecommender {
 
         let hintsForChallengeType = this.hintRepository.filter(challengeType);
         for (let misconception of misconceptions) {
-            let conceptHints = hintsForChallengeType
-                .filter((item) => item.conceptId === misconception.conceptId);
+            let conceptHints = hintsForChallengeType.filter((item) =>
+                item.conceptId === misconception.conceptId && misconception.score < item.threshold);
 
             if (conceptHints && conceptHints.length > 0) { 
                 let conceptHint = conceptHints[0];
 
-                let hintLevel = this._incrementHintLevel(mostRecentHint, conceptHint);
-                let hintDialog = conceptHint.getHint(hintLevel, misconception.substitutionVariables);
-                let isBottomOut = hintLevel == conceptHint.hints.length;
+                mostRecentHint = student.mostRecentAction("HINT", challengeId, misconception.attribute);
+                let hintIndex = this._incrementHintIndex(mostRecentHint, conceptHint);
+                let hintDialog = conceptHint.getHint(hintIndex, misconception.substitutionVariables);
+                let isBottomOut = hintIndex == conceptHint.hints.length;
+
+                // HintLevel is 1-based counting to align with levels defined in Hint sheet and
+                // to make it more comfortable for non-CompSci authors to understand.
+                let hintLevel = hintIndex + 1;
 
                 let action = TutorAction.createHintAction(
                     "MisconceptionDetected",
@@ -93,18 +100,18 @@ class HintRecommender {
         return null;     
     };
 
-    _incrementHintLevel(mostRecentHint, conceptHint) {
+    _incrementHintIndex(mostRecentHint, conceptHint) {
         if (mostRecentHint == null) {
             return 0;
         } else {
-            return Math.min(mostRecentHint.hintLevel + 1, conceptHint.hints.length - 1);
+            return Math.min(mostRecentHint.context.hintLevel, conceptHint.hints.length - 1);
         }
     }
 
     _sortMisconceptionsByPreviousHintAndThenAscendingScore(misconceptions, mostRecentHint) {
         return misconceptions.sort(function(a, b) {
             if (mostRecentHint && a.conceptId == b.conceptId) {
-                return (a.conceptId == mostRecentHint.conceptId ? 1 : -1);
+                return (a.conceptId == mostRecentHint.context.conceptId ? 1 : -1);
             } else {
                 return a.score -  b.score;
             }

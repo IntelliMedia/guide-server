@@ -17,11 +17,11 @@ class Tutor {
                 .then(() => this.makeDecisionAsync(event))
                 .then((tutorAction) => {
                     if (tutorAction != null) {
-                        return tutorAction.save()
-                            .then(() => tutorAction.createEvent(
+                        this.student.tutorActionHistory.unshift(tutorAction);
+                        return tutorAction.createEvent(
                                 this.session.studentId,
                                 this.session.id, 
-                                this.session.sequenceNumber++));
+                                this.session.sequenceNumber++);
                     } else {
                         return null;
                     }

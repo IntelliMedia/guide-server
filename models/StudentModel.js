@@ -1,6 +1,5 @@
 'use strict';
 
-const TutorAction = require('./TutorAction');
 const mongoose = require('mongoose');
 const _ = require('lodash');
 
@@ -59,7 +58,6 @@ const studentModelSchema = new mongoose.Schema({
   conceptsByChallenge: [conceptsByChallengeIdSchema],
   conceptsByAttribute: [conceptsByAttributeSchema],
 //  snapshotsByConceptId: [snapshotsByConceptIdSchema],
-  tutorActionHistory: [TutorAction.schema],
   mostRecentMisconceptions: [misconceptionSchema]
 }, { timestamps: true });
 
@@ -186,45 +184,5 @@ studentModelSchema.methods.addMisconception = function(conceptId, challengeId, a
   return this.mostRecentMisconceptions[0];
 }
 
-studentModelSchema.methods.addHintToHistory = function(conceptId, scoreByChallenge, challengeId, attribute, ruleConditions, hintLevel, isBottomOut) {
-  this.tutorActionHistory.unshift({
-    conceptId: conceptId,
-    scoreByChallenge: scoreByChallenge,
-    challengeId: challengeId,
-    attribute: attribute,
-    ruleConditions: ruleConditions,
-    hintLevel: hintLevel,
-    isBottomOut: isBottomOut,
-    timestamp: new Date()
-  });
-
-  return this.tutorActionHistory[0];
-}
-
-studentModelSchema.methods.mostRecentHint = function(challengeId) {
-  for (var i = this.tutorActionHistory.length-1; i >= 0; --i) {
-    var action = this.tutorActionHistory[i];
-    if (action.challengeId == challengeId) {
-      return action;
-    }
-  }
-
-  return null;
-}
-
-studentModelSchema.methods.currentHintLevel = function (challengeId, target, selected) {
-  var hintLevel = 0;
-  for (var i = 0; i < this.tutorActionHistory.length; ++i) {
-    var previousHint = this.tutorActionHistory[i];
-    if (previousHint.challengeId == challengeId
-      && previousHint.ruleConditions == target) {
-        hintLevel = Math.max(hintLevel, previousHint.hintLevel);
-      }
-  }
-
-  return hintLevel;
-}
-
 const StudentModel = mongoose.model('StudentModel', studentModelSchema);
-
 module.exports = StudentModel;

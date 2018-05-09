@@ -22,12 +22,12 @@ class ConceptHints {
         return this.source + '/edit#gid=0?range=' + this.id + ':' + this.id;
     }
 
-    getHint(hintLevel, substitutionVariables) {
-        if (hintLevel >= this.hints.length) {
-            throw new Error("Requested hint level (" + hintLevel + ") not defined in: " + this.sourceUrl());
+    getHint(hintIndex, substitutionVariables) {
+        if (hintIndex >= this.hints.length) {
+            throw new Error("Requested hint level (" + hintIndex + ") not defined in: " + this.sourceUrl());
         }
 
-        let hint = this.hints[hintLevel];
+        let hint = this.hints[hintIndex];
 
         return this._substituteHintVariables(hint, substitutionVariables);
     }

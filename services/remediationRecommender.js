@@ -24,7 +24,8 @@ class RemediationRecommender {
     }    
 
     // Based on current event and student model, determine if remediation is necessary 
-    evaluateAsync(studentModel, session, event) {
+    evaluateAsync(student, session, event) {
+        let studentModel = student.studentModel;
         let groupName = session.groupId;
         return this.initializeAsync(session, groupName, "remediation").then(() => {
             let misconceptions = studentModel.getMisconceptionsForEvent(event);
@@ -35,37 +36,40 @@ class RemediationRecommender {
                 });
     
                 let challengeId = event.context.challengeId;
-                let mostRecentHint = studentModel.mostRecentHint(challengeId);
-                return this._selectHint(session, 
+                return this._selectHint(
+                    student,
+                    session, 
                     groupName, 
                     event.context.challengeType, 
                     challengeId, 
                     misconceptions, 
-                    mostRecentHint);
+                    mostRecentRemediation);
             }
 
             return null;
         });
     }
 
-    _selectHint(session, groupId, challengeType, challengeId, misconceptions, mostRecentHint) {
+    _selectHint(student, session, groupId, challengeType, challengeId, misconceptions) {
         if (!challengeType) {
             throw new Error("challengeType not defined in context")
         }
         console.info("Observed incorrect concepts:");
-        misconceptions = this._sortMisconceptionsByPreviousHintAndThenAscendingScore(misconceptions, mostRecentHint);
+        let mostRecentRemediation = student.mostRecentAction("REMEDIATE", challengeId);
+        misconceptions = this._sortMisconceptionsByPreviousHintAndThenAscendingScore(misconceptions, mostRecentRemediation);
         for (let misconception of misconceptions) {
             console.info("   " + misconception.conceptId + " | " + misconception.attribute + " | " + misconception.score + " | " + misconception.source);
         }
 
         let remediationsForChallengeType = this.remediationRepository.filter(challengeType);
         for (let misconception of misconceptions) {
-            let remediations = remediationsForChallengeType
-                .filter((item) => item.conceptId === misconception.conceptId);
+            let remediations = remediationsForChallengeType.filter((item) => 
+                item.conceptId === misconception.conceptId && misconception.score < item.threshold);
 
             if (remediations && remediations.length > 0) { 
                 let remediation = remediations[0];
 
+                mostRecentRemediation = student.mostRecentAction("REMEDIATE", challengeId);
                 // TODO: Determine if this is bottom out remediation
                 let isBottomOut = false;
 
@@ -86,10 +90,10 @@ class RemediationRecommender {
         return null;     
     };
 
-    _sortMisconceptionsByPreviousHintAndThenAscendingScore(misconceptions, mostRecentHint) {
+    _sortMisconceptionsByPreviousHintAndThenAscendingScore(misconceptions, mostRecentRemediation) {
         return misconceptions.sort(function(a, b) {
-            if (mostRecentHint && a.conceptId == b.conceptId) {
-                return (a.conceptId == mostRecentHint.conceptId ? 1 : -1);
+            if (mostRecentRemediation && a.conceptId == b.conceptId) {
+                return (a.conceptId == mostRecentRemediation.context.conceptId ? 1 : -1);
             } else {
                 return a.score -  b.score;
             }
