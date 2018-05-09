@@ -29,8 +29,8 @@ class CsvDeserializer {
     _parseCsvAsync(text) {
         return new Promise((resolve, reject) => {
             var parseOptions = {
-                comment: '#',
-                skip_empty_lines: true
+   //             comment: '#',
+   //             skip_empty_lines: true
             };
             parse(text, parseOptions, function(err, csv){
                 if (err) {
@@ -47,10 +47,12 @@ class CsvDeserializer {
         try { 
             var rules = [];
 
-            var headerRow = csv[0];
-            var columnCount = csv[0].length;
+            currentRowIndex = CsvDeserializer._skipCommentOrEmptyRows(csv, currentRowIndex);
+
+            var headerRow = csv[currentRowIndex];
+            var columnCount = csv[currentRowIndex].length;
             var columnMap = {};
-            for (var i = 0; i < columnCount; ++i) {
+            for (let i = 0; i < columnCount; ++i) {
                 if (headerRow[i]) {
                     headerRow[i] = headerRow[i].trim();
                     columnMap[headerRow[i].toLowerCase()] = i;
@@ -58,30 +60,41 @@ class CsvDeserializer {
             }
 
             var rowCount = csv.length;
-            for (var i = 1; i < rowCount; ++i) {
+            // Move to next non-comment/non-empty row
+            currentRowIndex = CsvDeserializer._skipCommentOrEmptyRows(csv, currentRowIndex + 1);
+            while (currentRowIndex < rowCount) {
+                let currentRow = csv[currentRowIndex];
+
                 // Google sheets uses 1-based counting for rows, thus add one so
                 // that this number matches the Google sheets row.
-                currentRowIndex = i + 1;
-                //console.info("Processing row " + currentRowIndex);
-                var currentRow = csv[i];
-
-                // Empty row?
-                if (!this._asText(currentRow[0])) {
-                    continue;
-                }
-
-                let obj = this.parseRow(currentRowIndex, source, columnMap, headerRow, currentRow);
+                let obj = this.parseRow(currentRowIndex + 1, source, columnMap, headerRow, currentRow);
                 if (obj && obj.length > 0) {
                     rules.push.apply(rules, obj);
                 }
+
+                // Move to next non-comment/non-empty row
+                currentRowIndex = CsvDeserializer._skipCommentOrEmptyRows(csv, currentRowIndex + 1);
             }
 
             return rules;
         } catch(err) {
-            var msg = "Unable to deserialize object from '" + source + "' [Row: " + currentRowIndex + "] ";
+            var msg = "Unable to deserialize object from '" + source + "' [Row: " + (currentRowIndex + 1) + "] ";
             err.message = msg + err.message;
             throw err;
         }
+    }
+
+    static _skipCommentOrEmptyRows(csv, currentIndex) {
+        while (currentIndex < csv.length) {
+            if (csv[currentIndex].length > 0 
+                && csv[currentIndex][0].length > 0
+                && csv[currentIndex][0][0] != '#') {
+                break;
+            }
+            ++currentIndex;
+        }
+
+        return currentIndex;
     }
 
     _getColumnName(columnMap, index) {

@@ -77,7 +77,7 @@ class RemediationRecommender {
                 let action = TutorAction.createRemediateAction(
                     "MisconceptionDetected",
                     remediation.priority,
-                    remediation.source,   
+                    RemediationRepository.sourceAsUrl(remediation),
                     misconception.conceptId,
                     misconception.conceptState.score,
                     challengeType,

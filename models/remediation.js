@@ -15,10 +15,6 @@ class Remediation {
             //throw new Error("No PracticeCriteria defined for concept.")
         }
     }
-
-    sourceUrl() {
-        return this.source + '/edit#gid=0?range=' + this.id + ':' + this.id;
-    }
 }
 
 module.exports = Remediation;

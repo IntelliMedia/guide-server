@@ -86,7 +86,7 @@ class HintRecommender {
                 let action = TutorAction.createHintAction(
                     "MisconceptionDetected",
                     conceptHint.priority,
-                    conceptHint.source, 
+                    ConceptHintsRepository.sourceAsUrl(conceptHint),
                     misconception.conceptId,
                     misconception.conceptState.score,
                     challengeType,

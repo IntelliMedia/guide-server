@@ -19,13 +19,10 @@ class ConceptHints {
         }
     }
 
-    sourceUrl() {
-        return this.source + '/edit#gid=0?range=' + this.id + ':' + this.id;
-    }
-
     getHint(hintIndex, substitutionVariables) {
         if (hintIndex >= this.hints.length) {
-            throw new Error("Requested hint level (" + hintIndex + ") not defined in: " + this.sourceUrl());
+            throw new Error("Requested hint level (" + hintIndex + ") not defined in: " 
+                + this.source + " for row " + this.id);
         }
 
         let hint = this.hints[hintIndex];

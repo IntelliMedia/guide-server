@@ -3,6 +3,7 @@
 const Repository = require('./repository');
 const FileRepository = require('./fileRepository');
 const rp = require('request-promise');
+const { URL } = require('url');
 
 /**
  * A repository that loads collections of objects (represented as rows) from Google Sheets
@@ -57,12 +58,38 @@ class GoogleSheetRepository extends FileRepository {
     }
 
     _getGoogleSheetUrl(id) {
+        if (!id) {
+            throw new Error("id not defined");
+        }
         return "https://docs.google.com/spreadsheets/d/" + id;
+    }
+
+    // Override _getSource() so that local file cache points to the original Google Sheet
+    _getSource(id) {
+        let url = new URL(this._getGoogleSheetUrl(id));
+        url.searchParams.append("cached", "true");
+        return url.href;
     }
 
     _getCsvExportUrl(id) {
         return this._getGoogleSheetUrl(id) + "/export?format=csv";
     }    
+
+    static sourceAsUrl(obj) {
+        if (!obj.source || !obj.id) {
+            throw new Error("Object must have 'source' and 'id' properties to create URL");
+        }
+
+        // NOTE: #gid portion is necessary for the range query parameter to highlight
+        // the corresponding row.
+        let url = new URL(obj.source);
+        url.pathname = url.pathname + "/edit";
+        url.searchParams.append("range", obj.id + ':' + obj.id);
+        // Google Sheets requires #gid to follow the path and the URL class appends it
+        // after the query string.
+        // Also, Google Sheets requires a ':' in the range, and the URL class encodes it.
+        return url.href.replace(url.pathname, url.pathname + "#gid=0").replace("%3A", ":");
+    }
 }
 
 module.exports = GoogleSheetRepository;

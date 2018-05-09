@@ -35,10 +35,6 @@ class Rule {
         this.attribute = (attributes.length > 0 ? attributes[0] : "n/a");
     }
 
-    sourceUrl() {
-        return this.source + '/edit#gid=0?range=' + this.id + ':' + this.id;
-    }
-
     substitutionVariables() {
         let variableMap = {
             attribute: BiologicaX.getDisplayName(this.attribute)
@@ -53,9 +49,6 @@ class Rule {
     }
 
     evaluate(event) {
-
-        // TODO rgtaylor 2018-04-24 Make this an environment variable configurable log option
-        //console.info("Evaluating Rule: " + this.sourceUrl());
         
         let allConditionsMatched = false;
         // Is the characteristic editable by the user in the client?

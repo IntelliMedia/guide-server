@@ -29,7 +29,7 @@ class FileRepository extends Repository {
         let filename = this._getFilename(collectionId);        
         return readFileAsync(filename, 'utf8')        
             .then((text) => {
-                return this.deserializer.convertToObjectsAsync(text, filename);
+                return this.deserializer.convertToObjectsAsync(text, this._getSource(collectionId));
             })
             .then((objs) => {
                 this.insert(objs);
@@ -58,6 +58,13 @@ class FileRepository extends Repository {
     _getFilename(id) {
         let ext = this.deserializer.fileType();
         return path.join(this.dataPath, id) + "." + ext;
+    }
+
+    // This method can be overridden in order to indicate where the
+    // object originally came from in the case where FileRepository
+    // is being used as a local cache.
+    _getSource(id) {
+        return this._getFilename(collectionId);
     }
 }
 
