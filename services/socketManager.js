@@ -24,7 +24,7 @@ function  initializeV3(server) {
         handleConnectError(err);
     });
 
-    ioServer.of('/' + GuideProtocolVersion).on('connection', function(socket) {
+    ioServer.of(process.env.BASE_PATH + GuideProtocolVersion).on('connection', function(socket) {
        handleConnect(socket);
 
         socket.on('disconnect', function () {

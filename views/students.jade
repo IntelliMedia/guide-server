@@ -1,14 +1,14 @@
 extends layout
 
 block extraHeader
-    link(rel='stylesheet', href='/css/status-indicators.css')
-    script(src='/js/status-indicators.js') 
+    link(rel='stylesheet', href='./css/status-indicators.css')
+    script(src='./js/status-indicators.js') 
 
 block content
   h1 Students
     if isAllowed('students', 'post')     
       div.pull-right
-        form.form-horizontal(action='/students/modify', method='POST')
+        form.form-horizontal(action='./students/modify', method='POST')
           .form-group.floatLeft
             input(type='hidden', name='_csrf', value=_csrf)
             button.btn.btn-danger(type='submit' name='action' value='deleteAll')
@@ -29,12 +29,12 @@ block content
         for student in students
           tr
             td
-              a(href='/student/#{student.id}') #{student.id}          
+              a(href='./student/#{student.id}') #{student.id}          
             td.scoreBox #{Math.round(student.studentModel.getOverallScore() * 1000)/10}
             td #{student.classId}
             td #{student.groupId}
             td(align="center") 
-              a(href='/student/#{student.id}/hints') #{student.studentModel.hintHistory.length}
+              a(href='./student/#{student.id}/hints') #{student.studentModel.hintHistory.length}
             td(align="center") 
-              a(href='/sessions?studentId=#{student.id}') #{student.totalSessions}
+              a(href='./sessions?studentId=#{student.id}') #{student.totalSessions}
             td #{moment(student.lastSignIn).calendar()}

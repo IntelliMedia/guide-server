@@ -14,13 +14,13 @@ exports.index = (req, res) => {
   }).catch((err) => {
     console.error(err);
     req.flash('errors', { msg: err.toString() });
-    return res.redirect('/');
+    return res.redirect(process.env.BASE_PATH + '');
   });
 };
 
 exports.clear = (req, res) => {
   Alert.remove({}).then(() => {
-    return res.redirect('/alerts');
+    return res.redirect(process.env.BASE_PATH + 'alerts');
   }).catch((err) => {
     console.error(err);
     req.flash('errors', { msg: err.toString() });

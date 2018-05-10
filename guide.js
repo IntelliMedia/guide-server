@@ -17,6 +17,7 @@ require('bluebird');
  * Module dependencies.
  */
 const express = require('express');
+const router = express.Router()
 const compression = require('compression');
 const session = require('express-session');
 const bodyParser = require('body-parser');
@@ -38,16 +39,27 @@ const cors = require('cors');
 const http = require('http');
 
 /**
+ * Configure the path where the web app is located 
+ */
+if (!process.env.BASE_PATH) {
+  process.env.BASE_PATH = '/';
+}
+
+/**
  * Load environment variables from .env file, where API keys and passwords are configured.
  */
 switch (process.env.NODE_ENV) {
   case 'production':
     console.info('Server configured for production');
-    dotenv.load({ path: '.env.production' });
+    dotenv.load({ path: 'private/env.production' });
     break;
 
-  default:
+  case 'dev':
     console.info('Server configured for development');
+    dotenv.load({ path: 'private/env.dev' });
+
+  default:
+    console.info('Server configured for example');
     dotenv.load({ path: '.env.example' });
 }
 
@@ -80,8 +92,6 @@ const passportConfig = require('./config/passport');
 const app = express();
 app.locals.version = guideInfo.version;
 
-app.locals.moment = require('moment');
-
 // Pretty print JSON
 app.set('json spaces', 2);
 /**
@@ -101,7 +111,7 @@ mongoose.connection.on('open', function (ref) {
       process.exit(1);
     }
     else {
-      app.use(function (req, res, next) {
+      router.use(function (req, res, next) {
         req.acl = authz.acl;
         authz.getIsAllowed(req.user, (isAllowed, isAllowedErr) => {
           if (isAllowedErr) {
@@ -126,6 +136,18 @@ mongoose.connection.on('disconnected', () => {
   console.log('Mongoose default connection disconnected');
 });
 
+app.set('port', process.env.PORT || 3000);
+
+/**
+ * Jade Template configuration.
+ */
+// Variables accessible in templates
+app.locals.basepath = process.env.BASE_PATH; 
+app.locals.moment = require('moment');
+
+app.set('views', path.join(__dirname, 'views'));
+app.set('view engine', 'jade');
+
 /**
  * Express configuration.
  */
@@ -133,20 +155,17 @@ var corsOptions = {
   credentials: true,
   origin: true
 };
-app.use(cors(corsOptions));
-app.set('port', process.env.PORT || 3000);
-app.set('views', path.join(__dirname, 'views'));
-app.set('view engine', 'jade');
-app.use(compression());
-app.use(sass({
+router.use(cors(corsOptions));
+router.use(compression());
+router.use(sass({
   src: path.join(__dirname, 'public'),
   dest: path.join(__dirname, 'public')
 }));
-app.use(logger('dev'));
-app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({ extended: true }));
-app.use(expressValidator());
-app.use(session({
+router.use(logger('dev'));
+router.use(bodyParser.json());
+router.use(bodyParser.urlencoded({ extended: true }));
+router.use(expressValidator());
+router.use(session({
   resave: true,
   saveUninitialized: true,
   secret: process.env.SESSION_SECRET,
@@ -156,36 +175,36 @@ app.use(session({
   })
 }));
 
-app.use(passport.initialize());
-app.use(passport.session());
+router.use(passport.initialize());
+router.use(passport.session());
 
-app.use(flash());
-app.use((req, res, next) => {
+router.use(flash());
+router.use((req, res, next) => {
   if (req.path === '/api/upload' || req.path.indexOf('/api/') == 0) {
     next();
   } else {
     lusca.csrf()(req, res, next);
   }
 });
-app.use(lusca.xframe('SAMEORIGIN'));
-app.use(lusca.xssProtection(true));
-app.use((req, res, next) => {
+router.use(lusca.xframe('SAMEORIGIN'));
+router.use(lusca.xssProtection(true));
+router.use((req, res, next) => {
   res.locals.user = req.user;
   next();
 });
-app.use((req, res, next) => {
-  // After successful login, redirect back to /api or /
+router.use((req, res, next) => {
+  // After successful login, redirect back to /api or app path
   if (/(api)|(^\/$)/i.test(req.path)) {
-    req.session.returnTo = req.path;
+    req.session.returnTo = process.env.BASE_PATH;
   }
   next();
 });
-app.use(express.static(path.join(__dirname, 'public'), { maxAge: 31557600000 }));
+router.use(express.static(path.join(__dirname, 'public'), { maxAge: 31557600000 }));
 
 /**
  * Error Handler.
  */
-app.use(errorHandler());
+router.use(errorHandler());
 
 /**
  * Start HTTP server.
@@ -210,52 +229,55 @@ function initializeRoutes() {
   /**
    * Primary app routes.
    */
-  app.get('/', homeController.index);
-  app.get('/sessions', authz.middleware(), sessionsController.index);
-  app.post('/sessions/modify', authz.middleware(1), sessionsController.modify);
-  app.get('/session/:sessionId', authz.middleware(1), sessionController.index);
-  app.get('/session/:sessionId/event/:eventIndex', authz.middleware(1), sessionController.event);
-  app.get('/students', authz.middleware(1), studentsController.index);
-  app.post('/students/modify', authz.middleware(1), studentsController.modify);
-  app.get('/student/:studentId', authz.middleware(1), studentController.index);
-  app.post('/student/reset', authz.middleware(), studentController.reset);
-  app.get('/student/:studentId/hints', authz.middleware(1), hintsController.index);
-  app.get('/api/student/:studentId', authz.middleware(1), StudentDataVisualization.getStudent);
-  app.get('/groups', authz.middleware(1), groupsController.index);
-  app.post('/groups/modify', authz.middleware(1), groupsController.modify);
-  app.get('/group/:groupId', authz.middleware(1), groupController.index);
-  app.delete('/group/:groupId', authz.middleware(1), groupController.delete);
-  app.post('/group/modify', authz.middleware(1), groupController.modify);
-  app.post('/group/clear-cache', authz.middleware(1), groupController.clearCache);  
-  app.post('/group/duplicate', authz.middleware(1), groupController.duplicate);
-  app.get('/alerts', authz.middleware(), alertsController.index);
-  app.post('/alerts/clear', authz.middleware(1), alertsController.clear);
-  app.get('/users', usersController.index);
-  app.get('/login', userController.getLogin);
-  app.post('/login', userController.postLogin);
-  app.get('/logout', userController.logout);
-  app.get('/forgot', userController.getForgot);
-  app.post('/forgot', userController.postForgot);
-  app.get('/reset/:token', userController.getReset);
-  app.post('/reset/:token', userController.postReset);
-  app.get('/signup', userController.getSignup);
-  app.post('/signup', userController.postSignup);
-  app.get('/account/:userId?', authz.usersMiddleware(), userController.getAccount);
-  app.post('/account/profile/:userId?', authz.usersMiddleware(), userController.postUpdateProfile);
-  app.post('/account/roles/:userId?', authz.middleware(2), userController.postUpdateRoles);
-  app.post('/account/password/:userId?', authz.usersMiddleware(), userController.postUpdatePassword);
-  app.post('/account/delete/:userId?', authz.usersMiddleware(), userController.postDeleteAccount);
-  app.get('/account/unlink/:provider/:userId?', authz.usersMiddleware(), userController.getOauthUnlink);
+  router.get('/', homeController.index);
+  router.get('/sessions', authz.middleware(), sessionsController.index);
+  router.post('/sessions/modify', authz.middleware(1), sessionsController.modify);
+  router.get('/session/:sessionId', authz.middleware(1), sessionController.index);
+  router.get('/session/:sessionId/event/:eventIndex', authz.middleware(1), sessionController.event);
+  router.get('/students', authz.middleware(1), studentsController.index);
+  router.post('/students/modify', authz.middleware(1), studentsController.modify);
+  router.get('/student/:studentId', authz.middleware(1), studentController.index);
+  router.post('/student/reset', authz.middleware(), studentController.reset);
+  router.get('/student/:studentId/hints', authz.middleware(1), hintsController.index);
+  router.get('/api/student/:studentId', authz.middleware(1), StudentDataVisualization.getStudent);
+  router.get('/groups', authz.middleware(1), groupsController.index);
+  router.post('/groups/modify', authz.middleware(1), groupsController.modify);
+  router.get('/group/:groupId', authz.middleware(1), groupController.index);
+  router.delete('/group/:groupId', authz.middleware(1), groupController.delete);
+  router.post('/group/modify', authz.middleware(1), groupController.modify);
+  router.post('/group/clear-cache', authz.middleware(1), groupController.clearCache);  
+  router.post('/group/duplicate', authz.middleware(1), groupController.duplicate);
+  router.get('/alerts', authz.middleware(), alertsController.index);
+  router.post('/alerts/clear', authz.middleware(1), alertsController.clear);
+  router.get('/users', usersController.index);
+  router.get('/login', userController.getLogin);
+  router.post('/login', userController.postLogin);
+  router.get('/logout', userController.logout);
+  router.get('/forgot', userController.getForgot);
+  router.post('/forgot', userController.postForgot);
+  router.get('/reset/:token', userController.getReset);
+  router.post('/reset/:token', userController.postReset);
+  router.get('/signup', userController.getSignup);
+  router.post('/signup', userController.postSignup);
+  router.get('/account/:userId?', authz.usersMiddleware(), userController.getAccount);
+  router.post('/account/profile/:userId?', authz.usersMiddleware(), userController.postUpdateProfile);
+  router.post('/account/roles/:userId?', authz.middleware(2), userController.postUpdateRoles);
+  router.post('/account/password/:userId?', authz.usersMiddleware(), userController.postUpdatePassword);
+  router.post('/account/delete/:userId?', authz.usersMiddleware(), userController.postDeleteAccount);
+  router.get('/account/unlink/:provider/:userId?', authz.usersMiddleware(), userController.getOauthUnlink);
 
   /**
    * OAuth authentication routes. (Sign in)
    */
-  app.get('/auth/facebook', passport.authenticate('facebook', { scope: ['email', 'user_location'] }));
-  app.get('/auth/facebook/callback', passport.authenticate('facebook', { failureRedirect: '/login' }), (req, res) => {
-    res.redirect(req.session.returnTo || '/');
+  router.get('/auth/facebook', passport.authenticate('facebook', { scope: ['email', 'user_location'] }));
+  router.get('/auth/facebook/callback', passport.authenticate('facebook', { failureRedirect:  process.env.BASE_PATH + 'login' }), (req, res) => {
+    res.redirect(req.session.returnTo || process.env.BASE_PATH);
   });
-  app.get('/auth/google', passport.authenticate('google', { scope: 'profile email' }));
-  app.get('/auth/google/callback', passport.authenticate('google', { failureRedirect: '/login' }), (req, res) => {
-    res.redirect(req.session.returnTo || '/');
+  router.get('/auth/google', passport.authenticate('google', { scope: 'profile email' }));
+  router.get('/auth/google/callback', passport.authenticate('google', { failureRedirect:  process.env.BASE_PATH + 'login' }), (req, res) => {
+    res.redirect(req.session.returnTo || process.env.BASE_PATH);
   });
+
+  // mount the router on the app
+  app.use(app.locals.basepath, router);
 }

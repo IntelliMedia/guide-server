@@ -1,6 +1,6 @@
 function submit(path, action, group, callback) {
     $.ajax({
-            url: path,
+            url: document.baseURI + path,
             method: action,
             data: group,
             datatype: "json",
@@ -76,7 +76,7 @@ window.onload = function() {
 
     $('.view-link').click(function () {
         var googleDocId = $(this).parents('tr').find('td').eq(2).text().trim();
-        submit("/group/modify", "POST", extractGroup(), (response) => {
+        submit("group/modify", "POST", extractGroup(), (response) => {
             window.location.href = "https://docs.google.com/spreadsheets/d/" + googleDocId;
         });
     });
@@ -103,28 +103,28 @@ window.onload = function() {
 
     $DUPLICATE_BTN.click(function () {
         console.info("Duplicate group");
-        submit("/group/duplicate", "POST", extractGroup());
+        submit("group/duplicate", "POST", extractGroup());
     });
 
     $DELETE_BTN.click(function () {
         console.info("Delete group");
 
         var id = $('#id').text().trim();
-        submit("/group/" + id, "delete", null);
+        submit("group/" + id, "delete", null);
     });
 
     $CANCEL_BTN.click(function () {
         console.info("Cancel edit");
-         window.location.href = "/groups";
+         window.location.href = document.baseURI + "groups";
     });
 
     $SAVE_BTN.click(function () {
         console.info("Save group");
-        submit("/group/modify", "POST", extractGroup());
+        submit("group/modify", "POST", extractGroup());
     });
 
     $CLEAR_CACHE_BTN.click(function () {
         console.info("Clear cached files associated with this group");
-        submit("/group/clear-cache", "POST", extractGroup());
+        submit("group/clear-cache", "POST", extractGroup());
     });
 }

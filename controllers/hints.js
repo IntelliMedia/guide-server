@@ -8,7 +8,7 @@ const moment = require('moment');
 exports.index = (req, res) => {
   const studentId = req.params.studentId;
   if (!studentId) {
-    return res.redirect('/students');
+    return res.redirect(process.env.BASE_PATH + 'students');
   }
 
   Student.findOne({ 'id': studentId }).exec()
@@ -23,6 +23,6 @@ exports.index = (req, res) => {
     .catch((err) => {
       console.error(err);
       req.flash('errors', { msg: 'Unable to load student. ' + err.toString()});
-      return res.send({redirect: '/students'});
+      return res.send({redirect: './students'});
     });
 };

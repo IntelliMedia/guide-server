@@ -22,7 +22,7 @@ exports.index = (req, res) => {
   }).catch((err) => {
     console.error(err);
     req.flash('errors', { msg: "Unable to load sessions. " + err.toString() });
-    return res.redirect('/');
+    return res.redirect(process.env.BASE_PATH + '');
   });
 };
 
@@ -47,13 +47,13 @@ exports.modify = (req, res) => {
       }).catch((err) => {
         console.error(err);
         req.flash('errors', { msg: "Unable to zip session data. " + err.toString()});
-        return res.redirect('/');
+        return res.redirect(process.env.BASE_PATH + '');
       });
 
   } else if (req.body.action == 'deleteAll') {
     console.info("Delete all sessions.");
     Session.remove({}).then(() => {
-      return res.redirect('/sessions');
+      return res.redirect(process.env.BASE_PATH + 'sessions');
     }).catch((err) => {
       console.error(err);
       req.flash('errors', { msg: "Unable to delete session. " + err.toString()});
@@ -65,7 +65,7 @@ exports.modify = (req, res) => {
       for (let session of sessions) {
         Session.deactivate(session);
       }
-      return res.redirect('/sessions');
+      return res.redirect(process.env.BASE_PATH + 'sessions');
     }).catch((err) => {
       console.error(err);
       req.flash('errors', { msg: "Unable to deactivate sessions. " + err.toString()});

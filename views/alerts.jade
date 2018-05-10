@@ -5,7 +5,7 @@ block content
 
   div.pull-right
     if isAllowed('alerts', 'post')      
-      form.form-horizontal(action='/alerts/clear', method='POST')
+      form.form-horizontal(action='./alerts/clear', method='POST')
         .form-group
           input(type='hidden', name='_csrf', value=_csrf)
           button.btn.btn-danger(type='submit')

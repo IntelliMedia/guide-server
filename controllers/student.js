@@ -8,7 +8,7 @@ const Concept = require('../models/Concept');
 exports.index = (req, res) => {
   const studentId = req.params.studentId;
   if (!studentId) {
-    return res.redirect('/students');
+    return res.redirect(process.env.BASE_PATH + 'students');
   }
 
   Student.findOne({ 'id': studentId }).exec()
@@ -29,7 +29,7 @@ exports.index = (req, res) => {
     .catch((err) => {
       console.error(err);
       req.flash('errors', { msg: 'Unable to load student. ' + err.toString()});
-      return res.redirect('/students');
+      return res.redirect(process.env.BASE_PATH + 'students');
     });
 };
 
@@ -43,12 +43,12 @@ exports.reset = (req, res) => {
         return student.reset();
       })
       .then(() => {
-        return res.redirect('/student/' + studentId);
+        return res.redirect(process.env.BASE_PATH + 'student/' + studentId);
       })
       .catch((err) => {
         console.error(err);
         req.flash('errors', { msg: 'Unable to reset student. ' + err.toString()});
-        return res.redirect('/students');
+        return res.redirect(process.env.BASE_PATH + 'students');
       });
   }
 }

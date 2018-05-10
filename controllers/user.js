@@ -12,7 +12,7 @@ const _ = require('underscore');
  */
 exports.getLogin = (req, res) => {
   if (req.user) {
-    return res.redirect('/');
+    return res.redirect(process.env.BASE_PATH + '');
   }
   res.render('account/login', {
     title: 'Login'
@@ -32,19 +32,19 @@ exports.postLogin = (req, res, next) => {
 
   if (errors) {
     req.flash('errors', errors);
-    return res.redirect('/login');
+    return res.redirect(process.env.BASE_PATH + 'login');
   }
 
   passport.authenticate('local', (err, user, info) => {
     if (err) { return next(err); }
     if (!user) {
       req.flash('errors', info);
-      return res.redirect('/login');
+      return res.redirect(process.env.BASE_PATH + 'login');
     }
     req.logIn(user, (err) => {
       if (err) { return next(err); }
       req.flash('success', { msg: 'Success! You are logged in.' });
-      res.redirect(req.session.returnTo || '/');
+      res.redirect(req.session.returnTo || './');
     });
   })(req, res, next);
 };
@@ -55,7 +55,7 @@ exports.postLogin = (req, res, next) => {
  */
 exports.logout = (req, res) => {
   req.logout();
-  res.redirect('/');
+  res.redirect(process.env.BASE_PATH + '');
 };
 
 /**
@@ -64,7 +64,7 @@ exports.logout = (req, res) => {
  */
 exports.getSignup = (req, res) => {
   if (req.user) {
-    return res.redirect('/');
+    return res.redirect(process.env.BASE_PATH + '');
   }
   res.render('account/signup', {
     title: 'Create Account'
@@ -85,7 +85,7 @@ exports.postSignup = (req, res, next) => {
 
   if (errors) {
     req.flash('errors', errors);
-    return res.redirect('/signup');
+    return res.redirect(process.env.BASE_PATH + 'signup');
   }
 
   const newUser = new User();
@@ -95,13 +95,13 @@ exports.postSignup = (req, res, next) => {
   exports.createUser(newUser, (user, err) => {
     if (err) { 
       req.flash('errors', { msg: err });
-      res.redirect('/signup'); 
+      res.redirect(process.env.BASE_PATH + 'signup'); 
     }
     else {
       req.logIn(user, (logInErr) => {
         if (logInErr) { return next(logInErr); }
         req.flash('success', { msg: 'Success! New account created.' });
-        res.redirect(req.session.returnTo || '/');
+        res.redirect(req.session.returnTo || './');
       }); 
     }
   });
@@ -193,7 +193,7 @@ exports.postUpdateProfile = (req, res, next) => {
 
   if (errors) {
     req.flash('errors', errors);
-    return res.redirect('/account/' + userInfo.url);
+    return res.redirect(process.env.BASE_PATH + 'account/' + userInfo.url);
   }
 
   User.findById(userInfo.id, (err, user) => {
@@ -207,12 +207,12 @@ exports.postUpdateProfile = (req, res, next) => {
       if (err) {
         if (err.code === 11000) {
           req.flash('errors', { msg: 'The email address you have entered is already associated with an account.' });
-          return res.redirect('/account/' + userInfo.url);
+          return res.redirect(process.env.BASE_PATH + 'account/' + userInfo.url);
         }
         return next(err);
       }
       req.flash('success', { msg: 'Profile information has been updated.' });
-      res.redirect('/account/' + userInfo.url);
+      res.redirect(process.env.BASE_PATH + 'account/' + userInfo.url);
     });
   });
 };
@@ -268,7 +268,7 @@ exports.postUpdateRoles = (req, res, next) => {
   // Refresh page
   .then(() => {
     req.flash('success', { msg: 'Role(s) have been changed.' });
-    res.redirect('/account/' + userInfo.url);
+    res.redirect(process.env.BASE_PATH + 'account/' + userInfo.url);
   })
   .catch((err) => {
     console.error(err);
@@ -290,7 +290,7 @@ exports.postUpdatePassword = (req, res, next) => {
 
   if (errors) {
     req.flash('errors', errors);
-    return res.redirect('/account/' + userInfo.url);
+    return res.redirect(process.env.BASE_PATH + 'account/' + userInfo.url);
   }
 
   User.findById(userInfo.id, (err, user) => {
@@ -299,7 +299,7 @@ exports.postUpdatePassword = (req, res, next) => {
     user.save((err) => {
       if (err) { return next(err); }
       req.flash('success', { msg: 'Password has been changed.' });
-      res.redirect('/account/' + userInfo.url);
+      res.redirect(process.env.BASE_PATH + 'account/' + userInfo.url);
     });
   });
 };
@@ -329,10 +329,10 @@ exports.postDeleteAccount = (req, res, next) => {
         if (userInfo.id == req.user.id) {
           req.logout();
           req.flash('info', { msg: 'Your account has been deleted.' });
-          res.redirect('/');
+          res.redirect(process.env.BASE_PATH + '');
         } else {
           req.flash('success', { msg: 'User account has been deleted.' });
-          res.redirect('/users');
+          res.redirect(process.env.BASE_PATH + 'users');
         }
   })
   .catch((err) =>
@@ -357,7 +357,7 @@ exports.getOauthUnlink = (req, res, next) => {
     user.save((err) => {
       if (err) { return next(err); }
       req.flash('info', { msg: `${provider} account has been unlinked.` });
-      res.redirect('/account/' + userInfo.url);
+      res.redirect(process.env.BASE_PATH + 'account/' + userInfo.url);
     });
   });
 };
@@ -368,7 +368,7 @@ exports.getOauthUnlink = (req, res, next) => {
  */
 exports.getReset = (req, res, next) => {
   if (req.isAuthenticated()) {
-    return res.redirect('/');
+    return res.redirect(process.env.BASE_PATH + '');
   }
   User
     .findOne({ passwordResetToken: req.params.token })
@@ -377,7 +377,7 @@ exports.getReset = (req, res, next) => {
       if (err) { return next(err); }
       if (!user) {
         req.flash('errors', { msg: 'Password reset token is invalid or has expired.' });
-        return res.redirect('/forgot');
+        return res.redirect(process.env.BASE_PATH + 'forgot');
       }
       res.render('account/reset', {
         title: 'Password Reset'
@@ -443,7 +443,7 @@ exports.postReset = (req, res, next) => {
     }
   ], (err) => {
     if (err) { return next(err); }
-    res.redirect('/');
+    res.redirect(process.env.BASE_PATH + '');
   });
 };
 
@@ -453,7 +453,7 @@ exports.postReset = (req, res, next) => {
  */
 exports.getForgot = (req, res) => {
   if (req.isAuthenticated()) {
-    return res.redirect('/');
+    return res.redirect(process.env.BASE_PATH + '');
   }
   res.render('account/forgot', {
     title: 'Forgot Password'
@@ -472,7 +472,7 @@ exports.postForgot = (req, res, next) => {
 
   if (errors) {
     req.flash('errors', errors);
-    return res.redirect('/forgot');
+    return res.redirect(process.env.BASE_PATH + 'forgot');
   }
 
   async.waterfall([
@@ -486,7 +486,7 @@ exports.postForgot = (req, res, next) => {
       User.findOne({ email: req.body.email }, (err, user) => {
         if (!user) {
           req.flash('errors', { msg: 'Account with that email address does not exist.' });
-          return res.redirect('/forgot');
+          return res.redirect(process.env.BASE_PATH + 'forgot');
         }
         user.passwordResetToken = token;
         user.passwordResetExpires = Date.now() + 3600000; // 1 hour
@@ -519,6 +519,6 @@ exports.postForgot = (req, res, next) => {
     }
   ], (err) => {
     if (err) { return next(err); }
-    res.redirect('/forgot');
+    res.redirect(process.env.BASE_PATH + 'forgot');
   });
 };

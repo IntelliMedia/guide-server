@@ -9,7 +9,7 @@ block content
   h1 Student 
     if isAllowed('students', 'post')     
       div.pull-right
-        form.form-horizontal(action='/student/reset', method='POST')
+        form.form-horizontal(action='./student/reset', method='POST')
           .form-group.floatLeft
             input(type='hidden', name='_csrf', value=_csrf)
             input(type='hidden', name='studentId', value='#{student.id}')
@@ -20,15 +20,15 @@ block content
   h4 #{student.classId}
   h4 #{student.groupId}
   h4
-    a(href='/student/#{student.id}/hints') Hint History  
-    a(href='/student/#{student.id}?view=json') JSON  
+    a(href='./student/#{student.id}/hints') Hint History  
+    a(href='./student/#{student.id}?view=json') JSON  
   div#container1(style="min-width: 500px; height: 500px; margin: 0 auto")
     script.
         $(function() {
             let myChart1 = null;   
             
             function updateChart1() {
-                $.getJSON("/api/student/#{student.id}?view=aggregate-concept-heatmap", function(options) {
+                $.getJSON("./api/student/#{student.id}?view=aggregate-concept-heatmap", function(options) {
                     if (myChart1 != null) {
                         myChart1.destroy();
                     }       
@@ -49,7 +49,7 @@ block content
             var myChart2 = null;   
             
             function updateChart2() {
-                $.getJSON("/api/student/#{student.id}?view=concept-by-challenge-heatmap", function(options) {
+                $.getJSON("./api/student/#{student.id}?view=concept-by-challenge-heatmap", function(options) {
                     if (myChart2 != null) {
                         myChart2.destroy();
                     }       
@@ -70,7 +70,7 @@ block content
             var myChart3 = null;   
             
             function updateChart3() {
-                $.getJSON("/api/student/#{student.id}?view=concept-by-attribute-heatmap", function(options) {
+                $.getJSON("./api/student/#{student.id}?view=concept-by-attribute-heatmap", function(options) {
                     if (myChart3 != null) {
                         myChart3.destroy();
                     }       
@@ -91,7 +91,7 @@ block content
             var myChart4 = null;   
             
             function updateChart4() {
-                $.getJSON("/api/student/#{student.id}?view=snapshots-by-concept-linegraph", function(options) {
+                $.getJSON("./api/student/#{student.id}?view=snapshots-by-concept-linegraph", function(options) {
                     if (myChart4 != null) {
                         myChart4.destroy();
                     }       

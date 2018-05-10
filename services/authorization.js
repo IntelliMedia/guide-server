@@ -127,7 +127,7 @@ exports.middleware = function(numPathComponents, userId, actions) {
       return;
     }
 
-    url = req.originalUrl.split('?')[0];
+    url = req.originalUrl.replace(process.env.BASE_PATH, '/').split('?')[0];
     if(!numPathComponents){
       resource = url;
     }else{

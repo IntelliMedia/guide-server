@@ -7,7 +7,7 @@ const Session = require('../models/Session');
 exports.index = (req, res) => {
   const sessionId = req.params.sessionId;
   if (!sessionId) {
-    return res.redirect('/sessions');
+    return res.redirect(process.env.BASE_PATH + 'sessions');
   }
 
   Session.findOne({ 'id': sessionId }).exec()
@@ -26,7 +26,7 @@ exports.index = (req, res) => {
     .catch((err) => {
       console.error(err);
       req.flash('errors', { msg: 'Unable to display session data. ' + err.toString()});
-      return res.redirect('/sessions');
+      return res.redirect(process.env.BASE_PATH + 'sessions');
     }); 
 };
 
@@ -34,7 +34,7 @@ exports.event = (req, res) => {
   const sessionId = req.params.sessionId;
   const eventIndex = req.params.eventIndex;
   if (!sessionId || !eventIndex) {
-    return res.redirect('/sessions');
+    return res.redirect(process.env.BASE_PATH + 'sessions');
   }
 
   Session.findOne({ 'id': sessionId }).exec()
@@ -47,6 +47,6 @@ exports.event = (req, res) => {
     .catch((err) => {
       console.error(err);
       req.flash('errors', { msg: 'Unable to display session data. ' + err.toString()});
-      return res.redirect('/sessions');
+      return res.redirect(process.env.BASE_PATH + 'sessions');
     });   
 };

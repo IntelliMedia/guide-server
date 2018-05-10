@@ -16,7 +16,7 @@ exports.index = (req, res) => {
     .catch((err) => {
       console.error(err);
       req.flash('errors', { msg: 'Unable to load students. ' + err.toString()});
-      return res.redirect('/home');
+      return res.redirect(process.env.BASE_PATH + 'home');
     }); 
 };
 
@@ -32,12 +32,12 @@ exports.modify = (req, res) => {
   if (req.body.action == 'deleteAll') {
     console.info("Delete all students.");
     Student.remove({}).then(() => {
-      return res.redirect('/students');
+      return res.redirect(process.env.BASE_PATH + 'students');
     })
     .catch((err) => {
       console.error(err);
       req.flash('errors', { msg: 'Unable to delete student. ' + err.toString()});
-      return res.redirect('/students');
+      return res.redirect(process.env.BASE_PATH + 'students');
     });
   }
 };

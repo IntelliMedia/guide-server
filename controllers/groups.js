@@ -16,7 +16,7 @@ exports.index = (req, res) => {
     .catch((err) => {
       console.error(err);
       req.flash('errors', { msg: err.toString() });
-      return res.redirect('/');
+      return res.redirect(process.env.BASE_PATH + '');
     });
 };
 
@@ -34,24 +34,24 @@ exports.modify = (req, res) => {
     console.info("Add new group.");
     let group = new Group({ name: "New Group"});
     group.save().then((group) => {
-      return res.redirect('/group/' + group._id);
+      return res.redirect(process.env.BASE_PATH + 'group/' + group._id);
     })
     .catch((err) => {
       console.error(err);
       req.flash('errors', { msg: err.toString() });
-      return res.redirect('/groups');
+      return res.redirect(process.env.BASE_PATH + 'groups');
     });
   }
   // Delete all groups
   else if (req.body.action == 'deleteAll') {
     console.info("Delete all groups.");
     Group.remove({}).then(() => {
-        return res.redirect('/groups');
+        return res.redirect(process.env.BASE_PATH + 'groups');
       })
       .catch((err) => {
         console.error(err);
         req.flash('errors', { msg: err.toString() });
-        return res.redirect('/groups');
+        return res.redirect(process.env.BASE_PATH + 'groups');
       });
   }
 };

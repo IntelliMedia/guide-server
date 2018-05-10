@@ -13,7 +13,7 @@ class StudentDataVisualization {
     static getStudent(req, res) {
         const studentId = req.params.studentId;
         if (!studentId) {
-            return res.redirect('/');
+            return res.redirect(process.env.BASE_PATH + '');
         }
 
         var view = req.query.view;
@@ -46,7 +46,7 @@ class StudentDataVisualization {
         .catch((err) => {
             console.error(err);
             req.flash('errors', { msg: 'Student with ID is not found: ' + studentId + ". " + err.toString()});
-            return res.redirect('/');
+            return res.redirect(process.env.BASE_PATH + '');
         });
     }
 

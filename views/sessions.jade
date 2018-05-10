@@ -9,7 +9,7 @@ block content
      h3 Active 
         if !studentId
           div.pull-right
-            form.form-horizontal(action='/sessions/modify', method='POST')
+            form.form-horizontal(action='./sessions/modify', method='POST')
               .form-group.floatLeft
                 input(type='hidden', name='_csrf', value=_csrf)
                 button.btn.btn-primary(type='submit' name='action' value='downloadAll' style='margin-right: 5px;')
@@ -35,7 +35,7 @@ block content
         for session in activeSessions
           tr
             td 
-              a(href='/session/#{session.id}') #{session.id}          
+              a(href='./session/#{session.id}') #{session.id}          
             td #{session.studentId}
             td #{session.classId}
             td #{session.groupId}
@@ -60,7 +60,7 @@ block content
         for session in inactiveSessions
           tr
             td 
-              a(href='/session/#{session.id}') #{session.id}          
+              a(href='./session/#{session.id}') #{session.id}          
             td #{session.studentId}
             td #{session.classId}
             td #{session.groupId}

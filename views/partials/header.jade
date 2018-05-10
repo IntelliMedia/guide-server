@@ -6,32 +6,32 @@
         span.icon-bar
         span.icon-bar
         span.icon-bar
-      a.navbar-brand(href='/')
+      a.navbar-brand(href='./')
         i.fa.fa-fire
         | GUIDE
     .collapse.navbar-collapse
       ul.nav.navbar-nav
         if isAllowed('students','get')
           li(class=(title == 'Students') ? 'active' : undefined)
-            a(href='/students') Students   
+            a(href='./students') Students   
         if isAllowed('groups','get')
           li(class=(title == 'Groups') ? 'active' : undefined)
-            a(href='/groups') Groups
+            a(href='./groups') Groups
         if isAllowed('sessions','get')
           li(class=(title == 'Sessions') ? 'active' : undefined)
-            a(href='/sessions') Sessions        
+            a(href='./sessions') Sessions        
         if isAllowed('alerts','get')              
           li(class=(title == 'Alerts') ? 'active' : undefined)
-            a(href='/alerts') Alerts              
+            a(href='./alerts') Alerts              
         if isAllowed('users', 'get')
           li(class=(title == 'Users') ? 'active' : undefined)
-            a(href='/users') Users                              
+            a(href='./users') Users                              
       ul.nav.navbar-nav.navbar-right
         if !user
           li(class=(title == 'Login') ? 'active' : undefined)
-            a(href='/login') Login
+            a(href='./login') Login
           li(class=(title == 'Create Account') ? 'active' : undefined)
-            a(href='/signup') Create Account
+            a(href='./signup') Create Account
         else
           li.dropdown(class=(title == 'Account Management') ? 'active' : undefined)
             a.dropdown-toggle(href='#', data-toggle='dropdown')
@@ -43,7 +43,7 @@
               i.caret
             ul.dropdown-menu
               li
-                a(href='/account') My Account
+                a(href='./account') My Account
               li.divider
               li
-                a(href='/logout') Logout
+                a(href='./logout') Logout

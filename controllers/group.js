@@ -10,7 +10,7 @@ const CsvDeserializer = require('../storage/csvDeserializer');
 exports.index = (req, res) => {
   const groupId = req.params.groupId;
   if (!groupId) {
-    return res.redirect('/groups');
+    return res.redirect(process.env.BASE_PATH + 'groups');
   }
 
   Group.findOne({ '_id': groupId }).exec()
@@ -23,24 +23,24 @@ exports.index = (req, res) => {
     .catch((err) => {
       console.error(err);
       req.flash('errors', { msg: 'Group with ID is not found: ' + groupId});
-      return res.redirect('/groups');
+      return res.redirect(process.env.BASE_PATH + 'groups');
     });
 };
 
 exports.delete = (req, res) => {
   const groupId = req.params.groupId;
   if (!groupId) {
-    return res.redirect('/groups');
+    return res.redirect(process.env.BASE_PATH + 'groups');
   }
 
   Group.remove({ '_id': groupId }).exec()
     .then(() => { 
-      return res.send({redirect: '/groups'});
+      return res.send({redirect: './groups'});
     })
     .catch((err) => {
       console.error(err);
       req.flash('errors', { msg: 'Group with ID is not found: ' + groupId});
-      return res.send({redirect: '/groups'});
+      return res.send({redirect: './groups'});
     });
 };
 
@@ -59,12 +59,12 @@ exports.duplicate = (req, res) => {
         return duplicateGroup.save();
       })
       .then((duplicateGroup) => {
-        return res.send({redirect: '/group/' + duplicateGroup.id});
+        return res.send({redirect: './group/' + duplicateGroup.id});
       })
       .catch((err) => {
         console.error(err);
         req.flash('errors', { msg: 'Unable to duplicate group. ' + err.toString()});
-        return res.send({redirect: '/groups'});
+        return res.send({redirect: './groups'});
       });
   }
 }
@@ -79,7 +79,7 @@ exports.modify = (req, res) => {
       return group.save();
     })
     .then(() => {
-      return res.send({redirect: '/groups'});
+      return res.send({redirect: './groups'});
     })
     .catch((err) => {
       console.error(err);
@@ -100,11 +100,11 @@ exports.clearCache = (req, res) => {
       }
 
       req.flash('info',  { msg: 'Cache successfully cleared'});
-      return res.send({redirect: '/group/' + group.id});
+      return res.send({redirect: './group/' + group.id});
     } catch(e) {
       console.error(e);
       req.flash('errors', { msg: 'Unable to clear cache. ' + e.toString()});
-      return res.send({redirect: '/group/' + group.id});
+      return res.send({redirect: './group/' + group.id});
     }
   }
 };
