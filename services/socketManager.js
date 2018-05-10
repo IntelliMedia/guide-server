@@ -10,7 +10,7 @@ const guideProtocol = require('../shared/guide-protocol.js');
  * Configuration
  * TODO move to config settings
  */
-const GuideProtocolVersion= 'guide-protocol-v3';
+const GuideProtocolVersion= 'guide-protocol';
 
 var socketMap = {};
 

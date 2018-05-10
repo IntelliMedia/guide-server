@@ -54,9 +54,10 @@ switch (process.env.NODE_ENV) {
     dotenv.load({ path: 'private/env.production' });
     break;
 
-  case 'dev':
+  case 'development':
     console.info('Server configured for development');
     dotenv.load({ path: 'private/env.dev' });
+    break;
 
   default:
     console.info('Server configured for example');
@@ -97,7 +98,7 @@ app.set('json spaces', 2);
 /**
  * Connect to MongoDB.
  */
-var dbc = mongoose.connect('mongodb://localhost/guide2', {
+var dbc = mongoose.connect('mongodb://localhost/guide3', {
   useMongoClient: true
 });
 
