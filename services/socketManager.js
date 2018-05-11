@@ -1,6 +1,5 @@
 const http = require('http');
 const socketio = require('socket.io');
-const WebSocketServer = require('websocket').server;
 const Session = require('../models/Session');
 const EventRouter = require('./eventRouter');
 const Alert = require('../models/Alert');
@@ -19,16 +18,19 @@ exports.initialize = (server) => {
 }
 
 function  initializeV3(server) {
-    var ioServer = socketio.listen(server);
+    let socketPath = process.env.BASE_PATH + "socket.io";
+
+    var ioServer = socketio.listen(server, {
+        path: socketPath
+    });
     ioServer.on('connect_error', function(err) {
         handleConnectError(err);
     });
 
-    let wsUrl = GuideProtocolVersion;
     let address = server.address().address == "::" ? "[::]" : server.address().address;
-    console.info("Websocket listening on: %s:%d%s", address, server.address().port, wsUrl);
+    console.info("socket.io listening on: %s:%d%s namespace:%s", address, server.address().port, socketPath, GuideProtocolVersion);
 
-    ioServer.of(wsUrl).on('connection', function(socket) {
+    ioServer.of(GuideProtocolVersion).on('connection', function(socket) {
        handleConnect(socket);
 
         socket.on('disconnect', function () {

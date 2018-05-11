@@ -4,9 +4,10 @@ var guideInfo = require('./package');
 console.info("%s %s", guideInfo.name, guideInfo.version);
 
 /**
- * Global Variables
+ * Configuration Variables
  */
 global.cacheDirectory = "./data/cache";
+let mongoDbUri = "mongodb://localhost/guide3";
 
 /**
  * Setup global promise lib
@@ -98,12 +99,12 @@ app.set('json spaces', 2);
 /**
  * Connect to MongoDB.
  */
-var dbc = mongoose.connect('mongodb://localhost/guide3', {
+var dbc = mongoose.connect(mongoDbUri, {
   useMongoClient: true
 });
 
 mongoose.connection.on('open', function (ref) {
-  console.log('Connected to mongo server.');
+  console.info('Connected to MongoDB: %s', mongoDbUri);
 
   // Initialize authorization module
   authz.initialize(dbc, (err) => {
@@ -216,7 +217,8 @@ var server = http.Server(app);
  * Start Express server.
  */
 server.listen(app.get('port'), () => {
-  console.log('Express server listening on port %d in %s mode', app.get('port'), app.get('env'));
+  let address = server.address().address == "::" ? "[::]" : server.address().address;
+  console.info("Express listening on: %s:%d%s", address, server.address().port, process.env.BASE_PATH);
 });
 
 /**
