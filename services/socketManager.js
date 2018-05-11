@@ -24,7 +24,11 @@ function  initializeV3(server) {
         handleConnectError(err);
     });
 
-    ioServer.of(process.env.BASE_PATH + GuideProtocolVersion).on('connection', function(socket) {
+    let wsUrl = GuideProtocolVersion;
+    let address = server.address().address == "::" ? "[::]" : server.address().address;
+    console.info("Websocket listening on: %s:%d%s", address, server.address().port, wsUrl);
+
+    ioServer.of(wsUrl).on('connection', function(socket) {
        handleConnect(socket);
 
         socket.on('disconnect', function () {
