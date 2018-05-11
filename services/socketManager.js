@@ -9,7 +9,7 @@ const guideProtocol = require('../shared/guide-protocol.js');
  * Configuration
  * TODO move to config settings
  */
-const GuideProtocolVersion= 'guide-protocol';
+const GuideSocketioNamespace = 'guide-protocol';
 
 var socketMap = {};
 
@@ -28,9 +28,9 @@ function  initializeV3(server) {
     });
 
     let address = server.address().address == "::" ? "[::]" : server.address().address;
-    console.info("socket.io listening on: %s:%d%s namespace:%s", address, server.address().port, socketPath, GuideProtocolVersion);
+    console.info("socket.io listening on: %s:%d%s namespace:%s", address, server.address().port, socketPath, GuideSocketioNamespace);
 
-    ioServer.of(GuideProtocolVersion).on('connection', function(socket) {
+    ioServer.of(GuideSocketioNamespace).on('connection', function(socket) {
        handleConnect(socket);
 
         socket.on('disconnect', function () {
