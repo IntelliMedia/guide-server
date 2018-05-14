@@ -32,8 +32,8 @@ if (typeof exports === 'undefined') {
      */
     GuideProtocol.Event = function(studentId, session, actor, action, target, context, time) {
         this.studentId = studentId;
-        this.session = -1;
-        this.sequence = sequence;
+        this.session = session;
+        this.sequence = -1;
         this.actor = actor;
         this.action = action;
         this.target = target;
@@ -79,9 +79,11 @@ if (typeof exports === 'undefined') {
      * Alert Constants - used for system-level information, warning, and error messages
      */
 
-    GuideProtocol.Alert.Error = 'Error';
-    GuideProtocol.Alert.Warning = 'Warning';
-    GuideProtocol.Alert.Info = 'Info';
-    GuideProtocol.Alert.Debug = 'Debug';  
+    GuideProtocol.Alert = {
+        Error: 'Error',
+        Warning: 'Warning',
+        Info: 'Info',
+        Debug: 'Debug'  
+    };
 
 }).call(this);
