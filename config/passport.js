@@ -227,7 +227,7 @@ passport.use(new TwitterStrategy({
 passport.use(new GoogleStrategy({
   clientID: process.env.GOOGLE_ID,
   clientSecret: process.env.GOOGLE_SECRET,
-  callbackURL: '.' + process.env.BASE_PATH + 'auth/google/callback',
+  callbackURL: process.env.BASE_PATH + 'auth/google/callback',
   passReqToCallback: true
 }, (req, accessToken, refreshToken, profile, done) => {
   if (req.user) {
