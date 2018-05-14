@@ -9,11 +9,10 @@ const tutorActionSchema = new mongoose.Schema({
   });
 
 // Create GUIDE protocol event from TutorAction
-tutorActionSchema.methods.createEvent = function(userId, sessionId, sequenceNumber) {
+tutorActionSchema.methods.createEvent = function(userId, sessionId) {
     let event = new GuideProtocol.Event(
         userId,
         sessionId,
-        sequenceNumber,
         "ITS", this.action, "USER",
         this.context);
 

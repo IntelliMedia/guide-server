@@ -39,7 +39,6 @@ class EventRouter {
             if (action) { 
                 session.logEvent(action);
                 session.emit(GuideProtocol.Event.Channel, action.toJson());
-                session.debugAlert("Event handled -> ITS action sent to client");
             }
         })
         .then(() => {

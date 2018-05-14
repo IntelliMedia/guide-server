@@ -20,8 +20,7 @@ class Tutor {
                         this.student.tutorActionHistory.unshift(tutorAction);
                         return tutorAction.createEvent(
                                 this.session.studentId,
-                                this.session.id, 
-                                this.session.sequenceNumber++);
+                                this.session.id);
                     } else {
                         return null;
                     }

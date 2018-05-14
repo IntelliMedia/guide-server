@@ -92,6 +92,7 @@ sessionSchema.statics.deactivate = (session) => {
   }
 
 sessionSchema.methods.logEvent = function(event) {
+  event.sequenceNumber = this.sequenceNumber++;
   this.events.push(event);
 }
 
@@ -102,12 +103,12 @@ sessionSchema.methods.errorAlert = function(e) {
 
 sessionSchema.methods.warningAlert = function(msg) {
     console.warn(msg);
-    return this.sendAlert(GuideProtocol.Alert.Warning, msg);
+    return this.sendAlert(GuideProtocol.Alert.Warning, msg, true);
 }
 
 sessionSchema.methods.infoAlert = function(msg) {
     console.info(msg);
-    return this.sendAlert(GuideProtocol.Alert.Info, msg);
+    return this.sendAlert(GuideProtocol.Alert.Info, msg, true);
 }
 
 sessionSchema.methods.debugAlert = function(msg) {
@@ -117,25 +118,28 @@ sessionSchema.methods.debugAlert = function(msg) {
 
 sessionSchema.methods.sendAlert = function(type, msg, writeToEventLog) {
 
-  var alert = new GuideProtocol.Alert(type, msg);
+  let context = {
+    type: type,
+    message: msg
+  };
+
+  let event = new GuideProtocol.Event(
+    this.studentId,
+    this.id,
+    "ITS", "ISSUED", type.toString().toUpperCase(),
+    context);
+
   if (!this.emit) {
     console.error("Unable to send alert message to client. Emit method is not defined.");
   } else {
-    this.emit(GuideProtocol.Alert.Channel, alert.toJson());
+    this.emit(GuideProtocol.Event.Channel, event.toJson());
   }
 
   if (writeToEventLog) {
-    let event = new GuideProtocol.Event(
-      this.studentId,
-      this.id, 
-      this.sequenceNumber++,
-      "ITS", "ISSUED", type.toString().toUpperCase(), alert
-    );
     this.logEvent(event);
-    this.save();
   }
    
-  return alert;
+  return event;
 }
 
 const Session = mongoose.model('Session', sessionSchema);
