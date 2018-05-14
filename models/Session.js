@@ -8,7 +8,7 @@ const sessionSchema = new mongoose.Schema({
       groupId: String,
       startTime: Date,
       endTime: Date,      
-      sequenceNumber: Number,
+      sequence: Number,
       events: []
 }, { timestamps: true });
 
@@ -22,7 +22,7 @@ sessionSchema.statics.findOrCreate = (sessionId) => {
       if (!session) {
         session = new Session();
         session.id = sessionId;
-        session.sequenceNumber = 0;
+        session.sequence = 0;
         //session.startTime = Date.now;
       }
 
@@ -92,7 +92,7 @@ sessionSchema.statics.deactivate = (session) => {
   }
 
 sessionSchema.methods.logEvent = function(event) {
-  event.sequenceNumber = this.sequenceNumber++;
+  event.sequence = this.sequence++;
   this.events.push(event);
 }
 
