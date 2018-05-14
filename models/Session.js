@@ -126,7 +126,7 @@ sessionSchema.methods.sendAlert = function(type, msg, writeToEventLog) {
   let event = new GuideProtocol.Event(
     this.studentId,
     this.id,
-    "ITS", "ISSUED", type.toString().toUpperCase(),
+    "ITS", "ISSUED", "ALERT",
     context);
 
   if (!this.emit) {
