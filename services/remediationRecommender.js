@@ -82,6 +82,7 @@ class RemediationRecommender {
                     misconception.conceptState.score,
                     challengeType,
                     challengeId, 
+                    remediation.practiceCriteria,
                     misconception.attribute,
                     isBottomOut);
 

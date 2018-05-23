@@ -77,6 +77,7 @@ tutorActionSchema.statics.createRemediateAction = function(
     conceptScore,
     challengeType,
     challengeId,   
+    practiceCriteria,
     attribute,
     isBottomOut) {
 
@@ -90,6 +91,7 @@ tutorActionSchema.statics.createRemediateAction = function(
             conceptScore: conceptScore,
             challengeType: challengeType,
             challengeId: challengeId, 
+            practiceCriteria: practiceCriteria,
             attribute: attribute,
             isBottomOut: isBottomOut
         },
