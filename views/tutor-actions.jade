@@ -11,7 +11,7 @@ block content
       thead
         tr
           th Concept Id
-          th ProbabilityLearned by Challenge
+          th Probability Learned by Challenge
           th Hint Level
           th Is Bottom Out
           th Time
@@ -20,7 +20,7 @@ block content
           th Selected
           th Challenge Id
       tbody
-        for hint in hintHistory
+        for hint in tutorActionHistory
           tr
             td #{hint.conceptId}          
             td.scoreBackground #{Math.round(hint.scoreByChallenge * 1000)/10}   

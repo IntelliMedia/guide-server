@@ -4,6 +4,8 @@ block extraHeader
     script(type='text/javascript', src="https://code.highcharts.com/highcharts.js")
     script(type='text/javascript', src="https://code.highcharts.com/modules/heatmap.js")
     script(type='text/javascript', src="https://code.highcharts.com/modules/exporting.js") 
+    link(rel='stylesheet', href='./css/status-indicators.css')
+    script(src='./js/status-indicators.js') 
 
 block content
   h1 Student 
@@ -20,94 +22,26 @@ block content
   h4 #{student.classId}
   h4 #{student.groupId}
   h4
-    a(href='./student/#{student.id}/hints') Hint History  
+    a(href='./student/#{student.id}/tutor-actions') Action History  
     a(href='./student/#{student.id}?view=json') JSON  
-  div#container1(style="min-width: 500px; height: 500px; margin: 0 auto")
-    script.
-        $(function() {
-            let myChart1 = null;   
-            
-            function updateChart1() {
-                $.getJSON("./api/student/#{student.id}?view=aggregate-concept-heatmap", function(options) {
-                    if (myChart1 != null) {
-                        myChart1.destroy();
-                    }       
-                    options.tooltip.formatter = function () {
-                        let details = options.tooltip.conceptScoreDetails[this.point.x + "," + this.y];
-                            return 'Correct: <b>' + details.correct + '</b><br>'
-                                    + 'Total Attempts: <b>' + details.total + '</b>';
-                        };
-                    myChart1 = Highcharts.chart('container1', options);
-                });
-            }
-            updateChart1();
-        });
-  div
-  div#container2(style="min-width: 500px; height: 500px; margin: 0 auto")
-    script.
-        $(function() {
-            var myChart2 = null;   
-            
-            function updateChart2() {
-                $.getJSON("./api/student/#{student.id}?view=concept-by-challenge-heatmap", function(options) {
-                    if (myChart2 != null) {
-                        myChart2.destroy();
-                    }       
-                    options.tooltip.formatter = function () {
-                        var details = options.tooltip.conceptScoreDetails[this.point.x + "," + this.y];
-                            return 'Correct: <b>' + details.correct + '</b><br>'
-                                    + 'Total Attempts: <b>' + details.total + '</b>';
-                        };
-                    myChart2 = Highcharts.chart('container2', options);
-                });
-            }
-            updateChart2();
-        });
-  div
-  div#container3(style="min-width: 500px; height: 500px; margin: 0 auto")
-    script.
-        $(function() {
-            var myChart3 = null;   
-            
-            function updateChart3() {
-                $.getJSON("./api/student/#{student.id}?view=concept-by-attribute-heatmap", function(options) {
-                    if (myChart3 != null) {
-                        myChart3.destroy();
-                    }       
-                    options.tooltip.formatter = function () {
-                        var details = options.tooltip.conceptScoreDetails[this.point.x + "," + this.y];
-                            return 'Correct: <b>' + details.correct + '</b><br>'
-                                    + 'Total Attempts: <b>' + details.total + '</b>';
-                        };
-                    myChart3 = Highcharts.chart('container3', options);
-                });
-            }
-            updateChart3();
-        });
-  div
-  div#container4(style="min-width: 500px; height: 500px; margin: 0 auto")
-    script.
-        $(function() {
-            var myChart4 = null;   
-            
-            function updateChart4() {
-                $.getJSON("./api/student/#{student.id}?view=snapshots-by-concept-linegraph", function(options) {
-                    if (myChart4 != null) {
-                        myChart4.destroy();
-                    }       
-                    myChart4 = Highcharts.chart('container4', options);
-                });
-            }
-            updateChart4();
-        });
   div
     table.table.table-striped
-        thead
-            tr
-            th Id          
-            th Description
-        tbody
-            for concept in concepts
-                tr
-                    td #{concept.Id}                                  
-                    td #{concept.Description}
+      thead
+        tr
+          th Concept ID
+          th Probability Learned
+          th L0
+          th % Correct
+          th Total Correct
+          th Total Attempts
+          th Last Update
+      tbody
+        for conceptState in student.studentModel.bktConceptStates
+          tr
+            td #{conceptState.conceptId}       
+            td.scoreBox #{Math.round(conceptState.probabilityLearned * 1000)/10}
+            td #{(conceptState.L0 * 1000)/10}
+            td #{((conceptState.totalCorrect / conceptState.totalAttempts)*1000)/10}
+            td #{conceptState.totalCorrect}
+            td #{conceptState.totalAttempts}
+            td #{moment(conceptState.timestamp).calendar()}

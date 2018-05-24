@@ -47,12 +47,27 @@ studentModelSchema.methods.getBktConceptState = function(conceptId, L0) {
       conceptId: conceptId,
       probabilityLearned: L0,
       L0: L0,
-      n: 0 }));
+      totalCorrect: 0,
+      totalAttempts: 0 }));
 
     conceptState = this.bktConceptStates[0];
   }
   return conceptState;
 }
+
+studentModelSchema.methods.avgProbabilityLearnedOfAllConcepts = function() {
+  if (!this.bktConceptStates || this.bktConceptStates.length == 0) {
+    return 0;
+  }
+
+  let sumProbabilityLearned = 0;
+  this.bktConceptStates.forEach((c) => sumProbabilityLearned += c.probabilityLearned);
+
+  let avgProbabilityLearned = sumProbabilityLearned / this.bktConceptStates.length;
+
+  return avgProbabilityLearned;
+};
+
 
 studentModelSchema.methods.addAction = function(tutorAction) {
   this.tutorActionHistory.unshift(tutorAction);

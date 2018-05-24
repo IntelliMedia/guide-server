@@ -14,10 +14,10 @@ exports.index = (req, res) => {
   Student.findOne({ 'id': studentId }).exec()
     .then((student) => {
       
-      res.render('hints', {
-        title: 'Hints',
+      res.render('tutor-actions', {
+        title: 'Tutor Actions',
         student: student,
-        hintHistory: student.studentModel.hintHistory
+        tutorActionHistory: student.studentModel.tutorActionHistory
       });
     })
     .catch((err) => {

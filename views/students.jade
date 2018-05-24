@@ -19,10 +19,10 @@ block content
       thead
         tr
           th Student ID
-          th Average ProbabilityLearned
+          th Average Probability Learned
           th Class ID
           th Group ID
-          th Total Hints
+          th Tutor Actions
           th Total Sessions
           th Last Sign In
       tbody
@@ -30,11 +30,11 @@ block content
           tr
             td
               a(href='./student/#{student.id}') #{student.id}          
-            td.scoreBox #{Math.round(student.studentModel.getOverallScore() * 1000)/10}
+            td.scoreBox #{Math.round(student.studentModel.avgProbabilityLearnedOfAllConcepts() * 1000)/10}
             td #{student.classId}
             td #{student.groupId}
             td(align="center") 
-              a(href='./student/#{student.id}/hints') #{student.studentModel.hintHistory.length}
+              a(href='./student/#{student.id}/tutor-actions') #{student.studentModel.tutorActionHistory.length}
             td(align="center") 
               a(href='./sessions?studentId=#{student.id}') #{student.totalSessions}
             td #{moment(student.lastSignIn).calendar()}
