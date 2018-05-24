@@ -33,9 +33,7 @@ class DashboardService {
       try {
           data = {
               "studentModel": {
-                "conceptsAggregated": this._filterConceptsAggregated(studentModel.conceptsAggregated),
-                "conceptsByChallenge": this._convertConceptsByChallengeToProperties(studentModel.conceptsByChallenge),
-                "attributeScores": this._averageConceptScoreByTrait(studentModel.conceptsByTrait)
+                "concepts": studentModel.bktConceptStates.toObject()
               }
             };
 
@@ -58,57 +56,6 @@ class DashboardService {
           console.error("Failed to write this to dashboard:\n"+ JSON.stringify(data, null, 2));
           return Promise.reject(err);
         }
-    }
-
-    _filterConceptsAggregated(conceptsAggregated) {
-      let concepts = [];
-      if (conceptsAggregated) {
-        conceptsAggregated.forEach((conceptAggregate) => {
-          concepts.push({
-            conceptId: conceptAggregate.conceptId,
-            probabilityLearned: conceptAggregate.probabilityLearned
-          });
-        });
-      }
-
-      return concepts;
-    }
-
-    _convertConceptsByChallengeToProperties(conceptsByChallenge) {
-      let concepts = {};
-      if (conceptsByChallenge) {
-        conceptsByChallenge.forEach((conceptByChallenge) => {
-          concepts[conceptByChallenge.challengeId] = conceptByChallenge.concepts.toObject();
-        });
-      }
-
-      return concepts;
-    }
-
-    _averageConceptScoreByTrait(conceptsByTrait) {
-      let concepts = [];
-      
-      if (conceptsByTrait) {
-        conceptsByTrait.forEach((current) => {
-
-          let totalCorrect = 0;
-          let totalAttempts = 0;
-
-          current.concepts.forEach((concept) => {
-            totalCorrect += concept.totalCorrect;
-            totalAttempts += concept.totalAttempts;
-          });
-
-          let attributeAverageScore = {
-            attribute: current.attribute,
-            probabilityLearned: (totalAttempts > 0 ? totalCorrect/totalAttempts : 0)
-          };
-
-          concepts.push(attributeAverageScore);
-        });
-      }
-
-      return concepts;
     }
 }
 

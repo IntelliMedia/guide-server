@@ -1,6 +1,7 @@
 'use strict';
 
 const BKTEvaluator = require('./bktEvaluator');
+const DashboardService = require('./dashboardService');
 const BKTConceptParametersRepository = require('../storage/bktConceptParametersRepository');
 const Student = require('../models/Student');
 const Group = require('../models/Group');

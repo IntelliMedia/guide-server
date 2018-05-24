@@ -59,6 +59,9 @@ class RulesEvaluator {
 
                 var msg = (rulesFiredMsgs.length == 0 ? "no rules fired" : rulesFiredMsgs.length + " rules fired\n" + rulesFiredMsgs.join("\n"));
                 session.debugAlert("Rules Triggered: " + msg);
+
+                savePromises.push(this.studentModelService.updateDashboardAsync(student, session));
+                
                 resolve(Promise.all(savePromises));
 
             } catch(err) {
