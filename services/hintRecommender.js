@@ -26,8 +26,8 @@ class HintRecommender {
     // Hint delivery order of preference:
     // On incorrect selection:
     // - Is hint available?
-    // - Hint previously delivered for concept/attribute IF BKT score is below threshold
-    // - Hint for concept/attribute IF BKT score below threshold (ordered by lowest score)
+    // - Hint previously delivered for concept/attribute IF BKT probabilityLearned is below threshold
+    // - Hint for concept/attribute IF BKT probabilityLearned below threshold (ordered by lowest probabilityLearned)
     evaluateAsync(student, session, event) {
         let studentModel = student.studentModel;
         let groupName = session.groupId;
@@ -35,7 +35,7 @@ class HintRecommender {
             let misconceptions = studentModel.getMisconceptionsForEvent(event);
             if (misconceptions.length > 0) {
                 misconceptions.forEach((misconception) => {
-                    let conceptState = studentModel.getConceptByAttribute(misconception.conceptId, misconception.attribute);
+                    let conceptState = studentModel.getBktConceptState(misconception.conceptId);
                     misconception.conceptState = conceptState;
                 });
     
@@ -58,10 +58,10 @@ class HintRecommender {
             throw new Error("challengeType not defined in context")
         }
         console.info("Observed incorrect concepts:");
-        let mostRecentHint = student.mostRecentAction("HINT", challengeId);
+        let mostRecentHint = student.studentModel.mostRecentAction("HINT", challengeId);
         misconceptions = this._sortMisconceptionsByPreviousHintAndThenAscendingScore(misconceptions, mostRecentHint);
         for (let misconception of misconceptions) {
-            console.info("   " + misconception.conceptId + " | " + misconception.attribute + " | " + misconception.conceptState.score + " | " + misconception.source);
+            console.info("   " + misconception.conceptId + " | " + misconception.attribute + " | " + misconception.conceptState.probabilityLearned + " | " + misconception.source);
         }
 
         let hintsForChallengeType = this.hintRepository.filter(challengeType);
@@ -69,12 +69,12 @@ class HintRecommender {
             let conceptHints = hintsForChallengeType.filter((item) =>
                 item.conceptId === misconception.conceptId 
                 && misconception.conceptState.totalAttempts >= item.minimumAttempts
-                && misconception.conceptState.score <= item.scoreThreshold);
+                && misconception.conceptState.probabilityLearned <= item.probabilityLearnedThreshold);
 
             if (conceptHints && conceptHints.length > 0) { 
                 let conceptHint = conceptHints[0];
 
-                mostRecentHint = student.mostRecentAction("HINT", challengeId, misconception.attribute);
+                mostRecentHint = student.studentModel.mostRecentAction("HINT", challengeId, misconception.attribute);
                 let hintIndex = this._incrementHintIndex(mostRecentHint, conceptHint);
                 let hintDialog = conceptHint.getHint(hintIndex, misconception.substitutionVariables); 
 
@@ -88,7 +88,7 @@ class HintRecommender {
                     conceptHint.priority,
                     ConceptHintsRepository.sourceAsUrl(conceptHint),
                     misconception.conceptId,
-                    misconception.conceptState.score,
+                    misconception.conceptState.probabilityLearned,
                     challengeType,
                     challengeId,   
                     misconception.attribute,
@@ -115,7 +115,7 @@ class HintRecommender {
             if (mostRecentHint && a.conceptId == b.conceptId) {
                 return (a.conceptId == mostRecentHint.context.conceptId ? 1 : -1);
             } else {
-                return a.score -  b.score;
+                return a.probabilityLearned -  b.probabilityLearned;
             }
         });
     }

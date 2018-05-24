@@ -4,7 +4,7 @@ const alertSchema = new mongoose.Schema({
   timestamp: Date,
   type: String,
   message: String,
-}, { timestamps: true });
+}, { timestamps: false });
 
 const Alert = mongoose.model('Alert', alertSchema);
 

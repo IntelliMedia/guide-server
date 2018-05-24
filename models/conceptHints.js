@@ -3,14 +3,14 @@
 const _ = require('lodash');
 
 class ConceptHints {   
-    constructor(source, id, priority, conceptId, minimumAttempts, scoreThreshold, tags, hints) {
+    constructor(source, id, priority, conceptId, minimumAttempts, probabilityLearnedThreshold, tags, hints) {
         this.findReplacementBlock = new RegExp("\\[(?:([^\\]\\:]+)\\:)?([^\\]]*)\\]", "i");
         this.source = source;
         this.id = id;
         this.priority = priority;
         this.conceptId = conceptId;
         this.minimumAttempts = minimumAttempts;
-        this.scoreThreshold = scoreThreshold;
+        this.probabilityLearnedThreshold = probabilityLearnedThreshold;
         this.tags = tags;
         this.hints = hints;
 

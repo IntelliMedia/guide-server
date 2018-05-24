@@ -66,7 +66,7 @@ class DashboardService {
         conceptsAggregated.forEach((conceptAggregate) => {
           concepts.push({
             conceptId: conceptAggregate.conceptId,
-            score: conceptAggregate.score
+            probabilityLearned: conceptAggregate.probabilityLearned
           });
         });
       }
@@ -101,7 +101,7 @@ class DashboardService {
 
           let attributeAverageScore = {
             attribute: current.attribute,
-            score: (totalAttempts > 0 ? totalCorrect/totalAttempts : 0)
+            probabilityLearned: (totalAttempts > 0 ? totalCorrect/totalAttempts : 0)
           };
 
           concepts.push(attributeAverageScore);

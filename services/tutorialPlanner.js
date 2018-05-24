@@ -1,6 +1,5 @@
 'use strict';
 
-const StudentModelService = require('./studentModelService');
 const HintRecommender = require('./hintRecommender');
 const RemediationRecommender = require('./remediationRecommender');
 

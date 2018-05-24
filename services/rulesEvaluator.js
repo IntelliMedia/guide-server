@@ -14,6 +14,7 @@ const DashboardService = require('./dashboardService');
 class RulesEvaluator {
     constructor() {
         this.rulesRepository = new RulesRepository(global.cacheDirectory);
+        this.studentModelService = new StudentModelService();
     }
 
     initializeAsync(session, groupName, tags) {
@@ -23,7 +24,8 @@ class RulesEvaluator {
             }
 
             return this.rulesRepository.loadCollectionsAsync(ids);
-        });
+        })
+        .then(() => this.studentModelService.initializeAsync(groupName));
     }    
 
     evaluateAsync(student, session, event) {
@@ -36,11 +38,11 @@ class RulesEvaluator {
                 let rulesFiredMsgs = [];
 
                 let activatedRules = this.evaluateRules(event);
-                if (activatedRules.length > 0) {
-                    let studentModelService = new StudentModelService(student, session, challengeId);              
+                if (activatedRules.length > 0) {           
                     for (let rule of activatedRules) {
                         for (let conceptId in rule.concepts) { 
-                            savePromises.push(studentModelService.processConceptDataPoint(
+                            savePromises.push(this.studentModelService.processConceptDataPoint(
+                                student,
                                 conceptId, 
                                 rule.isCorrect, 
                                 challengeId, 

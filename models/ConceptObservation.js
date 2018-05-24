@@ -7,7 +7,7 @@ const conceptObservationSchema = new mongoose.Schema({
   studentId: String,
   challengeId: String,
   isCorrect: Boolean
-});
+}, {timestamps: false});
 
 conceptObservationSchema.statics.record = function(timestamp, conceptId, attribute, studentId, challengeId, isCorrect) {
   let observation = new ConceptObservation({

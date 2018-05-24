@@ -31,7 +31,7 @@ class RemediationRecommender {
             let misconceptions = studentModel.getMisconceptionsForEvent(event);
             if (misconceptions.length > 0) {
                 misconceptions.forEach((misconception) => {
-                    let conceptState = studentModel.getConceptByAttribute(misconception.conceptId, misconception.attribute);
+                    let conceptState = studentModel.getBktConceptState(misconception.conceptId);
                     misconception.conceptState = conceptState;
                 });
     
@@ -54,10 +54,10 @@ class RemediationRecommender {
             throw new Error("challengeType not defined in context")
         }
         console.info("Observed incorrect concepts:");
-        let mostRecentRemediation = student.mostRecentAction("REMEDIATE", challengeId);
+        let mostRecentRemediation = student.studentModel.mostRecentAction("REMEDIATE", challengeId);
         misconceptions = this._sortMisconceptionsByPreviousHintAndThenAscendingScore(misconceptions, mostRecentRemediation);
         for (let misconception of misconceptions) {
-            console.info("   " + misconception.conceptId + " | " + misconception.attribute + " | " + misconception.conceptState.score + " | " + misconception.source);
+            console.info("   " + misconception.conceptId + " | " + misconception.attribute + " | " + misconception.conceptState.probabilityLearned + " | " + misconception.source);
         }
 
         let remediationsForChallengeType = this.remediationRepository.filter(challengeType);
@@ -65,12 +65,12 @@ class RemediationRecommender {
             let remediations = remediationsForChallengeType.filter((item) => 
                 item.conceptId === misconception.conceptId 
                 && misconception.conceptState.totalAttempts >= item.minimumAttempts
-                && misconception.conceptState.score <= item.scoreThreshold);
+                && misconception.conceptState.probabilityLearned <= item.probabilityLearnedThreshold);
 
             if (remediations && remediations.length > 0) { 
                 let remediation = remediations[0];
 
-                mostRecentRemediation = student.mostRecentAction("REMEDIATE", challengeId);
+                mostRecentRemediation = student.studentModel.mostRecentAction("REMEDIATE", challengeId);
                 // TODO: Determine if this is bottom out remediation
                 let isBottomOut = false;
 
@@ -79,7 +79,7 @@ class RemediationRecommender {
                     remediation.priority,
                     RemediationRepository.sourceAsUrl(remediation),
                     misconception.conceptId,
-                    misconception.conceptState.score,
+                    misconception.conceptState.probabilityLearned,
                     challengeType,
                     challengeId, 
                     remediation.practiceCriteria,
@@ -97,7 +97,7 @@ class RemediationRecommender {
             if (mostRecentRemediation && a.conceptId == b.conceptId) {
                 return (a.conceptId == mostRecentRemediation.context.conceptId ? 1 : -1);
             } else {
-                return a.score -  b.score;
+                return a.probabilityLearned -  b.probabilityLearned;
             }
         });
     }

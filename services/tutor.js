@@ -17,8 +17,8 @@ class Tutor {
                 .then(() => this.makeDecisionAsync(event))
                 .then((tutorAction) => {
                     if (tutorAction != null) {
-                        this.student.tutorActionHistory.unshift(tutorAction);
-                        return tutorAction.createEvent(
+                        let action = this.student.studentModel.addAction(tutorAction);
+                        return action.createEvent(
                                 this.session.studentId,
                                 this.session.id);
                     } else {

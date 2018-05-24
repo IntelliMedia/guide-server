@@ -87,7 +87,7 @@ function handleEvent(socket, data) {
 
         const newAlert = Alert();
         newAlert.type = 'error';
-        newAlert.timestamp = Date.now();
+        newAlert.timestamp = (receivedEvent != null ? receivedEvent.timestamp : Date.now());
         newAlert.message = err.message;
         newAlert.save();        
     });

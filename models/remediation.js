@@ -1,13 +1,13 @@
 'use strict';
 
 class Remediation {   
-    constructor(source, id, priority, conceptId, minimumAttempts, scoreThreshold, tags, practiceCriteria) {
+    constructor(source, id, priority, conceptId, minimumAttempts, probabilityLearnedThreshold, tags, practiceCriteria) {
         this.source = source;
         this.id = id;
         this.priority = priority;
         this.conceptId = conceptId;
         this.minimumAttempts = minimumAttempts;
-        this.scoreThreshold = scoreThreshold;
+        this.probabilityLearnedThreshold = probabilityLearnedThreshold;
         this.tags = tags;
         this.practiceCriteria = practiceCriteria;
 

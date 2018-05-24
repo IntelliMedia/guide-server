@@ -19,7 +19,7 @@ class ConceptHintsCsvDeserializer extends CsvDeserializer {
             this._asNumber(this._getCell(currentRow, columnMap, "priority")),
             this._getCell(currentRow, columnMap, "conceptid"),
             this._asNumber(this._getCell(currentRow, columnMap, "minimumattempts")),
-            this._asNumber(this._getCell(currentRow, columnMap, "scorethreshold")),
+            this._asNumber(this._getCell(currentRow, columnMap, "probabilitylearnedthreshold")),
             this._getCell(currentRow, columnMap, "tags"),
             this._extractHints(headerRow, currentRow))];
     }    

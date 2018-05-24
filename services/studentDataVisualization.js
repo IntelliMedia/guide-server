@@ -74,7 +74,7 @@ class StudentDataVisualization {
             },
             yAxis: {
                 title: {
-                    text: 'Score'
+                    text: 'ProbabilityLearned'
                 }
             },
             series: [{
@@ -129,7 +129,7 @@ class StudentDataVisualization {
                 }
 
                 if (dataPoint) {
-                    let scaledScore = Math.round(dataPoint.score * 1000) / 10;
+                    let scaledScore = Math.round(dataPoint.probabilityLearned * 1000) / 10;
                     chartInfo.data.push([
                         x,
                         y,
@@ -227,7 +227,7 @@ class StudentDataVisualization {
             },
 
             series: [{
-                name: 'Concept Score',
+                name: 'Concept ProbabilityLearned',
                 borderWidth: 1,
                 data: chartInfo.data,
                 dataLabels: {
@@ -241,7 +241,7 @@ class StudentDataVisualization {
     static createSnapshotsByConcept(student) {
         
         let collection = student.studentModel.snapshotsByConceptId;
-        // y axis is normalized score (0-1)
+        // y axis is normalized probabilityLearned (0-1)
         let innerCollectionField = "snapshots";
         let seriesField = "conceptId";
         let xAxisField = "timestamp";
@@ -277,7 +277,7 @@ class StudentDataVisualization {
                 let seriesEntry = collection.find((g) => g[seriesField] == seriesLabel);
                 let dataPoint = seriesEntry[innerCollectionField].find((c) => c[xAxisField] === xLabel);
                 if (dataPoint) { 
-                    let scaledScore = Math.round(dataPoint.score * 1000) / 10;
+                    let scaledScore = Math.round(dataPoint.probabilityLearned * 1000) / 10;
                     currentSeries.data.push([Math.round(dataPoint.timestamp.getTime()), scaledScore]);
                 }
             }
@@ -295,7 +295,7 @@ class StudentDataVisualization {
             },
 
             title: {
-                text: 'Concept Score Snapshots'
+                text: 'Concept ProbabilityLearned Snapshots'
             },
             xAxis: {
                 type: 'datetime',
@@ -308,7 +308,7 @@ class StudentDataVisualization {
             },
             yAxis: {
                 title: {
-                    text: 'Score'
+                    text: 'ProbabilityLearned'
                 },
                 max: 100,
                 min: 0
