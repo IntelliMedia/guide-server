@@ -23,8 +23,10 @@ class TutorialPlanner {
             let hintRecommender = new HintRecommender();
             actionPromises.push(hintRecommender.evaluateAsync(this.student, this.session, event));
 
-            let remediationRecommender = new RemediationRecommender();
-            actionPromises.push(remediationRecommender.evaluateAsync(this.student, this.session, event));
+            if (event.context.hasOwnProperty("remediation") && event.context.remediation != true) {
+                let remediationRecommender = new RemediationRecommender();
+                actionPromises.push(remediationRecommender.evaluateAsync(this.student, this.session, event));
+            }
 
             return Promise.all(actionPromises).then((results) => {
                 let filteredAndSorted = results
