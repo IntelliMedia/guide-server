@@ -147,7 +147,8 @@ if (typeof exports === 'undefined') {
     }
 
     BiologicaX.isColorMetallic = function(color) {
-        return (color == 'Steel'
+        return (color == 'Frost'
+                || color == 'Steel'
                 || color == 'Copper'
                 || color == 'Silver'
                 || color == 'Gold');
