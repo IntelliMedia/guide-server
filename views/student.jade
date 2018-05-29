@@ -22,7 +22,8 @@ block content
   h4 #{student.classId}
   h4 #{student.groupId}
   h4
-    a(href='./student/#{student.id}/tutor-actions') Action History  
+    a(href='./sessions?studentId=#{student.id}') Sessions
+    |   
     a(href='./student/#{student.id}?view=json') JSON  
   div
     table.table.table-striped

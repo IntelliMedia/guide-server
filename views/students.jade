@@ -22,7 +22,6 @@ block content
           th Average Probability Learned
           th Class ID
           th Group ID
-          th Tutor Actions
           th Total Sessions
           th Last Sign In
       tbody
@@ -33,8 +32,6 @@ block content
             td.scoreBox #{Math.round(student.studentModel.avgProbabilityLearnedOfAllConcepts() * 1000)/10}
             td #{student.classId}
             td #{student.groupId}
-            td(align="center") 
-              a(href='./student/#{student.id}/tutor-actions') #{student.studentModel.tutorActionHistory.length}
             td(align="center") 
               a(href='./sessions?studentId=#{student.id}') #{student.totalSessions}
             td #{moment(student.lastSignIn).calendar()}

@@ -94,7 +94,7 @@ class EventRouter {
             student.classId = event.context.classId;
             student.groupId = event.context.groupId;
             student.learnPortalEndpoint = event.context.itsDBEndpoint;
-            student.totalSessions += 1;
+            student.totalSessions++;
 
             session.classId = event.context.classId;
             session.groupId = event.context.groupId;
