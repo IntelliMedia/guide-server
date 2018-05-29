@@ -379,8 +379,13 @@ if (typeof exports === 'undefined') {
             displayName = "shiny";
         } else if (displayName === "nonmetallic") {
             displayName = "dull";
+        } else if (displayName === "five armor") {
+            displayName = "full armor";
+        } else if (displayName === "three armor") {
+            displayName = "partial armor";
+        } else if (displayName === "three armor") {
+            displayName = "partial armor";
         }
-
         return displayName;
     }    
 
