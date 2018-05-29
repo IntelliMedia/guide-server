@@ -19,16 +19,20 @@ block content
           th Type
           th Timestamp          
           th Message
+          th Details
       tbody
         for alert in alerts
           tr
             td
               case alert.type
                 when 'error'
-                  i.btn-danger.fa.fa-exclamation-circle 
+                  s.fa.fa-exclamation-circle 
                 when 'warning'
-                  i.btn-warning.fa.fa-exclamation-triangle
+                  s.fa.fa-exclamation-triangle
                 when 'info'
-                  i.btn-primary.fa.fa-info-circle
-            td #{alert.timestamp}                                  
+                  s.fa.fa-info-circle
+            td #{moment(alert.timestamp).calendar()}                                  
             td #{alert.message}
+            td
+              if (alert.details)  
+                a(href='./alerts/#{alert.id}') View          

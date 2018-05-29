@@ -249,6 +249,7 @@ function initializeRoutes() {
   router.post('/group/clear-cache', authz.middleware(1), groupController.clearCache);  
   router.post('/group/duplicate', authz.middleware(1), groupController.duplicate);
   router.get('/alerts', authz.middleware(), alertsController.index);
+  router.get('/alerts/:alertId', authz.middleware(1), alertsController.alert);
   router.post('/alerts/clear', authz.middleware(1), alertsController.clear);
   router.get('/users', usersController.index);
   router.get('/login', userController.getLogin);

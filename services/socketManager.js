@@ -85,10 +85,12 @@ function handleEvent(socket, data) {
             console.error(err);
         }
 
-        const newAlert = Alert();
-        newAlert.type = 'error';
-        newAlert.timestamp = (receivedEvent != null ? receivedEvent.timestamp : Date.now());
-        newAlert.message = err.message;
+        let newAlert = Alert({
+                type: 'error',
+                timestamp: (receivedEvent != null ? receivedEvent.time : Date.now()),
+                message: err.message,
+                details: err.stack
+            });
         newAlert.save();        
     });
 }
