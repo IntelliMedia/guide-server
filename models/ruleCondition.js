@@ -36,31 +36,35 @@ class RuleCondition {
         throw new Error("RuleCondition.evaluate() must be overriden in a child class");
     }
 
-    getPropertyPath(propertyOverride) {
+    static _getPropertyPath(propertyPath, propertyOverride) {
         if (propertyOverride) {
-            let parts = this.propertyPath.split(".");
+            let parts = propertyPath.split(".");
             parts[parts.length - 1] = parts[parts.length - 1].replaceLastWordInCamelCase(propertyOverride);
             return parts.join(".");
         } else {
-            return this.propertyPath;
+            return propertyPath;
         }
     }
 
     hasValue(obj, propertyOverride) {
-        return this._getValue(false, obj, propertyOverride) != undefined;
+        return this._getValue(false, obj, this.propertyPath, propertyOverride) != undefined;
     }
 
     getValue(obj, propertyOverride) {
-        return this._getValue(true, obj, propertyOverride);
+        return this._getValue(true, obj, this.propertyPath, propertyOverride);
     }
 
-    _getValue(throwOnMissingProperty, obj, propertyOverride) {
+    getValueOrUndefined(obj, propertyOverride) {
+        return this._getValue(false, obj, this.propertyPath, propertyOverride);
+    }
+
+    _getValue(throwOnMissingProperty, obj, propertyPath, propertyOverride) {
         if (obj == undefined || obj == null) {
             throw new Error("Condition unable to evaluate undefined or null object");
         }
 
-        let path = this.getPropertyPath(propertyOverride);
-        let propertyValue = propPath.get(obj, path);
+        let finalPropertyPath = RuleCondition._getPropertyPath(propertyPath, propertyOverride);
+        let propertyValue = propPath.get(obj, finalPropertyPath);
         if (throwOnMissingProperty && propertyValue == undefined) {
             throw new Error("Condition unable to find value at property path: " + path);
         }
@@ -88,6 +92,13 @@ class SexCondition extends RuleCondition {
         if (this.target !== "female" && this.target !== "male") { 
             throw new Error("SexCondition: unspported target value: " + this.target);
         }
+    }
+
+    static hasSelectionChanged(event) {
+        let selectedValue = propPath.get(event, "context.selected.sex");
+        let previousValue = propPath.get(event, "context.previous.sex");
+
+        return previousValue === undefined || selectedValue != previousValue;
     }
 
     evaluate(obj) {
@@ -141,19 +152,19 @@ class TraitCondition extends RuleCondition {
     }
 
     evaluate(obj) {
-        let phenotype = this._getValue(false, obj);
+        let phenotype = this.getValueOrUndefined(obj);
 
         // Fallback if propertyPath isn't available
         if (!phenotype) {
-            phenotype = this._getValue(false, obj, "phenotype");  
+            phenotype = this.getValueOrUndefined(obj, "phenotype");  
         }
 
         // Fallback if 'phenotype' isn't available
         if (!phenotype) {
             phenotype = this.createPhenotypeFromAlleles(
                 obj,
-                this._getValue(false, obj, "alleles"), 
-                this._getValue(false, obj, "sex"));
+                this.getValueOrUndefined(obj, "alleles"), 
+                this.getValueOrUndefined(obj, "sex"));
         }
 
         if (!phenotype) {
@@ -200,8 +211,15 @@ class AllelesCondition extends TraitCondition {
         return alleles.split(",").map((item) => item.trim());
     }
 
+    static hasSelectionChanged(event, characteristic) {
+        let selectedAlleles = propPath.get(event, "context.selected.alleles");
+        let previousAlleles = propPath.get(event, "context.previous.alleles");
+
+        return previousAlleles === undefined || previousAlleles != selectedAlleles;
+    }
+
     evaluate(obj) {
-        let alleles = this._getValue(false, obj);
+        let alleles = this.getValueOrUndefined(obj);
         // Fallback to trait evaluation if alleles aren't available
         if (!alleles) {
             return super.evaluate(obj);

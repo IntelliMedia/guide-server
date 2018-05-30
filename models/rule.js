@@ -50,15 +50,10 @@ class Rule {
 
     evaluate(event) {
         
-        let allConditionsMatched = false;
-        // Is the characteristic editable by the user in the client?
-        if (this.attribute === "n/a" || event.context.selectableAttributes.indexOf(this.attribute) >= 0) {
-            // If so evaluate the event
-            allConditionsMatched = this.conditions.every((condition) => {
-                let result = condition.evaluate(event);
-                return result;
-            });
-        }
+        let allConditionsMatched = this.conditions.every((condition) => {
+            let result = condition.evaluate(event);
+            return result;
+        });
 
         return allConditionsMatched;
     }

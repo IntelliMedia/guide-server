@@ -1,6 +1,7 @@
 'use strict';
 
 const RulesRepository = require('../storage/rulesRepository');
+const RuleCondition = require('../models/ruleCondition');
 const StudentModelService = require('./studentModelService');
 const Group = require('../models/Group');
 const TutorAction = require('../models/TutorAction');
@@ -74,14 +75,39 @@ class RulesEvaluator {
 
         var activatedRules = []
         for (let rule of this.rulesRepository.objs) {
-            if (rule.evaluate(event)) {
-                 activatedRules.push(rule);
+            if (this._isAttributeEditable(rule.attribute, event) && this._hasSelectionChanged(rule.attribute, event)) {
+                if (rule.evaluate(event)) {
+                    activatedRules.push(rule);
+                }
             }
         }
 
         activatedRules = this.sortRulesByPriority(activatedRules);
         
         return activatedRules;
+    }
+
+    // Is the characteristic editable by the user in the client?
+    _isAttributeEditable(attribute, event) {
+        if (event.context.selectableAttributes === undefined) {
+            throw new Error("context.selectableAttributes not defined.");
+        }
+
+        return event.context.selectableAttributes.indexOf(attribute) >= 0;
+    }
+
+    _hasSelectionChanged(attribute, event) {
+        if (event.context.selectableAttributes === undefined) {
+            throw new Error("context.selectableAttributes not defined.");
+        }
+
+        if (this.attribute === "sex") {
+            return RuleCondition.SexCondition.hasSelectionChanged(event);
+        } else {
+            return RuleCondition.AllelesCondition.hasSelectionChanged(event, attribute);
+        }
+
+        return true;
     }
 
     sortRulesByPriority(rules) {

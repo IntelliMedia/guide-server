@@ -25,7 +25,7 @@ class FileRepository extends Repository {
 
     // collectionId is a filename without the extension
     loadCollectionAsync(collectionId) {
-        console.info("FileRepository.loadCollectionAsync");
+        console.debug("FileRepository.loadCollectionAsync");
         let filename = this._getFilename(collectionId);        
         return readFileAsync(filename, 'utf8')        
             .then((text) => {
