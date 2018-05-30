@@ -49,7 +49,6 @@ class Tutor {
     
     makeDecisionAsync(event) {
         try {
-            console.info("makeDecisionAsync");
             let tutorialPlanner = new TutorialPlanner(this.student, this.session);
             return tutorialPlanner.evaluateAsync(event);
         } catch(err) {

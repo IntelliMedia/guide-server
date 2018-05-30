@@ -212,10 +212,25 @@ class AllelesCondition extends TraitCondition {
     }
 
     static hasSelectionChanged(event, characteristic) {
-        let selectedAlleles = propPath.get(event, "context.selected.alleles");
         let previousAlleles = propPath.get(event, "context.previous.alleles");
+        let previousSex = propPath.get(event, "context.previous.sex");
+        if (previousAlleles && previousSex) {
+            let previousOrganism = new BioLogica.Organism(BioLogica.Species.Drake, previousAlleles, BiologicaX.sexFromString(previousSex));
 
-        return previousAlleles === undefined || previousAlleles != selectedAlleles;
+            let selectedAlleles = propPath.get(event, "context.selected.alleles");
+            let selectedSex = propPath.get(event, "context.selected.sex");
+            if (selectedAlleles && selectedSex) {
+                let currentOrganism = new BioLogica.Organism(BioLogica.Species.Drake, selectedAlleles, BiologicaX.sexFromString(selectedSex));
+                if (characteristic == "metallic") {
+                    characteristic = "color";
+                }
+                let currentTraitAlleles = currentOrganism.getAlleleStringForTrait(characteristic);
+                let previousTraitAlleles = previousOrganism.getAlleleStringForTrait(characteristic);
+                return currentTraitAlleles != previousTraitAlleles;
+            }   
+        }
+
+        return true;
     }
 
     evaluate(obj) {
