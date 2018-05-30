@@ -17,7 +17,6 @@ class GoogleSheetRepository extends FileRepository {
 
     // collectionId is a Google Doc ID (e.g., 1ZieoXhkW_5V3BpuYGPszM038Bdn5Qe7ybCyuSrksMiA)
     loadCollectionAsync(collectionId) {
-        console.debug("GoogleSheetRepository.loadCollectionAsync");
         return super.loadCollectionAsync(collectionId)
             .catch((e) => {
                 console.info("Unable to load " + collectionId + " from cache.");

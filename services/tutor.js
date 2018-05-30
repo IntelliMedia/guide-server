@@ -33,7 +33,6 @@ class Tutor {
 
     evaluateAsync(event) {
         try {
-            console.info("evaluateAsync");
 
             // Use the event's action and target to find an evaluator. E.g., "changed, allele"
             let evaluatorTags = event.action.toLowerCase() + ", " + event.target.toLowerCase();

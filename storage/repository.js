@@ -20,7 +20,6 @@ class Repository {
 
     // Load a collection of objects into the repository 
     loadCollectionAsync(collectionId) {
-    console.debug("Repository.loadCollectionAsync");
        throw new Error("Not implemented");
     }
 

@@ -38,7 +38,8 @@ class RulesEvaluator {
                 let savePromises = [];
                 let rulesFiredMsgs = [];
 
-                let activatedRules = this.evaluateRules(event);
+                let activatedRules = this.evaluateRules(session, event);
+
                 if (activatedRules.length > 0) {           
                     for (let rule of activatedRules) {
                         for (let conceptId in rule.concepts) { 
@@ -71,11 +72,16 @@ class RulesEvaluator {
         });
     }
 
-    evaluateRules(event) {
+    evaluateRules(session, event) {
 
-        var activatedRules = []
+        let attributesToEvaluate = this._selectableAndChangedAttributes(event);
+        let attributeNames = attributesToEvaluate.length > 0 ? attributesToEvaluate.join(",") : "none";
+        session.debugAlert("Attributes to evaluate: " + attributeNames);
+
+        let activatedRules = []
         for (let rule of this.rulesRepository.objs) {
-            if (this._isAttributeEditable(rule.attribute, event) && this._hasSelectionChanged(rule.attribute, event)) {
+            let attribute = rule.attribute;
+            if (attribute === undefined || attribute === "n/a" || attributesToEvaluate.indexOf(attribute) >= 0) {
                 if (rule.evaluate(event)) {
                     activatedRules.push(rule);
                 }
@@ -87,13 +93,21 @@ class RulesEvaluator {
         return activatedRules;
     }
 
-    // Is the characteristic editable by the user in the client?
-    _isAttributeEditable(attribute, event) {
-        if (event.context.selectableAttributes === undefined) {
-            throw new Error("context.selectableAttributes not defined.");
+    _selectableAndChangedAttributes(event) {
+        // Minimally, we need to know which attributes were editable in the client
+        if (event.context && event.context.selectableAttributes === undefined) {
+            return [];
         }
 
-        return event.context.selectableAttributes.indexOf(attribute) >= 0;
+        // If the event doesn't include previous values, assume all the 
+        // selectable attributes could have been changed.
+        if (event.context && event.context.previous === undefined) {
+            return event.context.selectableAttributes;
+        }
+
+        return event.context.selectableAttributes.filter((attribute) => {
+            return this._hasSelectionChanged(attribute, event);
+        });
     }
 
     _hasSelectionChanged(attribute, event) {
