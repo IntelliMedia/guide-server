@@ -45,6 +45,7 @@ class RulesEvaluator {
                         for (let conceptId in rule.concepts) { 
                             savePromises.push(this.studentModelService.processConceptDataPoint(
                                 student,
+                                session,
                                 conceptId, 
                                 rule.isCorrect, 
                                 challengeId, 

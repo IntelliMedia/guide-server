@@ -1,5 +1,7 @@
 'use strict';
 
+const Stringx = require("../utilities/stringx");
+
 const BKTConceptParametersCsvDeserializer = require("./bktConceptParametersCsvDeserializer");
 const GoogleSheetRepository = require("./googleSheetRepository");
 
@@ -22,9 +24,8 @@ class BKTConceptParametersRepository extends GoogleSheetRepository {
             }
         }
 
-        throw new Error("BKT parameters not defined for conceptId: %s\n   Source: %s".format(
-            conceptId, 
-            GoogleSheetRepository.sourceAsUrl(this.objs[0])));
+        throw new Error("BKT parameters not defined for conceptId: " + conceptId + "\n   Source: " +
+            GoogleSheetRepository.sourceAsUrl(this.objs[0]));
     }
 }
 

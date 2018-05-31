@@ -78,20 +78,8 @@ function handleEvent(socket, data) {
         let eventRouter = new EventRouter();
         return eventRouter.processAsync(currentSession, receivedEvent);
     })        
-    .catch((err) => {        
-        if (currentSession) {
-            currentSession.errorAlert(err);
-        } else {
-            console.error(err);
-        }
-
-        let newAlert = Alert({
-                type: 'error',
-                timestamp: (receivedEvent != null ? receivedEvent.time : Date.now()),
-                message: err.message,
-                details: err.stack
-            });
-        newAlert.save();        
+    .catch((err) => { 
+        Alert.error(err, currentSession, receivedEvent); 
     });
 }
 

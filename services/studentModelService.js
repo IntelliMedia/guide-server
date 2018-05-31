@@ -7,6 +7,7 @@ const Student = require('../models/Student');
 const Group = require('../models/Group');
 const StudentModel = require('../models/StudentModel');
 const ConceptObservation = require('../models/ConceptObservation');
+const Alert = require('../models/Alert');
 
 /**
  * This class takes raw rule results and updates a student's StudentModel
@@ -49,20 +50,24 @@ class StudentModelService {
         }          
     }
 
-    processConceptDataPoint(student, conceptId, isCorrect, challengeId, attribute, substitutionVariables, timestamp, source) {
+    processConceptDataPoint(student, session, conceptId, isCorrect, challengeId, attribute, substitutionVariables, timestamp, source) {
 
         let observation = ConceptObservation.record(timestamp, conceptId, attribute, student.id, challengeId, isCorrect);
      
         let conceptState = student.studentModel.getBktConceptState(conceptId, this.bktEvaluator.getL0(conceptId));
-        conceptState.probabilityLearned = this.bktEvaluator.update(conceptId, isCorrect, conceptState.probabilityLearned);
-        if (isCorrect) {
-            conceptState.totalCorrect++;
-        }
-        conceptState.totalAttempts++;
-        conceptState.timestamp = timestamp;
+        try {
+            conceptState.probabilityLearned = this.bktEvaluator.update(conceptId, isCorrect, conceptState.probabilityLearned);
+            if (isCorrect) {
+                conceptState.totalCorrect++;
+            }
+            conceptState.totalAttempts++;
+            conceptState.timestamp = timestamp;
 
-        if (isCorrect != true) {
-            student.studentModel.addMisconception(conceptId, challengeId, attribute, substitutionVariables, timestamp, source);
+            if (isCorrect != true) {
+                student.studentModel.addMisconception(conceptId, challengeId, attribute, substitutionVariables, timestamp, source);
+            }
+        } catch(err) {
+            Alert.error(err, session); 
         }
 
         return observation;
