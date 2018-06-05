@@ -75,16 +75,27 @@ class RulesEvaluator {
 
     evaluateRules(session, event) {
 
-        let attributesToEvaluate = this._selectableAndChangedAttributes(event);
+        let attributesToEvaluate = this._selectableAttributes(event);
         let attributeNames = attributesToEvaluate.length > 0 ? attributesToEvaluate.join(",") : "none";
         session.debugAlert("Attributes to evaluate: " + attributeNames);
 
         let activatedRules = []
         for (let rule of this.rulesRepository.objs) {
             let attribute = rule.attribute;
-            if (attribute === undefined || attribute === "n/a" || attributesToEvaluate.indexOf(attribute) >= 0) {
+            if (attribute === undefined 
+                || attribute === "n/a" 
+                || attributesToEvaluate.indexOf(attribute) >= 0) {
+
                 if (rule.evaluate(event)) {
-                    activatedRules.push(rule);
+
+                    // Process the rule is the user actively made the correct choice
+                    // or allowed the incorrect choice to remain
+                    // Don't process rules where the player did nothing and the
+                    // current state was correct to avoid concept inflation.
+                    if (this._hasSelectionChanged(attribute, event) || !rule.isCorrect)
+                    {
+                        activatedRules.push(rule);
+                    }
                 }
             }
         }
@@ -94,6 +105,16 @@ class RulesEvaluator {
         return activatedRules;
     }
 
+    _selectableAttributes(event) {
+        // Minimally, we need to know which attributes were editable in the client
+        if (event.context && event.context.selectableAttributes === undefined) {
+            return [];
+        } else {
+            return event.context.selectableAttributes;
+        }
+    }
+
+    // Not using right now since changes are usually right with binary choices
     _selectableAndChangedAttributes(event) {
         // Minimally, we need to know which attributes were editable in the client
         if (event.context && event.context.selectableAttributes === undefined) {
