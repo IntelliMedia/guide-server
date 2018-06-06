@@ -201,8 +201,9 @@ if (typeof exports === 'undefined') {
 
     BiologicaX.findAllele = function(species, alleles, side, gene) {
         var allOptions = '(?:' + species.geneList[gene].alleles.join('|') + ')';
-        var regex = new RegExp(side + ':' + allOptions, '');
-        return alleles.match(regex).toString();
+        var regex = new RegExp('(' + side + ':' + allOptions + ')(?:,|$)', '');
+        var matches = alleles.match(regex);
+        return (matches != null ? matches[1] : null)
     }
 
     BiologicaX.findAlleleForCharacteristic = function(species, alleles, side, characteristic) {
