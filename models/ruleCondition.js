@@ -24,6 +24,10 @@ class RuleCondition {
         this.attribute = null;
     }
 
+    toString() {
+        return this.propertyPath + " " + this.value;
+    }
+
     populateSubstitutionVariables(variableMap) {
         variableMap[this.displayVariable] = this._getDisplayValue();
     }
@@ -199,13 +203,21 @@ class AllelesCondition extends TraitCondition {
     constructor(propertyPath, value, displayVariable) { 
 
         let targetAlleles = AllelesCondition.normalizeAlleles(value);
-        let targetTrait = BiologicaX.getTraitFromAlleles(BioLogica.Species.Drake, targetAlleles);        
+        let targetTrait = BiologicaX.getTraitFromAlleles(BioLogica.Species.Drake, targetAlleles);   
+        if (targetTrait == null) {
+            throw new Error("Unable to identify trait for alleles: " + targetAlleles);
+        }     
 
         super(propertyPath, targetTrait, displayVariable.replace("Alleles", "Trait"));
 
         this.targetAlleles = targetAlleles;
         this.displayVariableAlleles = displayVariable;     
     }
+
+    toString() {
+        return this.propertyPath + " " + this.targetAlleles;
+    }
+
 
     static normalizeAlleles(alleles) {
         return alleles.split(",").map((item) => item.trim());
@@ -221,7 +233,7 @@ class AllelesCondition extends TraitCondition {
             let selectedSex = propPath.get(event, "context.selected.sex");
             if (selectedAlleles && selectedSex) {
                 let currentOrganism = new BioLogica.Organism(BioLogica.Species.Drake, selectedAlleles, BiologicaX.sexFromString(selectedSex));
-                if (characteristic == "metallic") {
+                if (BiologicaX.isBaseColor(characteristic)) {
                     characteristic = "color";
                 }
                 let currentTraitAlleles = currentOrganism.getAlleleStringForTrait(characteristic);
@@ -242,7 +254,8 @@ class AllelesCondition extends TraitCondition {
 
         alleles = AllelesCondition.normalizeAlleles(alleles);
         let result = this.targetAlleles.every((item) => {
-            return alleles.indexOf(item) >= 0;
+            let alleleRegex = new RegExp(item, '');
+            return alleles.findIndex(value => alleleRegex.test(value)) >= 0;
         });
         return result;
     }  

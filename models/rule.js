@@ -50,10 +50,16 @@ class Rule {
 
     evaluate(event) {
         
+        let debugMsg = "";
+
         let allConditionsMatched = this.conditions.every((condition) => {
             let result = condition.evaluate(event);
+            debugMsg += "[" + condition.toString() + " -> " + result + "] "
             return result;
         });
+
+        // Use this log statement to debug rules
+        console.log("Rule | " + this.attribute  + " -> " + allConditionsMatched + "  " + debugMsg);
 
         return allConditionsMatched;
     }

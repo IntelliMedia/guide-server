@@ -7,6 +7,9 @@ const Group = require('../models/Group');
 const TutorAction = require('../models/TutorAction');
 const stringx = require("../utilities/stringx");
 const DashboardService = require('./dashboardService');
+const Biologica = require('../shared/biologica');
+const Biologicax = require('../shared/biologicax');
+const _ = require('lodash');
 
 /**
  * This class uses ECD-derived rules to evaluate student moves
@@ -106,12 +109,24 @@ class RulesEvaluator {
     }
 
     _selectableAttributes(event) {
+        let attributes;
         // Minimally, we need to know which attributes were editable in the client
         if (event.context && event.context.selectableAttributes === undefined) {
-            return [];
+            attributes = [];
         } else {
-            return event.context.selectableAttributes;
+            attributes = event.context.selectableAttributes;
         }
+
+        // If the attributes include any color related genes, add "color"
+        // to the attribute list to ensure that color rules are evaluated
+        // if (attributes.some((attribute) => BiologicaX.doesAttributeAffectCharacterisitic(
+        //     BioLogica.Species.Drake,
+        //     attribute, 
+        //     "color"))) {
+        //         attributes.push("color");
+        //     }
+
+        return attributes = _.uniq(attributes);
     }
 
     // Not using right now since changes are usually right with binary choices

@@ -117,17 +117,19 @@ if (typeof exports === 'undefined') {
         return allele.match(/[a-b]/);
     }
 
-    BiologicaX.getGene = function(species, allele) {
+    BiologicaX.getGene = function(species, alleles) {
         var geneName = null;
-        var alleleWithoutSide = allele.replace(/.+:/, "");
+        var allelesWithoutSide = alleles.replace(/[ab]:/g, "");
+        var alleleArray = allelesWithoutSide.split(",");
 
-        Object.keys(species.geneList).forEach(function (key, index) {
-            if (species.geneList[key].alleles.includes(alleleWithoutSide)) {
-                geneName = key;
-                return false;
-            }
-        });
-        return geneName;
+        for (let gene in species.geneList) {
+            if (alleleArray.every((allele) => 
+                species.geneList[gene].alleles.indexOf >= 0)) {
+                    return gene;
+                }
+        }
+
+        throw new Error("Unable to identify gene with alleles: " + alleles);
     }
 
     BiologicaX.getCharacteristic = function(organism, trait) {
@@ -144,6 +146,23 @@ if (typeof exports === 'undefined') {
         }
 
         return characteristic;
+    }
+
+    BiologicaX.doesAttributeAffectCharacterisitic = function(species, attribute, characteristic) {
+        if (!species.geneList.hasOwnProperty(attribute)) {
+            return false;
+        }
+
+        let alleles = species.geneList[attribute].alleles;
+        for (let trait in species.traitRules[characteristic]) {
+            for (let traitAlleles of species.traitRules[characteristic][trait]) {
+                if (BiologicaX.allelesInTraitArray(alleles, traitAlleles) == true) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
     }
 
     BiologicaX.isColorMetallic = function(color) {
@@ -184,19 +203,42 @@ if (typeof exports === 'undefined') {
     }
 
     BiologicaX.hasTrait = function(phenotype, characteristic, trait) { 
-        if (characteristic === "metallic") {
-            return (trait == "Metallic" ? BiologicaX.isColorMetallic(phenotype.color) : !BiologicaX.isColorMetallic(phenotype.color));
-        } else if (characteristic === "albino") {
-            return BiologicaX.isAlbino(phenotype.color);
-        } else if (characteristic === "color") {
-            return !BiologicaX.isAlbino(phenotype.color);
-        } else if (characteristic === "orange") {
-            return BiologicaX.isOrange(phenotype.color);
-        } else if (characteristic === "gray") {
-            return !BiologicaX.isOrange(phenotype.color);     
-        } else {
-            return phenotype[characteristic] == trait;
+        // First check the most obvious comparison
+        if (phenotype.hasOwnProperty(characteristic) && 
+            phenotype[characteristic] == trait) {
+            return true;
         }
+
+        switch(trait) {
+            case "Metallic":
+                return BiologicaX.isColorMetallic(phenotype.color);
+            case "Nonmetallic":
+                return !BiologicaX.isColorMetallic(phenotype.color);
+            case "Albino":
+                return BiologicaX.isAlbino(phenotype.color);
+            case "Color":
+                return !BiologicaX.isAlbino(phenotype.color);
+            case "Orange":
+                return BiologicaX.isOrange(phenotype.color);
+            case "Gray":
+                return !BiologicaX.isOrange(phenotype.color);
+        }
+
+        return false;
+    }
+
+    BiologicaX.isBaseColor = function(color) {
+        switch(color) {
+            case "Metallic":
+            case "Nonmetallic":
+            case "Albino":
+            case "Color":
+            case "Orange":
+            case "Gray":
+                return true;
+        }
+
+        return false;
     }
 
     BiologicaX.findAllele = function(species, alleles, side, gene) {
@@ -204,100 +246,27 @@ if (typeof exports === 'undefined') {
         var regex = new RegExp('(' + side + ':' + allOptions + ')(?:,|$)', '');
         var matches = alleles.match(regex);
         return (matches != null ? matches[1] : null)
-    }
-
-    BiologicaX.findAlleleForCharacteristic = function(species, alleles, side, characteristic) {
-        var gene = BiologicaX.findTraitForCharacteristic(characteristic);
-
-        return BiologicaX.findAllele(species, alleles, side, gene);
-    }
-
-    BiologicaX.findTraitForCharacteristic = function(characteristic) {
-        var trait = null;
-
-        var normalizedCharacteristic = characteristic.toLowerCase();
-        if (normalizedCharacteristic.includes("metallic")) {
-            trait = "metallic";
-        } else if (normalizedCharacteristic.includes("wings")) {
-            trait = "wings";
-        } else if (normalizedCharacteristic.includes("forelimbs")) {
-            trait = "forelimbs";
-        } else if (normalizedCharacteristic.includes("hindlimbs")) {
-            trait = "hindlimbs";
-        }
-
-        return trait;
-    }
-
-
-    // Returns generic allele pattern for a given gene. For example: 
-    //   a:W b:w returns H-h
-    //   a:Hl b:Hl returns H-H
-    BiologicaX.getAlleleAsInheritancePattern = function(species, alleles, gene) {
-        var sideA = BiologicaX.findAllele(species, alleles, 'a', gene).replace('a:', '');
-        var sideB = BiologicaX.findAllele(species, alleles, 'b', gene).replace('b:', '');
-
-        // NOTE: This function assusmes that capital letter in the allele indicates
-        // present while a lowercase letter indicates the gene is not present.
-        var leftH = sideA[0] == sideA[0].toUpperCase() ? 'Q' : 'q';
-        var rightH = sideB[0] == sideB[0].toUpperCase() ? 'Q' : 'q'; 
-        
-        return leftH + '-' + rightH;
-    }    
-
-    BiologicaX.getInheritancePatternForGene = function(organism, gene) {
-
-        var characteristic = BiologicaX.getCharacteristic(organism, gene);
-
-        var pattern = null;
-        var alleleLabelMap = organism.species.alleleLabelMap;
-        for (var allele in alleleLabelMap) {
-            if (alleleLabelMap.hasOwnProperty(allele)) {
-                if (alleleLabelMap[allele] == characteristic) {
-                    if (allele[0] == allele[0].toUpperCase()) {
-                        pattern = 'Dominant';
-                    } else {
-                        pattern = 'Recessive';
-                    }
-                    break;
-                }
-            }
-        }        
-
-        return pattern;
-    }      
-
-    // Get a trait as it relates to a specific characteristic
-    BiologicaX.getTraitAsCharacteristic = function(trait, characteristic) {
-        if (characteristic.toLowerCase() === "metallic") {
-            if (BiologicaX.isColorMetallic(characteristic)) {
-                trait = 'Metallic';
-            } else {
-                trait = 'Nonmetallic';
-            }
-        }
-
-        return trait;
-    }
-
-    BiologicaX.getTraitFromPhenotype = function(phenotype, characteristic) {
-        let trait = null; 
-        if (characteristic == 'metallic') {
-            trait = phenotype['color'];
-            if (BiologicaX.isColorMetallic(trait)) {
-                trait = 'Metallic';
-            } else {
-                trait = 'Nonmetallic';
-            }
-        } else {
-            trait = phenotype[characteristic];
-        }
-
-        return trait;
-    }
+    }  
 
     BiologicaX.getTraitFromAlleles = function(species, alleles) {
-        let allelesWithoutSides = alleles.map((allele) => allele.replace(/.+:/, "")).sort();
+
+        var allelesWithoutSide = alleles.map((allele) => allele.replace(/[ab]:/g, ""));
+
+        for (let characteristic in species.traitRules) {
+            for (let trait in species.traitRules[characteristic]) {
+                for (let traitAlleles of species.traitRules[characteristic][trait]) {
+                    if (BiologicaX.allelesInTraitArray(allelesWithoutSide, traitAlleles) == true) {
+                        return trait;
+                    }
+                }
+            }
+        }
+
+        throw new Error("Unable to identify trait from alleles: " + alleles);
+    }
+    
+    BiologicaX.getCharacteristicFromTrait = function(species, trait) {
+        var normalizedTrait = trait.toLowerCase();
 
         for (let characteristic in species.traitRules) {
             if (!species.traitRules.hasOwnProperty(characteristic)) {
@@ -309,13 +278,24 @@ if (typeof exports === 'undefined') {
                     continue;
                 }
 
-                for (let traitAlleles of species.traitRules[characteristic][trait]) {
-                    if (BiologicaX.allelesInTraitArray(allelesWithoutSides, traitAlleles)) {
-                        return BiologicaX.colorAsTrait(trait, alleles);
-                    }
+                if (trait.toLowerCase() == normalizedTrait) {
+                    return characteristic;
                 }
             }
         }
+
+        if (BiologicaX.isBaseColor(trait)) {
+            return trait;
+        }
+
+        if (BiologicaX.doesAttributeAffectCharacterisitic(
+            species,
+            trait.toLowerCase(), 
+            "color")) {
+                return "color";
+            }
+
+        throw new Error("Unabled to identify characteristic for: " + trait);
    } 
 
    BiologicaX.allelesInTraitArray = function(targetAlleles, traitAlleles) {
@@ -326,7 +306,9 @@ if (typeof exports === 'undefined') {
        let clone = traitAlleles.slice(0);
 
        for (let allele of targetAlleles) {
-           let index = clone.indexOf(allele);
+           let alleleRegex = new RegExp("^" + allele + "$", '');
+           let index = clone.findIndex(value => alleleRegex.test(value));
+           //let index = regexIndexOf(clone, allele);
            if (index < 0) {
                return false;
            }
@@ -334,31 +316,7 @@ if (typeof exports === 'undefined') {
        }
 
        return true;
-   }
-
-    BiologicaX.getCharacteristicFromTrait = function(species, trait) {
-        var normalizedTrait = trait.toLowerCase();
-
-        if (normalizedTrait.includes('metallic')) {
-            return 'metallic';
-        } else {
-            for (let characteristic in species.traitRules) {
-                if (!species.traitRules.hasOwnProperty(characteristic)) {
-                    continue;
-                }
-                
-                for (let trait in species.traitRules[characteristic]) {
-                    if (!species.traitRules[characteristic].hasOwnProperty(trait)) {
-                        continue;
-                    }
-
-                    if (trait.toLowerCase() == normalizedTrait) {
-                        return characteristic;
-                    }
-                }
-            }
-        }
-   }    
+   }   
 
     // If necessary, convert internal name for trait or characteristic to 
     // a user-friendly display name
