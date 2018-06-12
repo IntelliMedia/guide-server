@@ -124,7 +124,7 @@ if (typeof exports === 'undefined') {
 
         for (let gene in species.geneList) {
             if (alleleArray.every((allele) => 
-                species.geneList[gene].alleles.indexOf >= 0)) {
+                species.geneList[gene].alleles.indexOf(allele) >= 0)) {
                     return gene;
                 }
         }
