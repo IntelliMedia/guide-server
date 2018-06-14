@@ -254,7 +254,7 @@ class AllelesCondition extends TraitCondition {
 
         alleles = AllelesCondition.normalizeAlleles(alleles);
         let result = this.targetAlleles.every((item) => {
-            let alleleRegex = new RegExp(item, '');
+            let alleleRegex = new RegExp("^" + item + "$", '');
             return alleles.findIndex(value => alleleRegex.test(value)) >= 0;
         });
         return result;
