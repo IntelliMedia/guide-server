@@ -140,7 +140,6 @@ class RuleCsvDeserializer extends CsvDeserializer {
         return new Rule(
             source,
             ruleId, 
-            this._asNumber(this._getCell(currentRow, columnMap, "priority")),
             conditions,
             this._asBoolean(this._getCell(currentRow, columnMap, "correct", false)),
             this._extractConcepts(headerRow, currentRow));

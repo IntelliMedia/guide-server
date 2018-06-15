@@ -17,27 +17,31 @@ class TutorialPlanner {
 
         // Future: add other possible tutorial actions (other than hinting) like 
         // outer loop problem selection recommendation.
-        if (!event.context.correct) {
-            let actionPromises = [];
+        let actionPromises = [];
 
-            let hintRecommender = new HintRecommender();
-            actionPromises.push(hintRecommender.evaluateAsync(this.student, this.session, event));
+        let hintRecommender = new HintRecommender();
+        actionPromises.push(hintRecommender.evaluateAsync(this.student, this.session, event));
 
-            if (!event.context.hasOwnProperty("remediation") || event.context.remediation != true) {
-                let remediationRecommender = new RemediationRecommender();
-                actionPromises.push(remediationRecommender.evaluateAsync(this.student, this.session, event));
-            }
+        if (!event.context.hasOwnProperty("remediation") || event.context.remediation != true) {
+            let remediationRecommender = new RemediationRecommender();
+            actionPromises.push(remediationRecommender.evaluateAsync(this.student, this.session, event));
+        }
 
-            return Promise.all(actionPromises).then((results) => {
-                let filteredAndSorted = results
-                    .filter((action) => action != null)
-                    .sort((a, b) => b.context.priority - a.context.priority);
-                return filteredAndSorted.length > 0 ? filteredAndSorted[0] : null;
+        return Promise.all(actionPromises).then((results) => {
+            let actions = [];
+
+            // Combined actions from each promise into a single list
+            results.forEach((result) =>  {
+                if (result && result.length > 0) { 
+                    actions = actions.concat(result); 
+                }
             });
-        } else {
-            this.session.debugAlert("No need to send hint, organism is correct for user: " + this.student.id);
-            return null;
-        }  
+
+            let filteredAndSorted = actions
+                .filter((action) => action != null)
+                .sort((a, b) => b.context.priority - a.context.priority);
+            return filteredAndSorted.length > 0 ? filteredAndSorted[0] : null;
+        });
     }
 }
 

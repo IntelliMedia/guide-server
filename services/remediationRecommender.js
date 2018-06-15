@@ -36,7 +36,7 @@ class RemediationRecommender {
                 });
     
                 let challengeId = event.context.challengeId;
-                return this._selectHint(
+                return this._selectRemediations(
                     student,
                     session, 
                     groupName, 
@@ -49,7 +49,7 @@ class RemediationRecommender {
         });
     }
 
-    _selectHint(student, session, groupId, challengeType, challengeId, misconceptions) {
+    _selectRemediations(student, session, groupId, challengeType, challengeId, misconceptions) {
         if (!challengeType) {
             throw new Error("challengeType not defined in context")
         }
@@ -60,6 +60,8 @@ class RemediationRecommender {
             console.info("   " + misconception.conceptId + " | " + misconception.attribute + " | " + misconception.conceptState.probabilityLearned + " | " + misconception.source);
         }
 
+        let remediateActions = [];
+
         let remediationsForChallengeType = this.remediationRepository.filter(challengeType);
         for (let misconception of misconceptions) {
             let remediations = remediationsForChallengeType.filter((item) => 
@@ -67,8 +69,8 @@ class RemediationRecommender {
                 && misconception.conceptState.totalAttempts >= item.minimumAttempts
                 && misconception.conceptState.probabilityLearned <= item.probabilityLearnedThreshold);
 
-            if (remediations && remediations.length > 0) { 
-                let remediation = remediations[0];
+            for (let remediation of remediations) { 
+                let priorityAdjustment = (mostRecentRemediation && mostRecentRemediation.context.conceptId === remediation.conceptId ? 10 : 0);
 
                 mostRecentRemediation = student.studentModel.mostRecentAction("REMEDIATE", challengeId);
                 // TODO: Determine if this is bottom out remediation
@@ -76,7 +78,7 @@ class RemediationRecommender {
 
                 let action = TutorAction.createRemediateAction(
                     "MisconceptionDetected",
-                    remediation.priority,
+                    remediation.priority + priorityAdjustment,
                     RemediationRepository.sourceAsUrl(remediation),
                     misconception.conceptId,
                     misconception.conceptState.probabilityLearned,
@@ -86,10 +88,10 @@ class RemediationRecommender {
                     misconception.attribute,
                     isBottomOut);
 
-                return action;
+                remediateActions.push(action);
             }
         }
-        return null;     
+        return remediateActions;     
     };
 
     _sortMisconceptionsByPreviousHintAndThenAscendingScore(misconceptions, mostRecentRemediation) {

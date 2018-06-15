@@ -6,10 +6,9 @@ const arrayx = require("../utilities/arrayx");
 const _ = require('lodash');
 
 class Rule {   
-    constructor(source, id, priority, conditions, isCorrect, concepts) {
+    constructor(source, id, conditions, isCorrect, concepts) {
         this.source = source;
         this.id = id;
-        this.priority = priority;
         this.conditions = conditions;
         this.concepts = concepts;
         this.attribute = null;

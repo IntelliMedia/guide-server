@@ -92,13 +92,16 @@ studentModelSchema.methods.mostRecentAction = function(action, challengeId, attr
 
 studentModelSchema.methods.addMisconception = function(conceptId, challengeId, attribute, substitutionVariables, timestamp, source) {
 
-    if (!this.mostRecentMisconceptions ||
-        (this.mostRecentMisconceptions.length > 0 
-          && this.mostRecentMisconceptions[0].challengeId != challengeId
-          && this.mostRecentMisconceptions[0].timestamp.getTime() < timestamp)) {
-        // Reset list
-        this.mostRecentMisconceptions = [];
+  if (!this.mostRecentMisconceptions) {
+    this.mostRecentMisconceptions = [];
+  } else if (this.mostRecentMisconceptions.length > 0) {
+    let lastTimestamp = this.mostRecentMisconceptions[0].timestamp.getTime();
+    if (lastTimestamp < timestamp ||
+      this.mostRecentMisconceptions[0].challengeId != challengeId) {
+      // Reset list
+      this.mostRecentMisconceptions = [];
     }
+  }
 
   this.mostRecentMisconceptions.unshift({
     conceptId: conceptId,
@@ -113,10 +116,13 @@ studentModelSchema.methods.addMisconception = function(conceptId, challengeId, a
 }
 
 studentModelSchema.methods.getMisconceptionsForEvent = function(event) {
-  return this.mostRecentMisconceptions.filter((misconception) => {
+  let misconceptions = this.mostRecentMisconceptions.filter((misconception) => {
+    let misconceptionTimestamp = misconception.timestamp.getTime();
     return (misconception.challengeId == event.context.challengeId
-      && misconception.timestamp.getTime() == event.time);
+      && misconceptionTimestamp == event.time);
   });
+
+  return misconceptions;
 }
 
 const StudentModel = mongoose.model('StudentModel', studentModelSchema);

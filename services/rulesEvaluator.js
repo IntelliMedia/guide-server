@@ -102,8 +102,6 @@ class RulesEvaluator {
                 }
             }
         }
-
-        activatedRules = this.sortRulesByPriority(activatedRules);
         
         return activatedRules;
     }
@@ -159,12 +157,6 @@ class RulesEvaluator {
         }
 
         return true;
-    }
-
-    sortRulesByPriority(rules) {
-        return rules.sort(function(a, b) {
-            return b.priority - a.priority;
-        });
     }
 }
 

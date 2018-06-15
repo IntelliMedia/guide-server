@@ -40,7 +40,7 @@ class HintRecommender {
                 });
     
                 let challengeId = event.context.challengeId;
-                return this._selectHint(
+                return this._selectHints(
                     student,
                     session, 
                     groupName, 
@@ -53,7 +53,7 @@ class HintRecommender {
         });
     }
 
-    _selectHint(student, session, groupId, challengeType, challengeId, misconceptions) {
+    _selectHints(student, session, groupId, challengeType, challengeId, misconceptions) {
         if (!challengeType) {
             throw new Error("challengeType not defined in context")
         }
@@ -64,19 +64,26 @@ class HintRecommender {
             console.info("   " + misconception.conceptId + " | " + misconception.attribute + " | " + misconception.conceptState.probabilityLearned + " | " + misconception.source);
         }
 
+        let hintActions = [];
+
         let hintsForChallengeType = this.hintRepository.filter(challengeType);
         for (let misconception of misconceptions) {
-            let conceptHints = hintsForChallengeType.filter((item) =>
-                item.conceptId === misconception.conceptId 
+            let conceptHints = hintsForChallengeType.filter((item) => 
+                misconception.conceptId === item.conceptId
                 && misconception.conceptState.totalAttempts >= item.minimumAttempts
                 && misconception.conceptState.probabilityLearned <= item.probabilityLearnedThreshold);
 
-            if (conceptHints && conceptHints.length > 0) { 
-                let conceptHint = conceptHints[0];
-
+            for (let conceptHint of conceptHints) { 
                 mostRecentHint = student.studentModel.mostRecentAction("HINT", challengeId, misconception.attribute);
                 let hintIndex = this._incrementHintIndex(mostRecentHint, conceptHint);
                 let hintDialog = conceptHint.getHint(hintIndex, misconception.substitutionVariables); 
+
+                let priorityAdjustment = 0;
+                if (mostRecentHint 
+                    && mostRecentHint.context.attribute === misconception.attribute
+                    && mostRecentHint.context.conceptId === conceptHint.conceptId) {
+                        priorityAdjustment = 10;
+                }
 
                 // HintLevel is 1-based counting to align with levels defined in Hint sheet and
                 // to make it more comfortable for non-CompSci authors to understand.
@@ -85,7 +92,7 @@ class HintRecommender {
 
                 let action = TutorAction.createHintAction(
                     "MisconceptionDetected",
-                    conceptHint.priority,
+                    conceptHint.priority + priorityAdjustment,
                     ConceptHintsRepository.sourceAsUrl(conceptHint),
                     misconception.conceptId,
                     misconception.conceptState.probabilityLearned,
@@ -96,10 +103,10 @@ class HintRecommender {
                     hintLevel,
                     isBottomOut);
 
-                return action;
+                hintActions.push(action);
             }
         }
-        return null;     
+        return hintActions;     
     };
 
     _incrementHintIndex(mostRecentHint, conceptHint) {
