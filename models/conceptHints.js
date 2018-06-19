@@ -58,11 +58,11 @@ class ConceptHints {
                 if (replacementBlock.length > 2) {
                     // Does substitution string contain phrases?
                     if (replacementBlock[1] != undefined) {
-                        selector = replacementBlock[1];
+                        selector = replacementBlock[1].trim();
                         phrases = replacementBlock[2];
                     } else if (replacementBlock[2] != undefined) {
                         // If not, don't define phrases and default to simple replacement
-                        selector = replacementBlock[2];
+                        selector = replacementBlock[2].trim();
                     }
                 } 
                 
