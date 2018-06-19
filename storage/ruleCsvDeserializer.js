@@ -14,20 +14,29 @@ class RuleCsvDeserializer extends CsvDeserializer {
     }
   
     parseRow(currentRowIndex, source, columnMap, headerRow, currentRow) {
-        var DominantRecessiveMap = [
-            { dominant: "Wings", recessive: "No wings", ":Q":":W", ":q":":w", characterisiticName: {dominant: "wings", recessive: "wingless"}},
-            { dominant: "Forelimbs", recessive: "No forelimbs", ":Q":":Fl", ":q":":fl", characterisiticName: {dominant: "arms", recessive: "armless"}},
-            { dominant: "Hindlimbs", recessive: "No hindlimbs", ":Q":":Hl", ":q":":hl", characterisiticName: {dominant: "legs", recessive: "legless"}},
-            { dominant: "Hornless", recessive: "Horns", ":Q":":H", ":q":":h", characterisiticName: {dominant: "hornless", recessive: "horns"}},
-//            { dominant: "Metallic", recessive: "Nonmetallic", ":Q":":M", ":q":":m", characterisiticName: {dominant: "shiny", recessive: "dull"}},
-//            { dominant: "Color", recessive: "Albino", ":Q":":C", ":q":":c", characterisiticName: {dominant: "color", recessive: "albino"}},
-//            { dominant: "Gray", recessive: "Orange", ":Q":":B", ":q":":b", characterisiticName: {dominant: "gray", recessive: "orange"}}
+
+        let SimpleDominantRecessiveMap = [
+            { dominant: "Wings", recessive: "No wings", "Q":"W", "q":"w", characterisiticName: {dominant: "wings", recessive: "wingless"}},
+            { dominant: "Forelimbs", recessive: "No forelimbs", "Q":"Fl", "q":"fl", characterisiticName: {dominant: "arms", recessive: "armless"}},
+            { dominant: "Hindlimbs", recessive: "No hindlimbs", "Q":"Hl", "q":"hl", characterisiticName: {dominant: "legs", recessive: "legless"}},
+            { dominant: "Hornless", recessive: "Horns", "Q":"H", "q":"h", characterisiticName: {dominant: "hornless", recessive: "horns"}},
+//            { dominant: "Metallic", recessive: "Nonmetallic", "Q":"M", "q":"m", characterisiticName: {dominant: "shiny", recessive: "dull"}},
+//            { dominant: "Color", recessive: "Albino", "Q":"C", "q":"c", characterisiticName: {dominant: "color", recessive: "albino"}},
+//            { dominant: "Gray", recessive: "Orange", "Q":"B", "q":"b", characterisiticName: {dominant: "gray", recessive: "orange"}}
         ];
 
+        let SexLinkedDominantRecessiveMap = [
+            { dominant: "Nose spike", recessive: "No nose spike", "Q":"Rh", "q":"rh", characterisiticName: {dominant: "spiked", recessive: "spikeless"}},
+        ];
+
+        let isSexLinked = this._isSexLinkedRules(headerRow);
+
         if (this._isDominantRecessiveRule(currentRow)) {
+            let substitutionMap = (isSexLinked ? SexLinkedDominantRecessiveMap : SimpleDominantRecessiveMap);
+
             var rules = [];
 
-            DominantRecessiveMap.forEach((traitMap) => {
+            substitutionMap.forEach((traitMap) => {
                 var clonedRow = currentRow.slice();
                 var targetCharacterisitic = this._getTraitTarget(traitMap, clonedRow, columnMap, headerRow);
                 var isTargetTraitDominant = targetCharacterisitic === "dominant";
@@ -56,15 +65,15 @@ class RuleCsvDeserializer extends CsvDeserializer {
 
                     if (columnName.includes("alleles")) {                    
                         if (columnName.includes("mother-alleles")) {
-                            motherHasDominantAllele = ((value.match(/:Q/g) || []).length > 0);
-                            motherHasRecessiveAllele = ((value.match(/:q/g) || []).length > 0);
+                            motherHasDominantAllele = ((value.match(/Q/g) || []).length > 0);
+                            motherHasRecessiveAllele = ((value.match(/q/g) || []).length > 0);
 
                         } else if (columnName.includes("father-alleles")) {
-                            fatherHasDominantAllele = ((value.match(/:Q/g) || []).length > 0);
-                            fatherHasRecessiveAllele = ((value.match(/:q/g) || []).length > 0);
+                            fatherHasDominantAllele = ((value.match(/Q/g) || []).length > 0);
+                            fatherHasRecessiveAllele = ((value.match(/q/g) || []).length > 0);
                         }
-                        value = value.replace(/\:Q/g, traitMap[":Q"])
-                                     .replace(/\:q/g, traitMap[":q"]);                        
+                        value = value.replace(/Q/g, traitMap["Q"])
+                                     .replace(/q/g, traitMap["q"]);                        
                         clonedRow[i] = value;
                     }
                 }
@@ -157,6 +166,26 @@ class RuleCsvDeserializer extends CsvDeserializer {
         }
 
         return false;
+    }
+
+    _isSexLinkedRules(headerRow) {
+        let targetSex = false;
+        let targetTrait = false;
+
+        for (var i = 0; i < headerRow.length; ++i) {
+            var value = headerRow[i];
+            if (value) {
+                value = value.trim().toLowerCase();
+                if (value === "target-sex") {
+                    targetSex = true;
+                }
+                if (value === "target-trait") {
+                    targetTrait = true;
+                }
+            }
+        }
+
+        return targetSex && targetTrait;
     }
 
     _extractConditions(basePropertyPath, prefix, headerRow, currentRow) {
