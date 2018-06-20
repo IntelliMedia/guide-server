@@ -76,7 +76,7 @@ class ConceptHints {
                     substitutionPhrase = variable;
                     if (phrases) {
                         // Use a phrase is one is defined
-                        var findPhrase = new RegExp("([^,\\[]*" + variable + "[^,\\]]*)", "i");
+                        var findPhrase = new RegExp("([^,\\[]*" + this._getWordRoot(variable) + "[^,\\]]*)", "i");
                         var phraseMatch = phrases.match(findPhrase);
                         if (phraseMatch != null) {
                             substitutionPhrase = phraseMatch[0];
@@ -94,6 +94,20 @@ class ConceptHints {
 
         return value;
     }    
+
+    // TODO rgtaylor 2018-06-20 Remove this hardcoded workaround for matching root words
+    _getWordRoot(word) {
+        if (word === "shiny") {
+            return "shin";
+        } else if (word.includes("spike")) {
+            return "spike";
+        } else if (word.slice(-1) === "s") {
+            // Remove 's' from wings, arms, legs, etc.
+            return word.slice(0, word.length -1);
+        }
+
+        return word;
+    }
 }
 
 module.exports = ConceptHints;
