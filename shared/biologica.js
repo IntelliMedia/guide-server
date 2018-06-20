@@ -1813,7 +1813,8 @@ exports.BioLogica = BioLogica;
         start: 85000000,
         length: 19421
       },
-      color: {
+      // TODO rgtaylor 2017-06-20 'color' vs 'colored' needs to be resolved by Concord
+      colored: {
         alleles: ['C', 'c'],
         start: 15000000,
         length: 64572
