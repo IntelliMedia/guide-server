@@ -20,9 +20,10 @@ class RuleCsvDeserializer extends CsvDeserializer {
             { dominant: "Forelimbs", recessive: "No forelimbs", "Q":"Fl", "q":"fl", characterisiticName: {dominant: "arms", recessive: "armless"}},
             { dominant: "Hindlimbs", recessive: "No hindlimbs", "Q":"Hl", "q":"hl", characterisiticName: {dominant: "legs", recessive: "legless"}},
             { dominant: "Hornless", recessive: "Horns", "Q":"H", "q":"h", characterisiticName: {dominant: "hornless", recessive: "horns"}},
-//            { dominant: "Metallic", recessive: "Nonmetallic", "Q":"M", "q":"m", characterisiticName: {dominant: "shiny", recessive: "dull"}},
-//            { dominant: "Color", recessive: "Albino", "Q":"C", "q":"c", characterisiticName: {dominant: "color", recessive: "albino"}},
-//            { dominant: "Gray", recessive: "Orange", "Q":"B", "q":"b", characterisiticName: {dominant: "gray", recessive: "orange"}}
+            { dominant: "Metallic", recessive: "Nonmetallic", "Q":"M", "q":"m", characterisiticName: {dominant: "shiny", recessive: "dull"}},
+            { dominant: "Colored", recessive: "Albino", "Q":"C", "q":"c", characterisiticName: {dominant: "colored", recessive: "albino"}},
+            { dominant: "Gray", recessive: "Orange", "Q":"B", "q":"b", characterisiticName: {dominant: "gray", recessive: "orange"}},
+            { dominant: "Deep", recessive: "Faded", "Q":"D", "q":"d", characterisiticName: {dominant: "deep", recessive: "faded"}}
         ];
 
         let SexLinkedDominantRecessiveMap = [

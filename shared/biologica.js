@@ -1917,17 +1917,6 @@ exports.BioLogica = BioLogica;
         "Wings": [["W", "W"], ["W", "w"]],
         "No wings": [["w", "w"]]
       },
-      "color": {
-        "Frost": [["c", "c"]],
-        "Steel": BioLogica.combinations([["C"], ["C", "c"], ["M"], ["M", "m"], ["B"], ["B", "b"], ["D"], ["D", "d", "Y"]]),
-        "Copper": BioLogica.combinations([["C"], ["C", "c"], ["M"], ["M", "m"], ["b"], ["b"], ["D"], ["D", "d", "Y"]]),
-        "Silver": BioLogica.combinations([["C"], ["C", "c"], ["M"], ["M", "m"], ["B"], ["B", "b"], ["d"], ["d", "Y"]]),
-        "Gold": BioLogica.combinations([["C"], ["C", "c"], ["M"], ["M", "m"], ["b"], ["b"], ["d"], ["d", "Y"]]),
-        "Charcoal": BioLogica.combinations([["C"], ["C", "c"], ["m"], ["m"], ["B"], ["B", "b"], ["D"], ["D", "d", "Y"]]),
-        "Lava": BioLogica.combinations([["C"], ["C", "c"], ["m"], ["m"], ["b"], ["b"], ["D"], ["D", "d", "Y"]]),
-        "Ash": BioLogica.combinations([["C"], ["C", "c"], ["m"], ["m"], ["B"], ["B", "b"], ["d"], ["d", "Y"]]),
-        "Sand": BioLogica.combinations([["C"], ["C", "c"], ["m"], ["m"], ["b"], ["b"], ["d"], ["d", "Y"]])
-      },
       "health": {
         "Bog breath": [['bog', 'bog'], ['bog', 'Y']],
         "Healthy": [['Bog', 'Bog'], ['Bog', 'bog'], ['Bog', 'Y']]
@@ -1947,6 +1936,19 @@ exports.BioLogica = BioLogica;
       "dilute": {
         "Deep": [["D", "D"], ["D", "d"]],
         "Faded": [["d", "d"]]
+      },
+      // TODO rgtaylor 2018-06-20 Moved this trait to the bottom so that the subtraits will be parsed first
+      // Need tp decide how to find the individual subtraits versus the color in BiologicaX.getTraitFromAlleles()
+      "color": {
+        "Frost": [["c", "c"]],
+        "Steel": BioLogica.combinations([["C"], ["C", "c"], ["M"], ["M", "m"], ["B"], ["B", "b"], ["D"], ["D", "d", "Y"]]),
+        "Copper": BioLogica.combinations([["C"], ["C", "c"], ["M"], ["M", "m"], ["b"], ["b"], ["D"], ["D", "d", "Y"]]),
+        "Silver": BioLogica.combinations([["C"], ["C", "c"], ["M"], ["M", "m"], ["B"], ["B", "b"], ["d"], ["d", "Y"]]),
+        "Gold": BioLogica.combinations([["C"], ["C", "c"], ["M"], ["M", "m"], ["b"], ["b"], ["d"], ["d", "Y"]]),
+        "Charcoal": BioLogica.combinations([["C"], ["C", "c"], ["m"], ["m"], ["B"], ["B", "b"], ["D"], ["D", "d", "Y"]]),
+        "Lava": BioLogica.combinations([["C"], ["C", "c"], ["m"], ["m"], ["b"], ["b"], ["D"], ["D", "d", "Y"]]),
+        "Ash": BioLogica.combinations([["C"], ["C", "c"], ["m"], ["m"], ["B"], ["B", "b"], ["d"], ["d", "Y"]]),
+        "Sand": BioLogica.combinations([["C"], ["C", "c"], ["m"], ["m"], ["b"], ["b"], ["d"], ["d", "Y"]])
       }
     },
     subTraits: ["metallic", "colored", "black", "dilute"],
