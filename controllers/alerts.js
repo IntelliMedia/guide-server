@@ -14,7 +14,10 @@ exports.index = (req, res) => {
   }).catch((err) => {
     console.error(err);
     req.flash('errors', { msg: err.toString() });
-    return res.redirect(process.env.BASE_PATH + '');
+    res.render('alerts', {
+      title: 'Alerts',
+      alerts: []
+    });
   });
 };
 
