@@ -40,10 +40,6 @@ class RuleCsvDeserializer extends CsvDeserializer {
                 var clonedRow = currentRow.slice();
                 var targetCharacterisitic = this._getTraitTarget(traitMap, clonedRow, columnMap, headerRow);
                 var isTargetTraitDominant = targetCharacterisitic === "dominant";
-                var motherHasDominantAllele = false;
-                var motherHasRecessiveAllele = false;
-                var fatherHasDominantAllele = false;
-                var fatherHasRecessiveAllele = false;
 
                 for (var i = 0; i < clonedRow.length; ++i) {
                     var columnName = this._getColumnName(columnMap, i);
@@ -64,51 +60,9 @@ class RuleCsvDeserializer extends CsvDeserializer {
                     }
 
                     if (columnName.includes("alleles")) {                    
-                        if (columnName.includes("mother-alleles")) {
-                            motherHasDominantAllele = ((value.match(/Q/g) || []).length > 0);
-                            motherHasRecessiveAllele = ((value.match(/q/g) || []).length > 0);
-
-                        } else if (columnName.includes("father-alleles")) {
-                            fatherHasDominantAllele = ((value.match(/Q/g) || []).length > 0);
-                            fatherHasRecessiveAllele = ((value.match(/q/g) || []).length > 0);
-                        }
                         value = value.replace(/Q/g, traitMap["Q"])
                                      .replace(/q/g, traitMap["q"]);                        
                         clonedRow[i] = value;
-                    }
-                }
-
-                var substitutionSelectorMap = {};
-
-                if (isTargetTraitDominant) {
-                    substitutionSelectorMap = {
-                        incorrectTrait: traitMap.characterisiticName.recessive,
-                        correctTrait: traitMap.characterisiticName.dominant
-                    };
-
-                    if (!motherHasDominantAllele && !fatherHasDominantAllele) {
-                        substitutionSelectorMap.incorrectParent = "parent";
-                    } else if (!motherHasDominantAllele) {
-                        substitutionSelectorMap.incorrectParent = "mother|mom";
-                    } else if (!fatherHasDominantAllele) {
-                        substitutionSelectorMap.incorrectParent = "father|dad";
-                    } else {
-                        //console.warn("Unexpected combination of dominant alleles");
-                    }
-                } else {
-                    substitutionSelectorMap = {
-                        incorrectTrait: traitMap.characterisiticName.dominant,
-                        correctTrait: traitMap.characterisiticName.recessive
-                    };
-
-                    if (!motherHasRecessiveAllele && !fatherHasRecessiveAllele) {
-                        substitutionSelectorMap.incorrectParent = "parent";
-                    } else if (!motherHasRecessiveAllele) {
-                        substitutionSelectorMap.incorrectParent = "mother|mom";
-                    } else if (!fatherHasRecessiveAllele) {
-                        substitutionSelectorMap.incorrectParent = "father|dad";
-                    } else {
-                        //console.warn("Unexpected combination of recessive alleles");
                     }
                 }
 
@@ -151,7 +105,21 @@ class RuleCsvDeserializer extends CsvDeserializer {
             ruleId, 
             conditions,
             this._asBoolean(this._getCell(currentRow, columnMap, "correct", false)),
-            this._extractConcepts(headerRow, currentRow));
+            this._extractConcepts(headerRow, currentRow),
+            this._extractSubstitutionVariables(headerRow, currentRow));
+    }
+
+    _isBreedingRule(headerRow) {
+        for (let header of headerRow) {
+            let columnName = header.toLowerCase();
+
+            if (columnName.includes("mother-alleles") 
+                || columnName.includes("father-alleles")) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     _isDominantRecessiveRule(row) {
@@ -271,6 +239,24 @@ class RuleCsvDeserializer extends CsvDeserializer {
 
     _isConceptId(text) {
         return this._isColumnOfType("concept", text);
+    }
+
+    _extractSubstitutionVariables(headerRow, currentRow) {
+        var variableMap = {};
+         for (var i = 0; i < headerRow.length; ++i) {
+            if (this._isSubstitutionVariable(headerRow[i])) {
+                var value = currentRow[i].trim();
+                if (value) {
+                    var substitutionVariable = this._extractProprtyPathFromColumnName(headerRow[i]);
+                    variableMap[substitutionVariable] = value;
+                }
+            }
+         }
+         return variableMap;
+    }
+
+    _isSubstitutionVariable(text) {
+        return this._isColumnOfType("substitution", text);
     }
 }
 

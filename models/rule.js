@@ -6,13 +6,14 @@ const arrayx = require("../utilities/arrayx");
 const _ = require('lodash');
 
 class Rule {   
-    constructor(source, id, conditions, isCorrect, concepts) {
+    constructor(source, id, conditions, isCorrect, concepts, substitutions) {
         this.source = source;
         this.id = id;
         this.conditions = conditions;
         this.concepts = concepts;
         this.attribute = null;
         this.isCorrect = isCorrect;
+        this.substitutions = substitutions;
 
         if (!this.conditions || this.conditions.length == 0) {
             throw new Error("No conditions defined for ECD rule.")
@@ -38,6 +39,10 @@ class Rule {
         let variableMap = {
             attribute: BiologicaX.getDisplayName(this.attribute)
         };
+
+        if (this.substitutions) {
+            variableMap = Object.assign(this.substitutions, variableMap);
+        }
 
         for(let condition of this.conditions) {
             // Does this condition represent the target?
