@@ -36,7 +36,7 @@ class RulesEvaluator {
         return new Promise((resolve, reject) => {
             try {
                 let challengeId = event.context.challengeId;
-                session.debugAlert("Evaluate rules for: {0} ({1} | {2} | {3})".format(student.id, session.classId, session.groupId, challengeId));                
+                console.log("Evaluate rules for: {0} ({1} | {2} | {3})".format(student.id, session.classId, session.groupId, challengeId));                
                 
                 let savePromises = [];
                 let rulesFiredMsgs = [];
@@ -80,7 +80,7 @@ class RulesEvaluator {
 
         let attributesToEvaluate = this._selectableAttributes(event);
         let attributeNames = attributesToEvaluate.length > 0 ? attributesToEvaluate.join(",") : "none";
-        session.debugAlert("Attributes to evaluate: " + attributeNames);
+        console.log("Attributes to evaluate: " + attributeNames);
 
         let activatedRules = []
         for (let rule of this.rulesRepository.objs) {

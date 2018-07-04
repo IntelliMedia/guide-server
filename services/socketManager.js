@@ -45,7 +45,7 @@ function  initializeV3(server) {
 
 function handleConnect(socket) {
     var address = socket.handshake.address;
-    console.log('Connected to ' + address);      
+    console.info('Connected to ' + address);      
 }
 
 function handleConnectError(err) {
@@ -54,7 +54,7 @@ function handleConnectError(err) {
 
 function handleDisconnect(socket) {
     var address = socket.handshake.address;
-    console.log('Disconnected from ' + address);
+    console.info('Disconnected from ' + address);
     findSessionBySocket(socket).then((session) => {
         if (session && session.active) {
             Session.deactivate(session);
@@ -68,9 +68,8 @@ function handleEvent(socket, data) {
     var currentSession = null;
     GuideProtocol.Event.fromJsonAsync(data).then((event) => {
         receivedEvent = event;
-        console.info("SocketManager - incoming: " + event.toString() + " user=" + event.studentId);
-        // TODO - control with debug flag
-        console.info("Event: " + JSON.stringify(event, null, '\t'));
+        console.info("Received: " + event.toString() + " user=" + event.studentId);
+        console.log("Event: " + JSON.stringify(event, null, '\t'));
         return findSession(socket, receivedEvent.studentId, receivedEvent.session); 
     })
     .then((session) => { 

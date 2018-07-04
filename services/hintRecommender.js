@@ -57,11 +57,11 @@ class HintRecommender {
         if (!challengeType) {
             throw new Error("challengeType not defined in context")
         }
-        console.info("Observed incorrect concepts:");
+        console.log("Observed incorrect concepts:");
         let mostRecentHint = student.studentModel.mostRecentAction("HINT", challengeId);
         misconceptions = this._sortMisconceptionsByPreviousHintAndThenAscendingScore(misconceptions, mostRecentHint);
         for (let misconception of misconceptions) {
-            console.info("   " + misconception.conceptId + " | " + misconception.attribute + " | " + misconception.conceptState.probabilityLearned + " | " + misconception.source);
+            console.log("   " + misconception.conceptId + " | " + misconception.attribute + " | " + misconception.conceptState.probabilityLearned + " | " + misconception.source);
         }
 
         let hintActions = [];

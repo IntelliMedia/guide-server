@@ -6,11 +6,10 @@ const csvx = require('../utilities/csvx');
 var concepts = null;
 fs.readFile('data/Concepts.csv', 'utf8', function (err,data) {
     if (err) {
-        return console.log(err);
+        throw err;
     }
     parse(data, {comment: '#'}, function(err, output){
-        concepts = csvx.toObjectArray(output);
-        //console.log(conceptMatrix);        
+        concepts = csvx.toObjectArray(output);     
     });    
 });
 

@@ -14,7 +14,7 @@ let firebaseDb = null;
 class DashboardService {
     constructor() {
         if (firebaseApp == null) {
-            console.info("Initialize connection to Firebase");
+            console.log("Initialize connection to Firebase");
             let learnPortalCredential = firebase.credential.cert(serviceAccount);
             firebaseApp = firebase.initializeApp({
                 credential: learnPortalCredential,
@@ -37,7 +37,7 @@ class DashboardService {
               }
             };
 
-          //console.info("Push this to firebase:\n" + JSON.stringify(data, null, 2));
+          console.log("Push this to firebase:\n" + JSON.stringify(data, null, 2));
           
           session.debugAlert("Set student data in dashboard db; path=" + pathToUserITSData);  
           // Call this promise instead of returning it to run this in parallel since the Firebase DB

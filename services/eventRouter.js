@@ -37,6 +37,7 @@ class EventRouter {
         .then((action) => {
             // If there is a response resulting from the event, send it to the client
             if (action) { 
+                console.info("Send: " + action.toString() + " user=" + action.studentId);
                 session.logEvent(action);
                 session.emit(GuideProtocol.Event.Channel, action.toJson());
             }
@@ -98,8 +99,6 @@ class EventRouter {
 
             session.classId = event.context.classId;
             session.groupId = event.context.groupId;
-
-            session.infoAlert("Session Started");
 
             resolve();
         });

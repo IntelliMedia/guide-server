@@ -1,5 +1,10 @@
 "use strict";
 
+if (process.env.DISABLE_DEBUG_LOG == "true") {
+  console.info("Console log disabled");
+  console.log = () => {};
+}
+
 var guideInfo = require('./package');
 console.info("%s %s", guideInfo.name, guideInfo.version);
 
@@ -134,7 +139,7 @@ mongoose.connection.on('error', () => {
   process.exit(1);
 });
 mongoose.connection.on('disconnected', () => {
-  console.log('Mongoose default connection disconnected');
+  console.info('Mongoose default connection disconnected');
 });
 
 app.set('port', process.env.PORT || 3000);

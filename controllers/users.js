@@ -4,9 +4,6 @@ const authz = require('../services/authorization');
 exports.index = (req, res) => {
   User.find({}, function(err, users) {
       if (err) throw err;
-    
-      // object of all the users
-      console.log(users);
 
       var roleMap = [];
       var promises = [];
