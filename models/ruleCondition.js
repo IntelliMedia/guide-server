@@ -81,8 +81,8 @@ class RuleCondition {
             throw new Error("Condition unable to set property on undefined or null object");
         }
 
-        let path = this.getPropertyPath(propertyOverride);
-        return propPath.set(obj, path, value);
+        let finalPropertyPath = RuleCondition._getPropertyPath(this.propertyPath, propertyOverride);
+        return propPath.set(obj, finalPropertyPath, value);
     }
 }
 
