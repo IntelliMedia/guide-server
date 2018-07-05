@@ -224,22 +224,43 @@ class AllelesCondition extends TraitCondition {
     }
 
     static hasSelectionChanged(event, characteristic) {
-        let previousAlleles = propPath.get(event, "context.previous.alleles");
-        let previousSex = propPath.get(event, "context.previous.sex");
-        if (previousAlleles && previousSex) {
-            let previousOrganism = new BioLogica.Organism(BioLogica.Species.Drake, previousAlleles, BiologicaX.sexFromString(previousSex));
+        if (event.isMatch('USER', 'SUBMITTED', 'OFFSPRING')) {
+            let previousMotherAlleles = propPath.get(event, "context.previous.motherAlleles");
+            let previousFatherAlleles = propPath.get(event, "context.previous.fatherAlleles");
+            let previousOffspringAlleles = propPath.get(event, "context.previous.offspringAlleles");
+            let previousOffspringSex = propPath.get(event, "context.previous.offspringSex");
 
+            let selectedMotherAlleles = propPath.get(event, "context.selected.motherAlleles");
+            let selectedFatherAlleles = propPath.get(event, "context.selected.fatherAlleles");
+            let selectedOffspringAlleles = propPath.get(event, "context.selected.offspringAlleles");
+            let selectedOffspringSex = propPath.get(event, "context.selected.offspringSex");
+
+            return AllelesCondition._hasSelectionChanged(previousMotherAlleles, "Female", selectedMotherAlleles, "Female", characteristic)
+                || AllelesCondition._hasSelectionChanged(previousFatherAlleles, "Male", selectedFatherAlleles, "Male", characteristic)
+                || AllelesCondition._hasSelectionChanged(previousOffspringAlleles, previousOffspringSex, selectedOffspringAlleles, selectedOffspringSex, characteristic);
+        } else {
+            let previousAlleles = propPath.get(event, "context.previous.alleles");
+            let previousSex = propPath.get(event, "context.previous.sex");
             let selectedAlleles = propPath.get(event, "context.selected.alleles");
-            let selectedSex = propPath.get(event, "context.selected.sex");
-            if (selectedAlleles && selectedSex) {
-                let currentOrganism = new BioLogica.Organism(BioLogica.Species.Drake, selectedAlleles, BiologicaX.sexFromString(selectedSex));
-                if (BiologicaX.isBaseColor(characteristic)) {
-                    characteristic = "color";
-                }
-                let currentTraitAlleles = currentOrganism.getAlleleStringForTrait(characteristic);
-                let previousTraitAlleles = previousOrganism.getAlleleStringForTrait(characteristic);
-                return currentTraitAlleles != previousTraitAlleles;
-            }   
+            let selectedSex = propPath.get(event, "context.selected.sex"); 
+            return AllelesCondition._hasSelectionChanged(previousAlleles, previousSex, selectedAlleles, selectedSex, characteristic);
+        }
+
+        // Assume selection did change if we can't determine the state
+        return true;
+    }
+
+    static _hasSelectionChanged(previousAlleles, previousSex, selectedAlleles, selectedSex, characteristic) {
+        if (previousAlleles && previousSex && selectedAlleles && selectedSex) {
+            let previousOrganism = new BioLogica.Organism(BioLogica.Species.Drake, previousAlleles, BiologicaX.sexFromString(previousSex));
+            let currentOrganism = new BioLogica.Organism(BioLogica.Species.Drake, selectedAlleles, BiologicaX.sexFromString(selectedSex));
+
+            if (BiologicaX.isBaseColor(characteristic)) {
+                characteristic = "color";
+            }
+            let currentTraitAlleles = currentOrganism.getAlleleStringForTrait(characteristic);
+            let previousTraitAlleles = previousOrganism.getAlleleStringForTrait(characteristic);
+            return currentTraitAlleles != previousTraitAlleles;  
         }
 
         return true;

@@ -80,8 +80,9 @@ class RulesEvaluator {
 
         let attributesToEvaluate = this._selectableAttributes(event);
         let attributeNames = attributesToEvaluate.length > 0 ? attributesToEvaluate.join(",") : "none";
-        console.log("Attributes to evaluate: " + attributeNames);
+        console.log("Selectable attributes: %s", attributeNames);
 
+        let selectionChangedCache = {};
         let activatedRules = []
         for (let rule of this.rulesRepository.objs) {
             let attribute = rule.attribute;
@@ -95,7 +96,7 @@ class RulesEvaluator {
                     // or allowed the incorrect choice to remain
                     // Don't process rules where the player did nothing and the
                     // current state was correct to avoid concept inflation.
-                    if (this._hasSelectionChanged(attribute, event) || !rule.isCorrect)
+                    if (!rule.isCorrect || this._hasSelectionChanged(selectionChangedCache, attribute, event))
                     {
                         activatedRules.push(rule);
                     }
@@ -145,18 +146,26 @@ class RulesEvaluator {
         });
     }
 
-    _hasSelectionChanged(attribute, event) {
+    _hasSelectionChanged(selectionChangedCache, attribute, event) {
         if (event.context.selectableAttributes === undefined) {
             throw new Error("context.selectableAttributes not defined.");
         }
 
-        if (this.attribute === "sex") {
-            return RuleCondition.SexCondition.hasSelectionChanged(event);
-        } else {
-            return RuleCondition.AllelesCondition.hasSelectionChanged(event, attribute);
+        // If this has already been calculated, use the cached value
+        if (selectionChangedCache.hasOwnProperty(attribute)) {
+            return selectionChangedCache[attribute];
         }
 
-        return true;
+        let isChanged = true;
+        if (this.attribute === "sex") {
+            isChanged = RuleCondition.SexCondition.hasSelectionChanged(event);
+        } else {
+            isChanged = RuleCondition.AllelesCondition.hasSelectionChanged(event, attribute);
+        }
+
+        selectionChangedCache[attribute] = isChanged;
+
+        return isChanged;
     }
 }
 
