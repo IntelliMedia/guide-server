@@ -78,11 +78,13 @@ class HintRecommender {
                 let hintIndex = this._incrementHintIndex(mostRecentHint, conceptHint);
                 let hintDialog = conceptHint.getHint(hintIndex, misconception.substitutionVariables); 
 
+                let bottomOutHintAlreadyDelivered = false;
                 let priorityAdjustment = 0;
                 if (mostRecentHint 
                     && mostRecentHint.context.attribute === misconception.attribute
                     && mostRecentHint.context.conceptId === conceptHint.conceptId) {
                         priorityAdjustment = 10;
+                        bottomOutHintAlreadyDelivered = mostRecentHint.context.hintLevel == conceptHint.hints.length;
                 }
 
                 // HintLevel is 1-based counting to align with levels defined in Hint sheet and
@@ -90,9 +92,12 @@ class HintRecommender {
                 let hintLevel = hintIndex + 1;
                 let isBottomOut = hintLevel == conceptHint.hints.length;
 
+                let currentPriority = (bottomOutHintAlreadyDelivered ? conceptHint.bottomedOutPriority : conceptHint.priority);
+                currentPriority += priorityAdjustment;
+
                 let action = TutorAction.createHintAction(
                     "MisconceptionDetected",
-                    conceptHint.priority + priorityAdjustment,
+                    currentPriority,
                     ConceptHintsRepository.sourceAsUrl(conceptHint),
                     misconception.conceptId,
                     misconception.conceptState.probabilityLearned,
