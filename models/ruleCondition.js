@@ -70,7 +70,7 @@ class RuleCondition {
         let finalPropertyPath = RuleCondition._getPropertyPath(propertyPath, propertyOverride);
         let propertyValue = propPath.get(obj, finalPropertyPath);
         if (throwOnMissingProperty && propertyValue == undefined) {
-            throw new Error("Condition unable to find value at property path: " + path);
+            throw new Error("Condition unable to find value at property path: " + finalPropertyPath);
         }
 
         return propertyValue;
