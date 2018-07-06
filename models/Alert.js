@@ -4,7 +4,9 @@ const alertSchema = new mongoose.Schema({
   timestamp: Date,
   type: String,
   message: String,
-  details: String
+  stack: String,
+  sessionId: String,
+  eventJson: String
 }, { timestamps: false });
 
 alertSchema.statics.error = function(err, session, event) {
@@ -14,14 +16,17 @@ alertSchema.statics.error = function(err, session, event) {
       console.error(err);
   }
 
-  let details = session ? JSON.stringify(session, null, 2) + "\n\n" : "";
-  details += err.stack;
+  let stack = err.stack;
+  let sessionId = session ? session.id : "";
+  let eventJson = event ? JSON.stringify(event, null, 2) : "";
 
   let newAlert = Alert({
           type: 'error',
           timestamp: (event ? event.time : Date.now()),
           message: err.message,
-          details: details
+          stack: stack,
+          sessionId: sessionId,
+          eventJson: eventJson
       });
   newAlert.save(); 
 }

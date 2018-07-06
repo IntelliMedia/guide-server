@@ -29,10 +29,21 @@ exports.alert = (req, res) => {
 
   Alert.findOne({ '_id': id }).exec()
     .then((alert) => {
-      res.render('json', {
+      let data = {
         title: 'Alert Details',
-        json: "{'" + alert.details + "'}"
-      });
+        message: alert.message,
+        stack: alert.stack
+      };
+
+      if (alert.sessionId && alert.sessionId != "") {
+        data.sessionId = alert.sessionId;
+      }
+
+      if (alert.eventJson && alert.eventJson != "") {
+        data.eventJson = alert.eventJson;
+      }
+
+      res.render('alert', data);
     })
     .catch((err) => {
       console.error(err);
