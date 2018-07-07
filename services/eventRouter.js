@@ -40,6 +40,8 @@ class EventRouter {
                 console.info("Send: " + action.toString() + " user=" + action.studentId);
                 session.logEvent(action);
                 session.emit(GuideProtocol.Event.Channel, action.toJson());
+            } else {
+                session.debugAlert("No tutoring action recommended.");
             }
         })
         .then(() => {
@@ -71,7 +73,7 @@ class EventRouter {
                 return tutor.processAsync(event);
 
             } else {
-                session.warningAlert("EventRouter - unhandled: " + event.toString() + " user=" + event.studentId);
+                session.warningAlert("Unhandled message: " + event.toString() + " user=" + event.studentId);
                 return Promise.resolve(null);
             }
         } catch(err) {

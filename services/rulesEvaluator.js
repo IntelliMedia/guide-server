@@ -24,7 +24,7 @@ class RulesEvaluator {
     initializeAsync(session, groupName, tags) {
         return Group.getCollectionIdsAsync(groupName, tags).then((ids) => {
             if (ids.length == 0) {
-                session.warningAlert("Unable to find Google Sheet with tags (" + tags + ") in  group '" + groupName + "'");
+                session.warningAlert("No rules sheets specified for [" + tags + "] in '" + groupName + "' group.");
             }
 
             return this.rulesRepository.loadCollectionsAsync(ids);
@@ -64,7 +64,7 @@ class RulesEvaluator {
                 }
 
                 var msg = (rulesFiredMsgs.length == 0 ? "no rules fired" : rulesFiredMsgs.length + " rules fired\n" + rulesFiredMsgs.join("\n"));
-                session.debugAlert("Rules Triggered: " + msg);
+                session.debugAlert("Evaluated student move -> " + msg);
 
                 savePromises.push(this.studentModelService.updateDashboardAsync(student, session));
                 

@@ -16,7 +16,7 @@ class RemediationRecommender {
     initializeAsync(session, groupName, tags) {
         return Group.getCollectionIdsAsync(groupName, tags).then((ids) => {
             if (ids.length == 0) {
-                session.warningAlert("Unable to find Google Sheet with tags (" + tags + ") in  group '" + groupName + "'");
+                session.warningAlert("Unable to find Remediation sheet for [" + tags + "] defined in '" + groupName + "' group");
             }
 
             return this.remediationRepository.loadCollectionsAsync(ids);

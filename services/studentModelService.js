@@ -25,7 +25,7 @@ class StudentModelService {
         let tags = "bkt-parameters";
         return Group.getCollectionIdsAsync(groupName, tags).then((ids) => {
             if (ids.length == 0) {
-                throw new Error("Unable to find Google Sheet with tags (" + tags + ") in  group '" + groupName + "'");
+                throw new Error("Unable find student model sheet for [" + tags + "] defined in '" + groupName + "' group");
             }
 
             return parameterRepo.loadCollectionsAsync(ids);

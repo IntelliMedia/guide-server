@@ -37,14 +37,14 @@ class DashboardService {
               }
             };
 
-          console.log("Push this to firebase:\n" + JSON.stringify(data, null, 2));
+          console.log("Push this to dashboard:\n" + JSON.stringify(data, null, 2));
           
-          session.debugAlert("Set student data in dashboard db; path=" + pathToUserITSData);  
+          console.log("Save student model in Geniventure dashboard db; path=" + pathToUserITSData);  
           // Call this promise instead of returning it to run this in parallel since the Firebase DB
           // is taking 60+ seconds for set to return.
           firebaseDb.ref(pathToUserITSData).set(data)
             .then(() => {
-              session.debugAlert("Successfully set student data in dashboard db.");
+              console.log("Successfully set student data in dashboard db.");
             })
             .catch((err) => {
               session.errorAlert("Unable to set student data in dashboard db: " + err);
