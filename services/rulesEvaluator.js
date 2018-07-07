@@ -19,10 +19,14 @@ class RulesEvaluator {
     constructor() {
         this.rulesRepository = new RulesRepository(global.cacheDirectory);
         this.studentModelService = new StudentModelService();
+        this.ruleSetIds = [];
     }
 
     initializeAsync(session, groupName, tags) {
         return Group.getCollectionIdsAsync(groupName, tags).then((ids) => {
+            this.ruleSourceUrls = ids.map((id) => {
+                return this.rulesRepository.getGoogleSheetUrl(id);
+            });
             if (ids.length == 0) {
                 session.warningAlert("No rules sheets specified for [" + tags + "] in '" + groupName + "' group.");
             }
@@ -63,8 +67,13 @@ class RulesEvaluator {
                     }                
                 }
 
-                var msg = (rulesFiredMsgs.length == 0 ? "no rules fired" : rulesFiredMsgs.length + " rules fired\n" + rulesFiredMsgs.join("\n"));
-                session.debugAlert("Evaluated student move -> " + msg);
+                if (rulesFiredMsgs.length > 0) {
+                    session.debugAlert("Evaluated " + this.rulesRepository.objs.length + " rules -> Fired " + rulesFiredMsgs.length 
+                        + "\n" + rulesFiredMsgs.join("\n"));
+                } else {
+                    session.debugAlert("Evaluated " + this.rulesRepository.objs.length + " rules -> None fired. Rule sheet URLs:"
+                        + "\n" + this.ruleSourceUrls.join("\n"));                    
+                }
 
                 savePromises.push(this.studentModelService.updateDashboardAsync(student, session));
                 

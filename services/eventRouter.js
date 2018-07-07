@@ -82,6 +82,9 @@ class EventRouter {
     }
 
     handleSystemStartedSessionAsync(student, session, event) {
+
+        session.infoAlert("Session Started");
+
         return new Promise((resolve, reject) => {
 
             if (!event.context.hasOwnProperty("classId") || !event.context.classId) {

@@ -25,7 +25,7 @@ class GoogleSheetRepository extends FileRepository {
     }
 
     _loadCollectionFromGoogleSheetAsync(collectionId) {   
-        let docUrl = this._getGoogleSheetUrl(collectionId);
+        let docUrl = this.getGoogleSheetUrl(collectionId);
         let csvExportUrl = this._getCsvExportUrl(collectionId);
         let options = {
             method: "GET",
@@ -56,7 +56,7 @@ class GoogleSheetRepository extends FileRepository {
             });
     }
 
-    _getGoogleSheetUrl(id) {
+    getGoogleSheetUrl(id) {
         if (!id) {
             throw new Error("id not defined");
         }
@@ -65,13 +65,13 @@ class GoogleSheetRepository extends FileRepository {
 
     // Override _getSource() so that local file cache points to the original Google Sheet
     _getSource(id) {
-        let url = new URL(this._getGoogleSheetUrl(id));
+        let url = new URL(this.getGoogleSheetUrl(id));
         url.searchParams.append("cached", "true");
         return url.href;
     }
 
     _getCsvExportUrl(id) {
-        return this._getGoogleSheetUrl(id) + "/export?format=csv";
+        return this.getGoogleSheetUrl(id) + "/export?format=csv";
     }    
 
     static sourceAsUrl(obj) {
