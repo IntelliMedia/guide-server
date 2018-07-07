@@ -88,8 +88,15 @@ class RulesEvaluator {
     evaluateRules(session, event) {
 
         let attributesToEvaluate = this._selectableAttributes(event);
-        let attributeNames = attributesToEvaluate.length > 0 ? attributesToEvaluate.join(",") : "none";
+        let attributeNames = attributesToEvaluate.join(",");
         console.log("Selectable attributes: %s", attributeNames);
+
+        if (attributesToEvaluate.length == 0
+            && this.rulesRepository.objs.some((rule) => {
+                return (rule.attribute != undefined && rule.attribute != "n/a"); 
+            })) {
+            session.errorAlert("context.selectableAttributes is missing or empty");
+        }
 
         let selectionChangedCache = {};
         let activatedRules = []
