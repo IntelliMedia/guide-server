@@ -2,6 +2,7 @@
 
 const Biologicax = require('../shared/biologicax');
 const RuleCondition = require('./ruleCondition');
+const GoogleSheetRepository = require('../storage/googleSheetRepository');
 const arrayx = require("../utilities/arrayx");
 const _ = require('lodash');
 
@@ -57,9 +58,14 @@ class Rule {
         let debugMsg = "";
 
         let allConditionsMatched = this.conditions.every((condition) => {
-            let result = condition.evaluate(event);
-            debugMsg += "[" + condition.toString() + " -> " + result + "] "
-            return result;
+            try {
+                let result = condition.evaluate(event);
+                debugMsg += "[" + condition.toString() + " -> " + result + "] "
+                return result;
+            } catch(err) {
+                err.message += " [Rule Source: " + GoogleSheetRepository.sourceAsUrl(this) + "]";
+                throw err;
+            }
         });
 
         // Use this log statement to debug rules
