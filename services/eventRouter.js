@@ -63,12 +63,14 @@ class EventRouter {
             } else if (event.isMatch('SYSTEM', 'ENDED', 'SESSION')) {
                 return this.handleSystemEndedSessionAsync(student, session, event);
 
-            } else if (event.isMatch('USER', 'NAVIGATED', 'CHALLENGE')
-                    || event.isMatch('USER', 'CHANGED', 'ALLELE')
-                    || event.isMatch('USER', 'SUBMITTED', 'ORGANISM')
+            } else if (
+                       event.isMatch('USER', 'CHANGED', 'ALLELE')
                     || event.isMatch('USER', 'SUBMITTED', 'EGG')
-                    || event.isMatch('USER', 'SUBMITTED', 'OFFSPRING')
-                    || event.isMatch('USER', 'SUBMITTED', 'PARENTS')) {
+                    || event.isMatch('USER', 'SUBMITTED', 'ORGANISM')
+                    || event.isMatch('USER', 'BRED', 'CLUTCH')
+                    || event.isMatch('USER', 'SELECTED', 'OFFSPRING')
+                    //|| event.isMatch('USER', 'NAVIGATED', 'CHALLENGE')
+                ) {
                 let tutor = new Tutor(student, session);
                 return tutor.processAsync(event);
 
