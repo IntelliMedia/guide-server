@@ -41,6 +41,7 @@ function extractGroup() {
       var group = {
         id: $('#id').text().trim(),
         name: $('#name').text().trim(),
+        cacheDisabled: $('#cacheDisabled').is(":checked"),
         repositoryLinks: modifiedChallenges
       };
 

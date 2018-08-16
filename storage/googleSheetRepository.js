@@ -16,12 +16,16 @@ class GoogleSheetRepository extends FileRepository {
     }
 
     // collectionId is a Google Doc ID (e.g., 1ZieoXhkW_5V3BpuYGPszM038Bdn5Qe7ybCyuSrksMiA)
-    loadCollectionAsync(collectionId) {
-        return super.loadCollectionAsync(collectionId)
-            .catch((e) => {
-                console.info("Unable to load " + collectionId + " from cache.");
-                return this._loadCollectionFromGoogleSheetAsync(collectionId);
-            })
+    loadCollectionAsync(collectionId, bypassCache) {
+        if (bypassCache === true) {
+            return this._loadCollectionFromGoogleSheetAsync(collectionId);
+        } else {
+            return super.loadCollectionAsync(collectionId)
+                .catch((e) => {
+                    console.info("Unable to load " + collectionId + " from cache.");
+                    return this._loadCollectionFromGoogleSheetAsync(collectionId);
+                });
+        }
     }
 
     _loadCollectionFromGoogleSheetAsync(collectionId) {   

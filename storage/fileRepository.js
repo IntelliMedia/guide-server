@@ -24,7 +24,7 @@ class FileRepository extends Repository {
     }
 
     // collectionId is a filename without the extension
-    loadCollectionAsync(collectionId) {
+    loadCollectionAsync(collectionId, bypassCache) {
         let filename = this._getFilename(collectionId);        
         return readFileAsync(filename, 'utf8')        
             .then((text) => {

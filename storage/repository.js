@@ -19,19 +19,19 @@ class Repository {
     }
 
     // Load a collection of objects into the repository 
-    loadCollectionAsync(collectionId) {
+    loadCollectionAsync(collectionId, bypassCache) {
        throw new Error("Not implemented");
     }
 
     // Load multiple collections of objects into the repository 
-    loadCollectionsAsync(collectionIds) {
+    loadCollectionsAsync(collectionIds, bypassCache) {
         if (!(collectionIds instanceof Array)) {
             throw new Error("collectionIds is not an Array");
         }
 
         let loadPromises = [];
         collectionIds.forEach((id) => {
-            loadPromises.push(this.loadCollectionAsync(id));
+            loadPromises.push(this.loadCollectionAsync(id, bypassCache));
         });
 
         return Promise.all(loadPromises);

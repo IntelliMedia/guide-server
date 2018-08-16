@@ -14,12 +14,18 @@ class RemediationRecommender {
     }
 
     initializeAsync(session, groupName, tags) {
-        return Group.getCollectionIdsAsync(groupName, tags).then((ids) => {
+        return Group.findOne({ "name": groupName }).then((group) => {
+            if (!group) {
+                throw new Error("Unable to find group with name: " + groupName);
+            }
+
+            let ids = group.getCollectionIds(tags);
+            
             if (ids.length == 0) {
                 session.warningAlert("Unable to find Remediation sheet for [" + tags + "] defined in '" + groupName + "' group");
             }
 
-            return this.remediationRepository.loadCollectionsAsync(ids);
+            return this.remediationRepository.loadCollectionsAsync(ids, group.cacheDisabled);
         });
     }    
 

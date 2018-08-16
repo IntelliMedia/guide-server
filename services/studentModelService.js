@@ -23,12 +23,18 @@ class StudentModelService {
         this.bktEvaluator = new BKTEvaluator(parameterRepo);
 
         let tags = "bkt-parameters";
-        return Group.getCollectionIdsAsync(groupName, tags).then((ids) => {
+        return Group.findOne({ "name": groupName }).then((group) => {
+            if (!group) {
+                throw new Error("Unable to find group with name: " + groupName);
+            }
+
+            let ids = group.getCollectionIds(tags);
+            
             if (ids.length == 0) {
                 throw new Error("Unable find student model sheet for [" + tags + "] defined in '" + groupName + "' group");
             }
 
-            return parameterRepo.loadCollectionsAsync(ids);
+            return parameterRepo.loadCollectionsAsync(ids, group.cacheDisabled);
         });
     }  
     

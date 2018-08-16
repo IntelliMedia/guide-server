@@ -23,15 +23,22 @@ class RulesEvaluator {
     }
 
     initializeAsync(session, groupName, tags) {
-        return Group.getCollectionIdsAsync(groupName, tags).then((ids) => {
+        return Group.findOne({ "name": groupName }).then((group) => {
+            if (!group) {
+                throw new Error("Unable to find group with name: " + groupName);
+            }
+
+            let ids = group.getCollectionIds(tags);
+            
             this.ruleSourceUrls = ids.map((id) => {
                 return this.rulesRepository.getGoogleSheetUrl(id);
             });
+
             if (ids.length == 0) {
                 session.warningAlert("No rules sheets specified for [" + tags + "] in '" + groupName + "' group.");
             }
 
-            return this.rulesRepository.loadCollectionsAsync(ids);
+            return this.rulesRepository.loadCollectionsAsync(ids, group.cacheDisabled);
         })
         .then(() => this.studentModelService.initializeAsync(groupName));
     }    
