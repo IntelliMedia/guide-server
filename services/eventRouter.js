@@ -6,7 +6,6 @@ const TutorAction = require('../models/TutorAction');
 const Tutor = require('./tutor');
 const await = require('asyncawait/await');
 const guideProtocol = require('../shared/guide-protocol.js');
-const RulesEvaluator = require("./rulesEvaluator");
 
 class EventRouter {
     constructor() {
@@ -63,14 +62,8 @@ class EventRouter {
             } else if (event.isMatch('SYSTEM', 'ENDED', 'SESSION')) {
                 return this.handleSystemEndedSessionAsync(student, session, event);
 
-            } else if (
-                       event.isMatch('USER', 'CHANGED', 'ALLELE')
-                    || event.isMatch('USER', 'SUBMITTED', 'EGG')
-                    || event.isMatch('USER', 'SUBMITTED', 'ORGANISM')
-                    || event.isMatch('USER', 'BRED', 'CLUTCH')
-                    || event.isMatch('USER', 'SELECTED', 'OFFSPRING')
-                    //|| event.isMatch('USER', 'NAVIGATED', 'CHALLENGE')
-                ) {
+            } else if (event.isMatch('USER', '*', '*')) {
+                // Evaluate user actions and potentially take tutoring action
                 let tutor = new Tutor(student, session);
                 return tutor.processAsync(event);
 
