@@ -19,6 +19,10 @@ class StudentModelService {
     }
 
     initializeAsync(groupName) {
+        if (groupName == undefined || groupName == null) {
+            return Promise.reject(new Error("Unable to initialize StudentModelService: missing group name."));
+        }
+
         let parameterRepo = new BKTConceptParametersRepository(global.cacheDirectory)
         this.bktEvaluator = new BKTEvaluator(parameterRepo);
 

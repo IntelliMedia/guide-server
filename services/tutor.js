@@ -1,8 +1,7 @@
 'use strict';
 
 const TutorAction = require('../models/TutorAction');
-const Evaluator = require('./euvaluator');
-const OrganismEvaluator = require('./organismEvaluator');
+const RulesEvaluator = require('./rulesEvaluator');
 const TutorialPlanner = require('./tutorialPlanner');
 const stacktracex = require('../utilities/stacktracex');
 
@@ -36,33 +35,8 @@ class Tutor {
     // Evaluate user action and update student model
     _evaluateAsync(event) {
         try {
-
-            let evaluator = null;
-
-            if (event.isMatch('USER', 'CHANGED', 'ALLELE')) {
-                evaluator = new Evaluator();
-            } else if (event.isMatch('USER', 'SELECTED', 'GAMETE')) {
-                evaluator = new Evaluator();
-            } else if (event.isMatch('USER', 'SUBMITTED', 'ORGANISM')) {
-                evaluator = new OrganismEvaluator();
-            } else if (event.isMatch('USER', 'SUBMITTED', 'EGG')) {
-                evaluator = new OrganismEvaluator();
-            } else if (event.isMatch('USER', 'BRED', 'CLUTCH')) {
-                evaluator = new Evaluator();
-            } else if (event.isMatch('USER', 'CHANGED', 'PARENT')) {
-                evaluator = new Evaluator();
-            } else if (event.isMatch('USER', 'SELECTED', 'OFFSPRING')) {
-                evaluator = new Evaluator();
-            } else if (event.isMatch('USER', 'SUBMITTED', 'PARENTS')) {
-                evaluator = new Evaluator();
-            } else {
-                throw new Error("Unable to find evaluator for event: " + event.toString());
-            }
-
-            // Use the event's action and target to find an evaluator. E.g., "changed, allele"
-            let evaluatorTags = event.action.toLowerCase() + ", " + event.target.toLowerCase();
-            return evaluator.initializeAsync(this.session, this.session.groupId, evaluatorTags)
-                .then(() => evaluator.evaluateAsync(this.student, this.session, event));
+            let evaluator = new RulesEvaluator(this.student, this.session);
+            return evaluator.evaluateAsync(event);
 
         } catch(err) {
             return Promise.reject(err);

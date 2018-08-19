@@ -1,8 +1,9 @@
 'use strict';
 
-const RulesRepository = require('../storage/rulesRepository');
 const RuleCondition = require('../models/ruleCondition');
 const StudentModelService = require('./studentModelService');
+const RulesFactory = require('./rulesFactory');
+const RulesRepository = require('../storage/rulesRepository');
 const Group = require('../models/Group');
 const TutorAction = require('../models/TutorAction');
 const stringx = require("../utilities/stringx");
@@ -16,98 +17,47 @@ const _ = require('lodash');
  * and to provide move-specific hints.
  */
 class RulesEvaluator {
-    constructor() {
-        this.rulesRepository = new RulesRepository(global.cacheDirectory);
+    constructor(student, session) {
+        this.student = student;
+        this.session = session;
         this.studentModelService = new StudentModelService();
-        this.ruleSetIds = [];
+    }  
+
+    evaluateAsync(event) {
+        try {
+            return this.studentModelService.initializeAsync(this.session.groupId)
+                .then(() => this._loadRulesAsync(event))
+                .then((rules) => this._evaluateRules(rules, event))
+                .then((activatedRules) => this._updateStudentModelAsync(activatedRules, event));
+        } catch(err) {
+            return Promise.reject(err);
+        }
     }
 
-    initializeAsync(session, groupName, tags) {
-        return Group.findOne({ "name": groupName }).then((group) => {
-            if (!group) {
-                throw new Error("Unable to find group with name: " + groupName);
-            }
-
-            let ids = group.getCollectionIds(tags);
-            
-            this.ruleSourceUrls = ids.map((id) => {
-                return this.rulesRepository.getGoogleSheetUrl(id);
-            });
-
-            if (ids.length == 0) {
-                session.warningAlert("No rules sheets specified for [" + tags + "] in '" + groupName + "' group.");
-            }
-
-            return this.rulesRepository.loadCollectionsAsync(ids, group.cacheDisabled);
-        })
-        .then(() => this.studentModelService.initializeAsync(groupName));
-    }    
-
-    evaluateAsync(student, session, event) {
-        return new Promise((resolve, reject) => {
-            try {
-                let challengeId = event.context.challengeId;
-                console.log("Evaluate rules for: {0} ({1} | {2} | {3})".format(student.id, session.classId, session.groupId, challengeId));                
-                
-                let savePromises = [];
-                let rulesFiredMsgs = [];
-
-                let activatedRules = this.evaluateRules(session, event);
-
-                if (activatedRules.length > 0) {           
-                    for (let rule of activatedRules) {
-                        for (let conceptId in rule.concepts) { 
-                            savePromises.push(this.studentModelService.processConceptDataPoint(
-                                student,
-                                session,
-                                conceptId, 
-                                rule.isCorrect, 
-                                challengeId, 
-                                rule.attribute, 
-                                rule.substitutionVariables(),
-                                event.time, 
-                                RulesRepository.sourceAsUrl(rule)));
-
-                            rulesFiredMsgs.push("Rule Triggered ->  Correct:{0} | {1} | {2} | rule: {3}".format( 
-                                rule.isCorrect, conceptId, rule.attribute, RulesRepository.sourceAsUrl(rule)));
-                        }
-                    }                
-                }
-
-                if (rulesFiredMsgs.length > 0) {
-                    session.debugAlert("Evaluated " + this.rulesRepository.objs.length + " rules -> Fired " + rulesFiredMsgs.length 
-                        + "\n" + rulesFiredMsgs.join("\n"));
-                } else {
-                    session.debugAlert("Evaluated " + this.rulesRepository.objs.length + " rules -> None fired. Rule sheet URLs:"
-                        + "\n" + this.ruleSourceUrls.join("\n"));                    
-                }
-
-                savePromises.push(this.studentModelService.updateDashboardAsync(student, session));
-                
-                resolve(Promise.all(savePromises));
-
-            } catch(err) {
-                reject(err);
-            }
-        });
+    _loadRulesAsync(event) {
+        let rulesFactory = new RulesFactory();
+        return rulesFactory.createRulesForEventAsync(this.session, event);
     }
 
-    evaluateRules(session, event) {
+    _evaluateRules(rules, event) {
+
+        let challengeId = event.context.challengeId;
+        console.log("Evaluate rules for: {0} ({1} | {2} | {3})".format(this.student.id, this.session.classId, this.session.groupId, challengeId)); 
 
         let attributesToEvaluate = this._selectableAttributes(event);
         let attributeNames = attributesToEvaluate.join(",");
         console.log("Selectable attributes: %s", attributeNames);
 
         if (attributesToEvaluate.length == 0
-            && this.rulesRepository.objs.some((rule) => {
+            && rules.some((rule) => {
                 return (rule.attribute != undefined && rule.attribute != "n/a"); 
             })) {
-            session.errorAlert("context.selectableAttributes is missing or empty");
+            this.session.errorAlert("context.selectableAttributes is missing or empty");
         }
 
         let selectionChangedCache = {};
         let activatedRules = []
-        for (let rule of this.rulesRepository.objs) {
+        for (let rule of rules) {
             let attribute = rule.attribute;
             if (attribute === undefined 
                 || attribute === "n/a" 
@@ -128,6 +78,44 @@ class RulesEvaluator {
         }
         
         return activatedRules;
+    }
+
+    _updateStudentModelAsync(activatedRules, event) {
+        
+        let savePromises = [];
+        let rulesFiredMsgs = [];
+
+        if (activatedRules.length > 0) {           
+            for (let rule of activatedRules) {
+                for (let conceptId in rule.concepts) { 
+                    savePromises.push(this.studentModelService.processConceptDataPoint(
+                        this.student,
+                        this.session,
+                        conceptId, 
+                        rule.isCorrect, 
+                        event.context.challengeId, 
+                        rule.attribute, 
+                        rule.substitutionVariables(),
+                        event.time, 
+                        RulesRepository.sourceAsUrl(rule)));
+
+                    rulesFiredMsgs.push("Rule Triggered ->  Correct:{0} | {1} | {2} | rule: {3}".format( 
+                        rule.isCorrect, conceptId, rule.attribute, RulesRepository.sourceAsUrl(rule)));
+                }
+            }                
+        }
+
+        // if (rulesFiredMsgs.length > 0) {
+        //     this.session.debugAlert("Evaluated " + rules.length + " rules -> Fired " + rulesFiredMsgs.length 
+        //         + "\n" + rulesFiredMsgs.join("\n"));
+        // } else {
+        //     this.session.debugAlert("Evaluated " + rules.length + " rules -> None fired. Rule sheet URLs:"
+        //         + "\n" + this.ruleSourceUrls.join("\n"));                    
+        // }
+
+        savePromises.push(this.studentModelService.updateDashboardAsync(this.student, this.session));
+        
+        return Promise.all(savePromises);
     }
 
     _selectableAttributes(event) {
