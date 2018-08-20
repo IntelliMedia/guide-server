@@ -7,7 +7,7 @@ const GoogleSheetRepository = require('../storage/googleSheetRepository');
 const arrayx = require("../utilities/arrayx");
 const _ = require('lodash');
 
-class TraitRule extends Rule {   
+class AttributeRule extends Rule {   
     constructor(attribute, targetMap) {
         super(attribute);
 
@@ -39,15 +39,30 @@ class TraitRule extends Rule {
 
         return {
             attribute: BiologicaX.getDisplayName(this.attribute),
-            selectedTrait: BiologicaX.getDisplayName(this._selected),
-            targetTrait: BiologicaX.getDisplayName(this._target)
+            selected: BiologicaX.getDisplayName(this._selected),
+            target: BiologicaX.getDisplayName(this._target)
         };
     }
 
     evaluate(event) {
-        
-        let debugMsg = "";
+        if (this.attribute === "sex") {
+            return this._evaluateSex(event);
+        } else {
+            return this._evaluateTrait(event);
+        }
+    }
 
+    _evaluateSex(event) {
+
+        this._selected = BiologicaX.sexToString(event.context.selected.sex);
+        this._target = BiologicaX.sexToString(event.context.target.sex);
+
+        let isActivated = this._targetMap.hasOwnProperty(this._target);
+
+        return isActivated;
+    }
+
+    _evaluateTrait(event) {
         if (!event.context.selected.hasOwnProperty("phenotype")) {
             event.context.selected.phenotype = this._createPhenotypeFromAlleles(
                 event.context.selected.alleles,
@@ -59,9 +74,6 @@ class TraitRule extends Rule {
         this._target =  event.context.target.phenotype[this.attribute];
 
         let isActivated = this._targetMap.hasOwnProperty(this._target);
-
-        // Use this log statement to debug rules
-        console.log("Rule | " + isActivated + " | " + this.attribute  + " == " + this._target);
 
         return isActivated;
     }
@@ -85,4 +97,4 @@ class TraitRule extends Rule {
     }
 }
 
-module.exports = TraitRule;
+module.exports = AttributeRule;

@@ -3,7 +3,7 @@
 const Group = require('../models/Group');
 const RulesRepository = require('../storage/rulesRepository');
 const AttributeConceptsRepository = require('../storage/attributeConceptsRepository');
-const TraitRule = require('../models/traitRule');
+const AttributeRule = require('../models/attributeRule');
 const RuleCondition = require('../models/ruleCondition');
 
 /**
@@ -116,7 +116,7 @@ class RulesFactory {
                 targetMap[target.target] = target;
             }
     
-            let rule = new TraitRule(
+            let rule = new AttributeRule(
                 attribute,
                 targetMap);
     
