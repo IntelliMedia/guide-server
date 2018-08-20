@@ -9,20 +9,26 @@ const AttributeConceptsRepository = require('../storage/attributeConceptsReposit
  */
 class RulesFactory {
     constructor() {
-        this.attributeConceptsRepository = new AttributeConceptsRepository(global.cacheDirectory);
+        this.attributeConcepts = null;
     }
 
     createRulesForEventAsync(session, event) {
-        let evaluatorTags = event.action.toLowerCase() + ", " + event.target.toLowerCase();
-        return this._loadRulesFromSheetAsync(session, session.groupId, evaluatorTags);
         
+        let groupName = session.groupId;
+        let speciesName = event.context.species;
+
         // if (event.isMatch('USER', 'CHANGED', 'ALLELE')) {
         //     //evaluator = new Evaluator();
         // } else if (event.isMatch('USER', 'SELECTED', 'GAMETE')) {
         //     //evaluator = new Evaluator();
-        // } else if (event.isMatch('USER', 'SUBMITTED', 'ORGANISM')) {
-        //     //evaluator = new RulesEvaluator();
-        // } else if (event.isMatch('USER', 'SUBMITTED', 'EGG')) {
+        if (event.isMatch('USER', 'SUBMITTED', 'ORGANISM')) {
+             return this._loadAttributeConceptsAsync(session, groupName, speciesName)
+                .then(() => this._createTraitMatchRules(speciesName));
+         } else {
+            let evaluatorTags = event.action.toLowerCase() + ", " + event.target.toLowerCase();
+            return this._loadRulesFromSheetAsync(session, session.groupId, evaluatorTags);
+        }
+        //else if (event.isMatch('USER', 'SUBMITTED', 'EGG')) {
         //     //evaluator = new OrganismEvaluator();
         // } else if (event.isMatch('USER', 'BRED', 'CLUTCH')) {
         //     //evaluator = new Evaluator();
@@ -35,23 +41,34 @@ class RulesFactory {
         // } else {
         //     throw new Error("Unable to find evaluator for event: " + event.toString());
         // }
+
     }
 
-    initializeAsync(session, groupName, speciesName) {
-        let tags = speciesName + ", attributes, concepts";
-        return Group.findOne({ "name": groupName }).then((group) => {
-            if (!group) {
-                throw new Error("Unable to find group with name: " + groupName);
-            }
+    _loadAttributeConceptsAsync(session, groupName, speciesName) {
+        if (this.attributeConcepts != null) {
+            return Promise.accept();
+        } else {
+            let attributeConceptsRepository;
+            return Group.findOne({ "name": groupName }).then((group) => {
+                if (!group) {
+                    throw new Error("Unable to find group with name: " + groupName);
+                }
 
-            let ids = group.getCollectionIds(tags);
-            
-            if (ids.length == 0) {
-                session.warningAlert("Unable to find attribute concepts sheet for [" + tags + "] defined in '" + groupName + "' group");
-            }
+                let tags = speciesName + ", attribute-concepts";
+                let ids = group.getCollectionIds(tags);
+                
+                if (ids.length == 0) {
+                    session.warningAlert("Unable to find attribute concepts sheet for [" + tags + "] defined in '" + groupName + "' group");
+                }
 
-            return this.attributeConceptsRepository.loadCollectionsAsync(ids, group.cacheDisabled);
-        });
+                attributeConceptsRepository = new AttributeConceptsRepository(global.cacheDirectory);
+                return attributeConceptsRepository.loadCollectionsAsync(ids, group.cacheDisabled);
+            }).then(() => {
+                if (attributeConceptsRepository) {
+                    this.attributeConcepts = attributeConceptsRepository.objs;
+                }
+            })
+        }
     } 
 
     _loadRulesFromSheetAsync(session, groupName, tags) {
@@ -76,8 +93,10 @@ class RulesFactory {
         .then(() => rulesRepository.objs);
     }   
 
-    static CreateTraitMatchRules(species, trait) {
+    _createTraitMatchRules(species) {
+        let rules = [];
 
+        return rules;
     }
 
     static CreateTraitChangeRule(species, trait) {

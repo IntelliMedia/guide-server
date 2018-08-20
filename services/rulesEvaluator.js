@@ -41,6 +41,15 @@ class RulesEvaluator {
 
     _evaluateRules(rules, event) {
 
+        let activatedRules = [];
+
+        if (rules.length > 0) {
+            this.session.debugAlert("Evaluating " + rules.length + " rules for event: " + event.toString());
+        } else {
+            this.session.warningAlert("No rules found for event: " + event.toString());          
+            return activatedRules;          
+        }
+
         let challengeId = event.context.challengeId;
         console.log("Evaluate rules for: {0} ({1} | {2} | {3})".format(this.student.id, this.session.classId, this.session.groupId, challengeId)); 
 
@@ -56,7 +65,6 @@ class RulesEvaluator {
         }
 
         let selectionChangedCache = {};
-        let activatedRules = []
         for (let rule of rules) {
             let attribute = rule.attribute;
             if (attribute === undefined 
@@ -82,6 +90,11 @@ class RulesEvaluator {
 
     _updateStudentModelAsync(activatedRules, event) {
         
+        if (activatedRules.length == 0) {
+            this.session.debugAlert("No rules fired. Skip student model update.");               
+            return Promise.resolve();     
+        }
+
         let savePromises = [];
         let rulesFiredMsgs = [];
 
@@ -105,14 +118,7 @@ class RulesEvaluator {
             }                
         }
 
-        // if (rulesFiredMsgs.length > 0) {
-        //     this.session.debugAlert("Evaluated " + rules.length + " rules -> Fired " + rulesFiredMsgs.length 
-        //         + "\n" + rulesFiredMsgs.join("\n"));
-        // } else {
-        //     this.session.debugAlert("Evaluated " + rules.length + " rules -> None fired. Rule sheet URLs:"
-        //         + "\n" + this.ruleSourceUrls.join("\n"));                    
-        // }
-
+        this.session.debugAlert("Fired " + rulesFiredMsgs.length + " rules: \n" + rulesFiredMsgs.join("\n"));
         savePromises.push(this.studentModelService.updateDashboardAsync(this.student, this.session));
         
         return Promise.all(savePromises);

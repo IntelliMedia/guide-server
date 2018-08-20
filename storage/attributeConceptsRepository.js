@@ -12,4 +12,4 @@ class AttributeConceptsRepository extends GoogleSheetRepository {
     }
 }
 
-module.exports = AttributeConceptsCsvDeserializer;
+module.exports = AttributeConceptsRepository;
