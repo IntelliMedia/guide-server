@@ -1,10 +1,19 @@
 'use strict';
 
-// Base class/interface for all rules that can be evaluated by the RuleEvaluator class
+// Base class for all rules that can be evaluated by the RuleEvaluator class
 class Rule {   
-    constructor(source, id) {
+    constructor(source, id, attribute) {
         this.source = source;
         this.id = id;
+        this.attribute = attribute;
+    }
+
+    isCorrect() {
+        throw new Error("Not implemented. This must be overriden in a derived class.");
+    }
+
+    concepts() {
+        throw new Error("Not implemented. This must be overriden in a derived class.");
     }
 
     substitutionVariables() {

@@ -1,21 +1,28 @@
 'use strict';
 
 const Biologicax = require('../shared/biologicax');
+const Rule = require('./rule');
 const RuleCondition = require('./ruleCondition');
 const GoogleSheetRepository = require('../storage/googleSheetRepository');
 const arrayx = require("../utilities/arrayx");
 const _ = require('lodash');
 
-class TraitRule {   
+class TraitRule extends Rule {   
     constructor(source, id, attribute, targetMap) {
-        this.source = source;
-        this.id = id;
-        this.attribute = attribute;
-        this.targetMap = targetMap;
+        super(source, id, attribute);
 
+        this.targetMap = targetMap;
         this.target = null;
         this.selected = null;
         this.isCorrect = false;
+    }
+
+    isCorrect() {
+        throw new Error("Not implemented. This must be overriden in a derived class.");
+    }
+
+    concepts() {
+        throw new Error("Not implemented. This must be overriden in a derived class.");
     }
 
     substitutionVariables() {
@@ -61,20 +68,6 @@ class TraitRule {
         }
         
         return phenotype;
-    }
-
-    _conditionsAsString(conditions) {
-        let s = "";
-        let prependAnd = false;
-        this.conditions.forEach((condition) => {
-            if (prependAnd) {
-                s += " && ";
-            }
-            s += condition.value;
-            prependAnd = true;
-        });
-
-        return s;
     }
 }
 

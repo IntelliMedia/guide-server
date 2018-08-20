@@ -10,31 +10,26 @@ const _ = require('lodash');
 // Domain-independent rule that is defined by one or more conditions
 class GenericRule extends Rule {   
     constructor(source, id, conditions, isCorrect, concepts, substitutions) {
-        super(source, id);
-        this.conditions = conditions;
-        this.concepts = concepts;
-        this.attribute = null;
-        this.isCorrect = isCorrect;
-        this.substitutions = substitutions;
 
-        if (!this.conditions || this.conditions.length == 0) {
+        if (!conditions || conditions.length == 0) {
             throw new Error("No conditions defined for ECD rule.")
         }
 
-        let attributes = [];
-        this.conditions.forEach((condition) => {
-            if (condition.isUserSelection && condition.attribute) {
-                attributes.push(condition.attribute);
-            }
-        });
+        let attribute = GenericRule._extractAttributeFromConditions(conditions);
+        super(source, id, attribute);
 
-        attributes = _.uniq(attributes);
-        if (attributes.length > 1) {
-            throw new Error("Rule specifies more than one attribute: ", attributes.join(", "));
-        }
+        this._conditions = conditions;
+        this._concepts = concepts;
+        this._isCorrect = isCorrect;
+        this._substitutions = substitutions;
+    }
 
-        // Remove duplicates
-        this.attribute = (attributes.length > 0 ? attributes[0] : "n/a");
+    isCorrect() {
+        return this._isCorrect;
+    }
+
+    concepts() {
+        return this._concepts;
     }
 
     substitutionVariables() {
@@ -42,11 +37,11 @@ class GenericRule extends Rule {
             attribute: BiologicaX.getDisplayName(this.attribute)
         };
 
-        if (this.substitutions) {
-            variableMap = Object.assign(this.substitutions, variableMap);
+        if (this._substitutions) {
+            variableMap = Object.assign(this._substitutions, variableMap);
         }
 
-        for(let condition of this.conditions) {
+        for(let condition of this._conditions) {
             // Does this condition represent the target?
             condition.populateSubstitutionVariables(variableMap);
         }   
@@ -58,7 +53,7 @@ class GenericRule extends Rule {
         
         let debugMsg = "";
 
-        let allConditionsMatched = this.conditions.every((condition) => {
+        let allConditionsMatched = this._conditions.every((condition) => {
             try {
                 let result = condition.evaluate(event);
                 debugMsg += "[" + condition.toString() + " -> " + result + "] "
@@ -73,6 +68,24 @@ class GenericRule extends Rule {
         console.log("Rule | " + this.attribute  + " -> " + allConditionsMatched + "  " + debugMsg);
 
         return allConditionsMatched;
+    }
+
+    static _extractAttributeFromConditions(conditions) {
+        let attributes = [];
+        conditions.forEach((condition) => {
+            if (condition.isUserSelection && condition.attribute) {
+                attributes.push(condition.attribute);
+            }
+        });
+
+        attributes = _.uniq(attributes);
+        if (attributes.length > 1) {
+            throw new Error("Rule specifies more than one attribute: ", attributes.join(", "));
+        }
+
+        // Remove duplicates
+        let attribute = (attributes.length > 0 ? attributes[0] : "n/a");
+        return attribute;
     }
 }
 

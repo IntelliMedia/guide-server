@@ -77,7 +77,7 @@ class RulesEvaluator {
                     // or allowed the incorrect choice to remain
                     // Don't process rules where the player did nothing and the
                     // current state was correct to avoid concept inflation.
-                    if (!rule.isCorrect || this._hasSelectionChanged(selectionChangedCache, attribute, event))
+                    if (!rule.isCorrect() || this._hasSelectionChanged(selectionChangedCache, attribute, event))
                     {
                         activatedRules.push(rule);
                     }
@@ -100,12 +100,12 @@ class RulesEvaluator {
 
         if (activatedRules.length > 0) {           
             for (let rule of activatedRules) {
-                for (let conceptId in rule.concepts) { 
+                for (let conceptId in rule.concepts()) { 
                     savePromises.push(this.studentModelService.processConceptDataPoint(
                         this.student,
                         this.session,
                         conceptId, 
-                        rule.isCorrect, 
+                        rule.isCorrect(), 
                         event.context.challengeId, 
                         rule.attribute, 
                         rule.substitutionVariables(),
@@ -113,7 +113,7 @@ class RulesEvaluator {
                         RulesRepository.sourceAsUrl(rule)));
 
                     rulesFiredMsgs.push("Rule Triggered ->  Correct:{0} | {1} | {2} | rule: {3}".format( 
-                        rule.isCorrect, conceptId, rule.attribute, RulesRepository.sourceAsUrl(rule)));
+                        rule.isCorrect(), conceptId, rule.attribute, RulesRepository.sourceAsUrl(rule)));
                 }
             }                
         }
