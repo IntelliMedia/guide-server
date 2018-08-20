@@ -100,7 +100,7 @@ class RulesEvaluator {
 
         if (activatedRules.length > 0) {           
             for (let rule of activatedRules) {
-                for (let conceptId in rule.concepts()) { 
+                for (let conceptId of rule.concepts()) { 
                     savePromises.push(this.studentModelService.processConceptDataPoint(
                         this.student,
                         this.session,

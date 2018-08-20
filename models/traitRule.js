@@ -11,25 +11,30 @@ class TraitRule extends Rule {
     constructor(source, id, attribute, targetMap) {
         super(source, id, attribute);
 
-        this.targetMap = targetMap;
-        this.target = null;
-        this.selected = null;
-        this.isCorrect = false;
+        this._targetMap = targetMap;
+        this._selected = null;
+        this._target = null;
     }
 
     isCorrect() {
-        throw new Error("Not implemented. This must be overriden in a derived class.");
+        this._checkEvaluated();
+
+        return (this._selected === this._target);
     }
 
     concepts() {
-        throw new Error("Not implemented. This must be overriden in a derived class.");
+        this._checkEvaluated();
+
+        return this._targetMap[this._target];
     }
 
     substitutionVariables() {
+        this._checkEvaluated();
+
         return {
             attribute: BiologicaX.getDisplayName(this.attribute),
-            selectedTrait: BiologicaX.getDisplayName(this.selected),
-            targetTrait: BiologicaX.getDisplayName(this.target)
+            selectedTrait: BiologicaX.getDisplayName(this._selected),
+            targetTrait: BiologicaX.getDisplayName(this._target)
         };
     }
 
@@ -44,18 +49,21 @@ class TraitRule extends Rule {
             );
         }
 
-        let selected =  event.context.target.phenotype[attribute];
-        let target =  event.context.target.phenotype[attribute];
+        this._selected =  event.context.selected.phenotype[this.attribute];
+        this._target =  event.context.target.phenotype[this.attribute];
 
-        this.isCorrect = (selected === target);
-
-        let isActivated = target === this.target
-            && selected === this.selected;
+        let isActivated = this._targetMap.hasOwnProperty(this._target);
 
         // Use this log statement to debug rules
-        console.log("Rule | " + isActivated + " | " + this.attribute  + " == " + this.target);
+        console.log("Rule | " + isActivated + " | " + this.attribute  + " == " + this._target);
 
         return isActivated;
+    }
+
+    _checkEvaluated() {
+        if (this._selected == null || this._target == null) {
+            throw new Error("Rule has not been evaluated.");
+        }
     }
 
     _createPhenotypeFromAlleles(alleles, sex) {

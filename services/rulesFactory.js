@@ -19,17 +19,24 @@ class RulesFactory {
         let groupName = session.groupId;
         let speciesName = event.context.species;
 
+        let legacy = false;
+
+        if (legacy) {
+            let evaluatorTags = event.action.toLowerCase() + ", " + event.target.toLowerCase();
+            return this._loadRulesFromSheetAsync(session, session.groupId, evaluatorTags);
+        } else {
+
         // if (event.isMatch('USER', 'CHANGED', 'ALLELE')) {
         //     //evaluator = new Evaluator();
         // } else if (event.isMatch('USER', 'SELECTED', 'GAMETE')) {
         //     //evaluator = new Evaluator();
-        //if (event.isMatch('USER', 'SUBMITTED', 'ORGANISM')) {
-        //     return this._loadAttributeConceptsAsync(session, groupName, speciesName)
-        //        .then(() => this._createTraitMatchRules(speciesName));
-        // } else {
+        if (event.isMatch('USER', 'SUBMITTED', 'ORGANISM')) {
+             return this._loadAttributeConceptsAsync(session, groupName, speciesName)
+                .then(() => this._createTraitMatchRules(speciesName));
+        } else {
             let evaluatorTags = event.action.toLowerCase() + ", " + event.target.toLowerCase();
             return this._loadRulesFromSheetAsync(session, session.groupId, evaluatorTags);
-        //}
+        }
         //else if (event.isMatch('USER', 'SUBMITTED', 'EGG')) {
         //     //evaluator = new OrganismEvaluator();
         // } else if (event.isMatch('USER', 'BRED', 'CLUTCH')) {
@@ -43,6 +50,8 @@ class RulesFactory {
         // } else {
         //     throw new Error("Unable to find evaluator for event: " + event.toString());
         // }
+
+        }
 
     }
 
@@ -98,16 +107,15 @@ class RulesFactory {
     _createTraitMatchRules(species) {
         let rules = [];
 
-        var concepts = {};
-        concepts["LG20.0"] = true;
-        concepts["LG30.0"] = false;
+        var targetMap = {};
+        targetMap["Wings"] = ["LG1.C2a"];
+        targetMap["No wings"] = ["LG1.C2b"];
 
         let rule = new TraitRule(
-            "Generated",
-            0, 
-            "forelimbs",
-            "Forelimbs",
-            concepts);
+            "urn:TraitRule",
+            "0", 
+            "wings",
+            targetMap);
 
         rules.push(rule);
         return rules;

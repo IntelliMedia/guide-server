@@ -225,13 +225,13 @@ class RuleCsvDeserializer extends CsvDeserializer {
     }
 
     _extractConcepts(headerRow, currentRow) {
-        var concepts = {};
+        var concepts = [];
          for (var i = 0; i < headerRow.length; ++i) {
             if (this._isConceptId(headerRow[i])) {
                 var value = currentRow[i].trim();
-                if (value) {
+                if (value && this._asBoolean(value) === true) {
                     var conceptId = this._extractHeadingValue(headerRow[i]);
-                    concepts[conceptId] = this._asBoolean(value);
+                    concepts.push(conceptId);
                 }
             }
          }
