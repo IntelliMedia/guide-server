@@ -3,7 +3,6 @@
 const Group = require('../models/Group');
 const RulesRepository = require('../storage/rulesRepository');
 const AttributeConceptsRepository = require('../storage/attributeConceptsRepository');
-const Rule = require('../models/rule');
 const TraitRule = require('../models/traitRule');
 const RuleCondition = require('../models/ruleCondition');
 

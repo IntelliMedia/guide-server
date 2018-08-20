@@ -1,6 +1,6 @@
 'use strict';
 
-const Rule = require('../models/rule');
+const GenericRule = require('../models/genericRule');
 const RuleCondition = require('../models/ruleCondition');
 const CsvDeserializer = require('./csvDeserializer');
 const Stringx = require('../utilities/stringx');
@@ -101,7 +101,7 @@ class RuleCsvDeserializer extends CsvDeserializer {
             throw new Error("Missing conditions in CSV. Unable to find columns with condition prefixes: Target-, Selected-, or Condition-");
         }
 
-        return new Rule(
+        return new GenericRule(
             source,
             ruleId, 
             conditions,
