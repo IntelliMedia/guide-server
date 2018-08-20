@@ -3,6 +3,9 @@
 const Group = require('../models/Group');
 const RulesRepository = require('../storage/rulesRepository');
 const AttributeConceptsRepository = require('../storage/attributeConceptsRepository');
+const Rule = require('../models/rule');
+const TraitRule = require('../models/traitRule');
+const RuleCondition = require('../models/ruleCondition');
 
 /**
  * This class creates rules of specific types
@@ -21,13 +24,13 @@ class RulesFactory {
         //     //evaluator = new Evaluator();
         // } else if (event.isMatch('USER', 'SELECTED', 'GAMETE')) {
         //     //evaluator = new Evaluator();
-        if (event.isMatch('USER', 'SUBMITTED', 'ORGANISM')) {
-             return this._loadAttributeConceptsAsync(session, groupName, speciesName)
-                .then(() => this._createTraitMatchRules(speciesName));
-         } else {
+        //if (event.isMatch('USER', 'SUBMITTED', 'ORGANISM')) {
+        //     return this._loadAttributeConceptsAsync(session, groupName, speciesName)
+        //        .then(() => this._createTraitMatchRules(speciesName));
+        // } else {
             let evaluatorTags = event.action.toLowerCase() + ", " + event.target.toLowerCase();
             return this._loadRulesFromSheetAsync(session, session.groupId, evaluatorTags);
-        }
+        //}
         //else if (event.isMatch('USER', 'SUBMITTED', 'EGG')) {
         //     //evaluator = new OrganismEvaluator();
         // } else if (event.isMatch('USER', 'BRED', 'CLUTCH')) {
@@ -96,6 +99,18 @@ class RulesFactory {
     _createTraitMatchRules(species) {
         let rules = [];
 
+        var concepts = {};
+        concepts["LG20.0"] = true;
+        concepts["LG30.0"] = false;
+
+        let rule = new TraitRule(
+            "Generated",
+            0, 
+            "forelimbs",
+            "Forelimbs",
+            concepts);
+
+        rules.push(rule);
         return rules;
     }
 

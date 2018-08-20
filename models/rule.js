@@ -74,7 +74,7 @@ class Rule {
         return allConditionsMatched;
     }
 
-    conditionsAsString(conditions) {
+    _conditionsAsString(conditions) {
         let s = "";
         let prependAnd = false;
         this.conditions.forEach((condition) => {
