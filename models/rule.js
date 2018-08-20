@@ -2,10 +2,12 @@
 
 // Base class for all rules that can be evaluated by the RuleEvaluator class
 class Rule {   
-    constructor(source, id, attribute) {
-        this.source = source;
-        this.id = id;
+    constructor(attribute) {
         this.attribute = attribute;
+    }
+
+    sourceAsUrl() {
+        throw new Error("Not implemented. This must be overriden in a derived class.");
     }
 
     isCorrect() {

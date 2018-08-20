@@ -110,10 +110,10 @@ class RulesEvaluator {
                         rule.attribute, 
                         rule.substitutionVariables(),
                         event.time, 
-                        RulesRepository.sourceAsUrl(rule)));
+                        rule.sourceAsUrl()));
 
                     rulesFiredMsgs.push("Rule Triggered ->  Correct:{0} | {1} | {2} | rule: {3}".format( 
-                        rule.isCorrect(), conceptId, rule.attribute, RulesRepository.sourceAsUrl(rule)));
+                        rule.isCorrect(), conceptId, rule.attribute, rule.sourceAsUrl()));
                 }
             }                
         }

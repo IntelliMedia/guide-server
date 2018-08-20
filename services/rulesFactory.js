@@ -65,7 +65,7 @@ class RulesFactory {
                     throw new Error("Unable to find group with name: " + groupName);
                 }
 
-                let tags = speciesName + ", attribute-concepts";
+                let tags = speciesName.toLowerCase() + ", attribute-concepts";
                 let ids = group.getCollectionIds(tags);
                 
                 if (ids.length == 0) {
@@ -107,17 +107,22 @@ class RulesFactory {
     _createTraitMatchRules(species) {
         let rules = [];
 
-        var targetMap = {};
-        targetMap["Wings"] = ["LG1.C2a"];
-        targetMap["No wings"] = ["LG1.C2b"];
+        let attributes = [...new Set(this.attributeConcepts.map(item => item.attribute))];
 
-        let rule = new TraitRule(
-            "urn:TraitRule",
-            "0", 
-            "wings",
-            targetMap);
+        for(let attribute of attributes) {
+            let targets = this.attributeConcepts.filter((item) => item.attribute === attribute);
+            var targetMap = {};
+            for(let target of targets) {
+                targetMap[target.target] = target;
+            }
+    
+            let rule = new TraitRule(
+                attribute,
+                targetMap);
+    
+            rules.push(rule);
+        }
 
-        rules.push(rule);
         return rules;
     }
 

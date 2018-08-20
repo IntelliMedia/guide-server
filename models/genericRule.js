@@ -1,11 +1,8 @@
 'use strict';
 
-const Biologicax = require('../shared/biologicax');
 const Rule = require('./rule');
-const RuleCondition = require('./ruleCondition');
 const GoogleSheetRepository = require('../storage/googleSheetRepository');
-const arrayx = require("../utilities/arrayx");
-const _ = require('lodash');
+const lodash = require('lodash');
 
 // Domain-independent rule that is defined by one or more conditions
 class GenericRule extends Rule {   
@@ -16,12 +13,18 @@ class GenericRule extends Rule {
         }
 
         let attribute = GenericRule._extractAttributeFromConditions(conditions);
-        super(source, id, attribute);
+        super(attribute);
 
+        this.source = source;
+        this.id = id;
         this._conditions = conditions;
         this._concepts = concepts;
         this._isCorrect = isCorrect;
         this._substitutions = substitutions;
+    }
+
+    sourceAsUrl() {
+        return GoogleSheetRepository.sourceAsUrl(this);
     }
 
     isCorrect() {
@@ -78,7 +81,7 @@ class GenericRule extends Rule {
             }
         });
 
-        attributes = _.uniq(attributes);
+        attributes = lodash.uniq(attributes);
         if (attributes.length > 1) {
             throw new Error("Rule specifies more than one attribute: ", attributes.join(", "));
         }

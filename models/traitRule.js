@@ -8,12 +8,18 @@ const arrayx = require("../utilities/arrayx");
 const _ = require('lodash');
 
 class TraitRule extends Rule {   
-    constructor(source, id, attribute, targetMap) {
-        super(source, id, attribute);
+    constructor(attribute, targetMap) {
+        super(attribute);
 
         this._targetMap = targetMap;
         this._selected = null;
         this._target = null;
+    }
+
+    sourceAsUrl() {
+        this._checkEvaluated();
+
+        return GoogleSheetRepository.sourceAsUrl(this._targetMap[this._target]);
     }
 
     isCorrect() {
@@ -25,7 +31,7 @@ class TraitRule extends Rule {
     concepts() {
         this._checkEvaluated();
 
-        return this._targetMap[this._target];
+        return this._targetMap[this._target].conceptIds;
     }
 
     substitutionVariables() {

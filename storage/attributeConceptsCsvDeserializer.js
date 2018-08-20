@@ -15,22 +15,23 @@ class AttributeConceptsCsvDeserializer extends CsvDeserializer {
         return [new AttributeConcepts(
             source,
             currentRowIndex, 
-            this._asNumber(this._getCell(currentRow, columnMap, "attribute")),
-            this._asNumber(this._getCell(currentRow, columnMap, "target")),
+            this._getCell(currentRow, columnMap, "attribute"),
+            this._getCell(currentRow, columnMap, "target"),
             this._extractConcepts(headerRow, currentRow))];
     }    
 
-    _extract_extractConceptsHints(headerRow, currentRow) {
-        var hints = [];
+    _extractConcepts(headerRow, currentRow) {
+        let conceptIds = [];
          for (var i = 0; i < headerRow.length; ++i) {
-            if (this._isHint(headerRow[i])) {
+            if (this._isConcept(headerRow[i])) {
                 var value = currentRow[i].trim();
-                if (value) {
-                    hints.push(value);
+                if (value && this._asBoolean(value) === true) {
+                    let conceptId = this._extractHeadingValue(headerRow[i]);
+                    conceptIds.push(conceptId);
                 }
             }
          }
-         return hints;
+         return conceptIds;
     }
 
     _isConcept(text) {
