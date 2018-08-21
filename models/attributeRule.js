@@ -7,6 +7,7 @@ const GoogleSheetRepository = require('../storage/googleSheetRepository');
 const arrayx = require("../utilities/arrayx");
 const stringx = require("../utilities/stringx");
 const _ = require('lodash');
+const propPath = require('property-path');
 
 class AttributeRule extends Rule {   
     constructor(attribute, targetMap) {
@@ -57,18 +58,15 @@ class AttributeRule extends Rule {
 
     _evaluateSex(event) {
 
-        this._checkProperty(event.context.selected, "sex");
-        this._checkProperty(event.context.target, "sex");
-
-        this._selected = BiologicaX.sexToString(event.context.selected.sex);
-        this._target = BiologicaX.sexToString(event.context.target.sex);
+        this._selected = BiologicaX.sexToString(this._getProperty(event, "context.selected.sex", true));
+        this._target = BiologicaX.sexToString(this._getProperty(event, "context.target.sex", true));
 
         let isActivated = this._targetMap.hasOwnProperty(this._target);
         if (isActivated) {
             this._isCorrect = (this._selected === this._target);
             this._concepts = this._targetMap[this._target].conceptIds;
         }
-        
+
         return isActivated;
     }
 
@@ -80,13 +78,19 @@ class AttributeRule extends Rule {
             );
         }
 
-        this._checkProperty(event.context.selected.phenotype, this.attribute);
-        this._checkProperty(event.context.target.phenotype, this.attribute);
-
-        this._selected = event.context.selected.phenotype[this.attribute];
-        this._target = event.context.target.phenotype[this.attribute];
+        this._selected = this._getProperty(event, "context.selected.phenotype." + this.attribute, true);
+        this._target = this._getProperty(event, "context.target.phenotype." + this.attribute, true);
 
         let isActivated = this._targetMap.hasOwnProperty(this._target);
+
+        // Don't activate the rule if evaluating color-related trait and the target is albino since
+        // the color traits will be ignored.
+        if (this.attribute === "black" || this.attribute === "dilute") {
+            if (this._getProperty(event, "context.target.phenotype.colored", true) === "Albino") {
+                isActivated = false;
+            }
+        }
+
         if (isActivated) {
             this._isCorrect = (this._selected === this._target);
             this._concepts = this._targetMap[this._target].conceptIds;
@@ -95,10 +99,12 @@ class AttributeRule extends Rule {
         return isActivated;
     }
 
-    _checkProperty(obj, propertyName) {
-        if (!obj.hasOwnProperty(propertyName)) {
-            throw new Error("Attribute rule unable to find organism's '{0}' property".format(propertyName));           
+    _getProperty(obj, path, throwOnMissingProperty) {
+        let propertyValue = propPath.get(obj, path);
+        if (throwOnMissingProperty && propertyValue == undefined) {
+            throw new Error("Unable to find event value at property path: " + path);
         }
+        return propertyValue;
     }
 
     _checkEvaluated() {

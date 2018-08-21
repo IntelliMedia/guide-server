@@ -30,23 +30,28 @@ class MoveRule extends AttributeRule {
             return false;
         }
 
-        this._checkProperty(event.context.previous, "alleles");
-        this._checkProperty(event.context.previous, "sex");
+        let speciesName = this._getProperty(event, "context.species", true);
+        
+        let selectedAlleles = this._getProperty(event, "context.selected.alleles", true);
+        let selectedSex = this._getProperty(event, "context.selected.sex", true);
 
         let currentRemainingMoves = BiologicaX.numberOfMovesToCharacteristic(
-            event.context.species, 
-            event.context.selected.alleles,
-            event.context.selected.sex,
+            speciesName, 
+            selectedAlleles,
+            selectedSex,
             this.attribute,
-            event.context.target.phenotype[this.attribute]
+            this._target
         );
 
+        let previousAlleles = this._getProperty(event, "context.previous.alleles", true);
+        let previousSex = this._getProperty(event, "context.previous.sex", true);
+
         let previousRemainingMoves = BiologicaX.numberOfMovesToCharacteristic(
-            event.context.species, 
-            event.context.previous.alleles,
-            event.context.previous.sex,
+            speciesName, 
+            previousAlleles,
+            previousSex,
             this.attribute,
-            event.context.target.phenotype[this.attribute]
+            this._target
         );
 
         let isActivated = (this._selected === this._target);
