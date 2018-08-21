@@ -5,6 +5,7 @@ const Rule = require('./rule');
 const RuleCondition = require('./ruleCondition');
 const GoogleSheetRepository = require('../storage/googleSheetRepository');
 const arrayx = require("../utilities/arrayx");
+const stringx = require("../utilities/stringx");
 const _ = require('lodash');
 
 class AttributeRule extends Rule {   
@@ -54,6 +55,9 @@ class AttributeRule extends Rule {
 
     _evaluateSex(event) {
 
+        this._checkProperty(event.context.selected, "sex");
+        this._checkProperty(event.context.target, "sex");
+
         this._selected = BiologicaX.sexToString(event.context.selected.sex);
         this._target = BiologicaX.sexToString(event.context.target.sex);
 
@@ -70,17 +74,26 @@ class AttributeRule extends Rule {
             );
         }
 
-        this._selected =  event.context.selected.phenotype[this.attribute];
-        this._target =  event.context.target.phenotype[this.attribute];
+        this._checkProperty(event.context.selected.phenotype, this.attribute);
+        this._checkProperty(event.context.target.phenotype, this.attribute);
+
+        this._selected = event.context.selected.phenotype[this.attribute];
+        this._target = event.context.target.phenotype[this.attribute];
 
         let isActivated = this._targetMap.hasOwnProperty(this._target);
 
         return isActivated;
     }
 
+    _checkProperty(obj, propertyName) {
+        if (!obj.hasOwnProperty(propertyName)) {
+            throw new Error("Attribute rule unable to find organism's '{0}' property".format(propertyName));           
+        }
+    }
+
     _checkEvaluated() {
         if (this._selected == null || this._target == null) {
-            throw new Error("Rule has not been evaluated.");
+            throw new Error("Attribute rule for '{0}' has not been evaluated.".format(this.attribute));
         }
     }
 
