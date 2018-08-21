@@ -10,7 +10,9 @@ if (typeof exports === 'undefined') {
 
 (function () {
 
-    // Helper method
+    // Fix Biologica data structures to accept either "nose spike" or "nose"
+    BioLogica.Species.Drake.geneList["nose spike"] = BioLogica.Species.Drake.geneList["nose"];
+    BioLogica.Species.Drake.traitRules["nose"] = BioLogica.Species.Drake.traitRules["nose spike"];
 
     // Warn if overriding existing method
     if(Array.prototype.equals)
