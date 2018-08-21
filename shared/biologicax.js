@@ -248,6 +248,56 @@ if (typeof exports === 'undefined') {
         return (matches != null ? matches[1] : null)
     }  
 
+    BiologicaX.findAllelesForTraitWithoutSides = function(speciesName, alleles, trait) {
+        var species = BioLogica.Species[speciesName];
+        var allOptions = species.geneList[trait].alleles.join('|');
+        var regex = new RegExp('(?:[ab]:)(' + allOptions + ')(?:,|$)', 'g');
+
+        let match;
+        let matches = [];
+        while (match = regex.exec(alleles)) {
+            matches.push(match[1]);
+        }
+
+        return matches;
+    } 
+    
+    BiologicaX.numberOfMovesToCharacteristic = function(speciesName, alleles, sex, trait, characteristic) {
+
+        let currentAlleles = BiologicaX.findAllelesForTraitWithoutSides(speciesName, alleles, trait);
+        currentAlleles.sort();
+
+        let alleleTargets = BioLogica.Species[speciesName].traitRules[trait][characteristic];
+
+        let minMoves = Number.MAX_SAFE_INTEGER;
+        for (var alleleTarget of alleleTargets) {
+            minMoves = Math.min(minMoves, BiologicaX.minimumMoves(currentAlleles, alleleTarget));
+        }
+        return minMoves;
+    }
+
+    BiologicaX.minimumMoves = function(alleles, targetAlleles) {
+        var currentAlleles = alleles.slice().sort();
+        targetAlleles.sort();
+
+        if (alleles.length != targetAlleles.length) {
+            throw new Error("Allele arrays must be the same length to compute minimum moves.");
+        }
+
+        var moves = 0;
+        while(!currentAlleles.equals(targetAlleles)) {
+            for(var i = 0; i < currentAlleles.length; ++i) {
+                if (currentAlleles[i] != targetAlleles[i]) {
+                    currentAlleles[i] = targetAlleles[i];
+                    moves++;
+                    break;
+                }
+            }
+        }
+
+        return moves;
+    }
+
     BiologicaX.getTraitFromAlleles = function(species, alleles) {
 
         var allelesWithoutSide = alleles.map((allele) => allele.replace(/[ab]:/g, ""));

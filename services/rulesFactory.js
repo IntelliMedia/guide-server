@@ -4,7 +4,7 @@ const Group = require('../models/Group');
 const RulesRepository = require('../storage/rulesRepository');
 const AttributeConceptsRepository = require('../storage/attributeConceptsRepository');
 const AttributeRule = require('../models/attributeRule');
-const RuleCondition = require('../models/ruleCondition');
+const MoveRule = require('../models/moveRule');
 
 /**
  * This class creates rules of specific types
@@ -26,19 +26,18 @@ class RulesFactory {
             return this._loadRulesFromSheetAsync(session, session.groupId, evaluatorTags);
         } else {
 
-        // if (event.isMatch('USER', 'CHANGED', 'ALLELE')) {
-        //     //evaluator = new Evaluator();
-        // } else if (event.isMatch('USER', 'SELECTED', 'GAMETE')) {
-        //     //evaluator = new Evaluator();
-        if (event.isMatch('USER', 'SUBMITTED', 'ORGANISM')) {
+        if (event.isMatch('USER', 'SUBMITTED', 'ORGANISM')
+         || event.isMatch('USER', 'SUBMITTED', 'EGG')) {
              return this._loadAttributeConceptsAsync(session, groupName, speciesName)
-                .then(() => this._createTraitMatchRules(speciesName));
+                .then(() => this._createOrganismMatchRules(speciesName));
+        } else if (event.isMatch('USER', 'CHANGED', 'ALLELE')
+                || event.isMatch('USER', 'SELECTED', 'GAMETE')) {
+            return this._loadAttributeConceptsAsync(session, groupName, speciesName)
+                .then(() => this._createOrganismChangedRules(speciesName));
         } else {
             let evaluatorTags = event.action.toLowerCase() + ", " + event.target.toLowerCase();
             return this._loadRulesFromSheetAsync(session, session.groupId, evaluatorTags);
         }
-        //else if (event.isMatch('USER', 'SUBMITTED', 'EGG')) {
-        //     //evaluator = new OrganismEvaluator();
         // } else if (event.isMatch('USER', 'BRED', 'CLUTCH')) {
         //     //evaluator = new Evaluator();
         // } else if (event.isMatch('USER', 'CHANGED', 'PARENT')) {
@@ -104,7 +103,7 @@ class RulesFactory {
         .then(() => rulesRepository.objs);
     }   
 
-    _createTraitMatchRules(species) {
+    _createOrganismMatchRules(species) {
         let rules = [];
 
         let attributes = [...new Set(this.attributeConcepts.map(item => item.attribute))];
@@ -126,16 +125,26 @@ class RulesFactory {
         return rules;
     }
 
-    static CreateTraitChangeRule(species, trait) {
+    _createOrganismChangedRules(species) {
+        let rules = [];
 
-    }
+        let attributes = [...new Set(this.attributeConcepts.map(item => item.attribute))];
 
-    static CreateSexMatchRule(species) {
+        for(let attribute of attributes) {
+            let targets = this.attributeConcepts.filter((item) => item.attribute === attribute);
+            var targetMap = {};
+            for(let target of targets) {
+                targetMap[target.target] = target;
+            }
+    
+            let rule = new MoveRule(
+                attribute,
+                targetMap);
+    
+            rules.push(rule);
+        }
 
-    }
-
-    static CreateSexChangeRule(species) {
-
+        return rules;
     }
 
     static CreateBreedRule(species, trait) {

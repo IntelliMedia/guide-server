@@ -13,6 +13,8 @@ class AttributeRule extends Rule {
         super(attribute);
 
         this._targetMap = targetMap;
+        this._isCorrect = null;
+        this._concepts = null;
         this._selected = null;
         this._target = null;
     }
@@ -26,13 +28,13 @@ class AttributeRule extends Rule {
     isCorrect() {
         this._checkEvaluated();
 
-        return (this._selected === this._target);
+        return this._isCorrect;
     }
 
     concepts() {
         this._checkEvaluated();
 
-        return this._targetMap[this._target].conceptIds;
+        return this._concepts;
     }
 
     substitutionVariables() {
@@ -62,7 +64,11 @@ class AttributeRule extends Rule {
         this._target = BiologicaX.sexToString(event.context.target.sex);
 
         let isActivated = this._targetMap.hasOwnProperty(this._target);
-
+        if (isActivated) {
+            this._isCorrect = (this._selected === this._target);
+            this._concepts = this._targetMap[this._target].conceptIds;
+        }
+        
         return isActivated;
     }
 
@@ -81,6 +87,10 @@ class AttributeRule extends Rule {
         this._target = event.context.target.phenotype[this.attribute];
 
         let isActivated = this._targetMap.hasOwnProperty(this._target);
+        if (isActivated) {
+            this._isCorrect = (this._selected === this._target);
+            this._concepts = this._targetMap[this._target].conceptIds;
+        }
 
         return isActivated;
     }
