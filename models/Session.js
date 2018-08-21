@@ -22,7 +22,7 @@ sessionSchema.statics.findOrCreate = (sessionId) => {
       if (!session) {
         session = new Session();
         session.id = sessionId;
-        session.sequence = 0;
+        session.sequence = -1;
         //session.startTime = Date.now;
       }
 
@@ -92,7 +92,6 @@ sessionSchema.statics.deactivate = (session) => {
   }
 
 sessionSchema.methods.logEvent = function(event) {
-  event.sequence = this.sequence++;
   this.events.push(event);
 }
 

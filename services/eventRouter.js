@@ -35,7 +35,11 @@ class EventRouter {
         })
         .then((action) => {
             // If there is a response resulting from the event, send it to the client
-            if (action) { 
+            if (action) {
+                // Include the sequence number in the response so that the client
+                // can determine whether this action is still relevant to the user.
+                action.sequence = event.sequence; 
+
                 console.info("Send: " + action.toString() + " user=" + action.studentId);
                 session.logEvent(action);
                 session.emit(GuideProtocol.Event.Channel, action.toJson());
