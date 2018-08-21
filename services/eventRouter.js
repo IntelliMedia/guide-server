@@ -6,6 +6,7 @@ const TutorAction = require('../models/TutorAction');
 const Tutor = require('./tutor');
 const await = require('asyncawait/await');
 const guideProtocol = require('../shared/guide-protocol.js');
+const stringx = require("../utilities/stringx");
 
 class EventRouter {
     constructor() {
@@ -40,7 +41,11 @@ class EventRouter {
                 // can determine whether this action is still relevant to the user.
                 action.sequence = event.sequence; 
 
-                console.info("Send: " + action.toString() + " user=" + action.studentId);
+                console.info("Send: {0} to userId {1} (sequence: {2})".format(
+                    action.toString(),
+                    action.studentId,
+                    action.sequence
+                ));
                 session.logEvent(action);
                 session.emit(GuideProtocol.Event.Channel, action.toJson());
             } else {
