@@ -13,6 +13,7 @@ if (typeof exports === 'undefined') {
     // Fix Biologica data structures to accept either "nose spike" or "nose"
     BioLogica.Species.Drake.geneList["nose spike"] = BioLogica.Species.Drake.geneList["nose"];
     BioLogica.Species.Drake.traitRules["nose"] = BioLogica.Species.Drake.traitRules["nose spike"];
+    BioLogica.Species.Drake.geneList["colored"] = BioLogica.Species.Drake.geneList["color"];
 
     // Warn if overriding existing method
     if(Array.prototype.equals)
