@@ -268,6 +268,14 @@ if (typeof exports === 'undefined') {
     BiologicaX.numberOfMovesToCharacteristic = function(speciesName, alleles, sex, trait, characteristic) {
 
         let currentAlleles = BiologicaX.findAllelesForTraitWithoutSides(speciesName, alleles, trait);
+        
+        // Sex-linked traits can have only one allele if the wrong sex is selected
+        // Push an Y onto alleles to avoid counting this as a move (it will match the 
+        // characteristic in the traitRules)
+        if (currentAlleles.length < 2) {
+            currentAlleles.push("Y");
+        }
+
         currentAlleles.sort();
 
         let alleleTargets = BioLogica.Species[speciesName].traitRules[trait][characteristic];
