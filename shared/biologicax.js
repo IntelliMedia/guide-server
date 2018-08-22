@@ -395,8 +395,10 @@ if (typeof exports === 'undefined') {
             displayName = "full armor";
         } else if (displayName === "three armor") {
             displayName = "partial armor";
-        } else if (displayName === "three armor") {
+        } else if (displayName === "one armor") {
             displayName = "partial armor";
+        } else if (displayName === "no armor") {
+            displayName = "no armor";
         }
         return displayName;
     }    
