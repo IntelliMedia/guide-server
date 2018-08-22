@@ -78,6 +78,13 @@ class AttributeRule extends Rule {
             );
         }
 
+        if (!event.context.target.hasOwnProperty("phenotype")) {
+            event.context.target.phenotype = this._createPhenotypeFromAlleles(
+                event.context.target.alleles,
+                event.context.target.sex
+            );
+        }
+
         this._selected = this._getProperty(event, "context.selected.phenotype." + this.attribute, true);
         this._target = this._getProperty(event, "context.target.phenotype." + this.attribute, true);
 
