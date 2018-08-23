@@ -309,6 +309,105 @@ if (typeof exports === 'undefined') {
         return moves;
     }
 
+    BiologicaX.canParentsProduceOffspringWithCharacteristic = function(
+        speciesName, 
+        motherAlleles,
+        fatherAlleles,
+        trait,
+        characteristic
+    ) {
+        var species = BioLogica.Species[speciesName];
+
+        let parentsCanProduceOffspring = false;
+
+        var alleleTargets = species.traitRules[trait][characteristic];
+        for(var targetAlleles of alleleTargets) {
+            var mother = BiologicaX.findAllelesForTraitWithoutSides(speciesName, motherAlleles, trait);
+            mother.push("Y");
+            var father = BiologicaX.findAllelesForTraitWithoutSides(speciesName, fatherAlleles, trait);
+            mother.push("X");
+
+            // Can each parent contribute an allele to the target allele pattern?
+            let motherContributes = mother.includes(targetAlleles[0]);
+            let fatherContributes = father.includes(targetAlleles[1]);
+
+            if (motherContributes && fatherContributes) {
+                parentsCanProduceOffspring = true;
+                break;
+            }
+
+            // Flip sides and see if parents can contribute to the "other" side
+            motherContributes = mother.includes(targetAlleles[1]);
+            fatherContributes = father.includes(targetAlleles[0]);
+
+            if (motherContributes && fatherContributes) {
+                parentsCanProduceOffspring = true;
+                break;
+            }
+        }
+
+        return parentsCanProduceOffspring;
+    }
+
+    BiologicaX.whichParentDoesntContributeToOffspringWithCharacteristic = function(
+        speciesName, 
+        motherAlleles,
+        fatherAlleles,
+        trait,
+        characteristic
+    ) {
+        var species = BioLogica.Species[speciesName];
+
+        let nonContributingParent = null;
+
+        var alleleTargets = species.traitRules[trait][characteristic];
+        for(var targetAlleles of alleleTargets) {
+            var mother = BiologicaX.findAllelesForTraitWithoutSides(speciesName, motherAlleles, trait);
+            mother.push("Y");
+            var father = BiologicaX.findAllelesForTraitWithoutSides(speciesName, fatherAlleles, trait);
+            mother.push("X");
+
+            // Use random index selection so that the same parent isn't always the non-contributor
+            // based on the ordering of the alleles in traitRules. For example:
+            // 1) if both parents are [M,m] and the target is [m,m] one random parent needs to change
+            // 2) if both parents are [M,M] and the target is [m,m] then both parents need to change
+            // Random 0 or 1 (and 1-index will be the inverse: 1 or 0)
+            let index = Math.round(Math.random());
+
+            // Can each parent contribute an allele to the target allele pattern?
+            let motherContributes = mother.includes(targetAlleles[index]);
+            let fatherContributes = father.includes(targetAlleles[1-index]);
+
+            if (!(motherContributes || fatherContributes)) {
+                nonContributingParent = "both";
+                break;
+            } else if (!motherContributes) {
+                nonContributingParent = "mother";
+                break;               
+            } else if (!fatherContributes) {
+                nonContributingParent = "father";
+                break;               
+            }
+
+            // Flip sides and see if parents can contribute to the "other" side
+            motherContributes = mother.includes(targetAlleles[1-index]);
+            fatherContributes = father.includes(targetAlleles[index]);
+
+            if (!(motherContributes || fatherContributes)) {
+                nonContributingParent = "both";
+                break;
+            } else if (!motherContributes) {
+                nonContributingParent = "mother";
+                break;               
+            } else if (!fatherContributes) {
+                nonContributingParent = "father";
+                break;               
+            }
+        }
+
+        return nonContributingParent;
+    }  
+
     BiologicaX.getTraitFromAlleles = function(species, alleles) {
 
         var allelesWithoutSide = alleles.map((allele) => allele.replace(/[ab]:/g, ""));

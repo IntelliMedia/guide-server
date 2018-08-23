@@ -79,6 +79,12 @@ class HintRecommender {
                 && misconception.conceptState.totalAttempts >= item.minimumAttempts
                 && misconception.conceptState.probabilityLearned <= item.probabilityLearnedThreshold);
 
+            if (conceptHints.length == 0) {
+                if (!(hintsForChallengeType.some((item) => item.conceptId === misconception.conceptId))) {
+                    session.warningAlert("No hint defined for " + challengeType + " challenge for concept: " + misconception.conceptId); 
+                }  
+            }
+
             for (let conceptHint of conceptHints) { 
                 mostRecentHint = student.studentModel.mostRecentAction("HINT", challengeId, misconception.attribute);
                 let hintIndex = this._incrementHintIndex(mostRecentHint, conceptHint);
