@@ -144,46 +144,6 @@ class RulesEvaluator {
 
         return attributes = _.uniq(attributes);
     }
-
-    // Not using right now since changes are usually right with binary choices
-    _selectableAndChangedAttributes(event) {
-        // Minimally, we need to know which attributes were editable in the client
-        if (event.context && event.context.selectableAttributes === undefined) {
-            return [];
-        }
-
-        // If the event doesn't include previous values, assume all the 
-        // selectable attributes could have been changed.
-        if (event.context && event.context.previous === undefined) {
-            return event.context.selectableAttributes;
-        }
-
-        return event.context.selectableAttributes.filter((attribute) => {
-            return this._hasSelectionChanged(attribute, event);
-        });
-    }
-
-    _hasSelectionChanged(selectionChangedCache, attribute, event) {
-        if (event.context.selectableAttributes === undefined) {
-            throw new Error("context.selectableAttributes not defined.");
-        }
-
-        // If this has already been calculated, use the cached value
-        if (selectionChangedCache.hasOwnProperty(attribute)) {
-            return selectionChangedCache[attribute];
-        }
-
-        let isChanged = true;
-        if (this.attribute === "sex") {
-            isChanged = RuleCondition.SexCondition.hasSelectionChanged(event);
-        } else {
-            isChanged = RuleCondition.AllelesCondition.hasSelectionChanged(event, attribute);
-        }
-
-        selectionChangedCache[attribute] = isChanged;
-
-        return isChanged;
-    }
 }
 
 module.exports = RulesEvaluator;

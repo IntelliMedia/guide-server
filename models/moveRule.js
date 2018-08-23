@@ -59,7 +59,7 @@ class MoveRule extends AttributeRule {
         this._isCorrect = currentRemainingMoves < previousRemainingMoves;
         this._concepts = ["LG99.A"];
 
-        return isActivated;
+        return true;
     }
 }
 

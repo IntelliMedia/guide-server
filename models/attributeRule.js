@@ -18,6 +18,7 @@ class AttributeRule extends Rule {
         this._concepts = null;
         this._selected = null;
         this._target = null;
+        this._changed = null;
     }
 
     sourceAsUrl() {
@@ -49,11 +50,22 @@ class AttributeRule extends Rule {
     }
 
     evaluate(event) {
+
+        let isActivated = false;
         if (this.attribute === "sex") {
-            return this._evaluateSex(event);
+            isActivated = this._evaluateSex(event);
         } else {
-            return this._evaluateTrait(event);
+            isActivated = this._evaluateTrait(event);
         }
+
+        // Only activate the rule if the attribute was changed OR if it
+        // was incorrect to avoid firing success for previously successful attributes
+        // and inflating scores for non-moves.
+        if (isActivated) {
+            isActivated = !this._isCorrect || this._hasOrganismChanged(event);
+        }
+        
+        return isActivated;
     }
 
     _evaluateSex(event) {
@@ -104,6 +116,29 @@ class AttributeRule extends Rule {
         }
 
         return isActivated;
+    }
+
+    _hasOrganismChanged(event) {
+        // If there is no previous property, we can't determine if the selection has changed, 
+        // assume it has.
+        if (!event.context.hasOwnProperty("previous")) {
+            return false;
+        }
+
+        let currentAlleles = this._getProperty(event, "context.selected.alleles", true);
+        let currentSex = BiologicaX.sexToString(this._getProperty(event, "context.selected.sex", true));
+
+        let previousAlleles = this._getProperty(event, "context.previous.alleles", true);
+        let previousSex = BiologicaX.sexToString(this._getProperty(event, "context.previous.sex", true));
+
+        let speciesName = this._getProperty(event, "context.species", true);
+        return BiologicaX.hasAttributeChanged(
+            speciesName, 
+            currentAlleles, 
+            currentSex, 
+            previousAlleles, 
+            previousSex,
+            this.attribute);
     }
 
     _getProperty(obj, path, throwOnMissingProperty) {

@@ -22,12 +22,19 @@ class BreedingRule extends AttributeRule {
     }
 
     evaluate(event) {
+        let isActivated = false;
         if (this.attribute === "sex") {
-            // Since sex is binary, it is either right or wrong, there
-            // are no unnecessary moves.
-            return false;
+            // The sex isn't selectable for this kind of challenge, don't evaluate it
+            isActivated = false;
         } else {
-            return this._evaluateBreeding(event);
+            isActivated = this._evaluateBreeding(event);
+        }
+
+        // Only activate the rule if the attribute was changed OR if it
+        // was incorrect to avoid firing success for previously successful attributes
+        // and inflating scores for non-moves.
+        if (isActivated) {
+            isActivated = !this._isCorrect || this._hasParentChanged(event);
         }
     }
 
@@ -113,6 +120,49 @@ class BreedingRule extends AttributeRule {
         }
 
         return isActivated;
+    }
+
+    _hasParentChanged(event) {
+        // If there is no previous property, we can't determine if the selection has changed, 
+        // assume it has.
+        if (!event.context.hasOwnProperty("previous")) {
+            return false;
+        }
+
+        let speciesName = this._getProperty(event, "context.species", true);
+
+        let motherChanged = false;
+        let motherAlleles = this._getProperty(event, "context.selected.motherAlleles", false);
+        if (motherAlleles != null) {
+            motherChanged = BiologicaX.hasAttributeChanged(
+                speciesName, 
+                motherAlleles, 
+                "Female", 
+                this._getProperty(event, "context.previous.motherAlleles", true), 
+                "Female",
+                this.attribute);
+        }
+
+        let fatherChanged = false;
+        let fatherAlleles = this._getProperty(event, "context.selected.fatherAlleles", false);
+        if (fatherAlleles != null) {
+            fatherChanged = BiologicaX.hasAttributeChanged(
+                speciesName, 
+                fatherAlleles, 
+                "Male", 
+                this._getProperty(event, "context.previous.fatherAlleles", true), 
+                "Male",
+                this.attribute);
+        }
+
+        if (!motherChanged) {
+            this._incorrectParent = "dad";
+        }
+        if (!fatherChanged) {
+            this._incorrectParent = "mom";
+        }
+
+        return motherChanged || fatherChanged;
     }
 
     _parentSubstitutionString(                
