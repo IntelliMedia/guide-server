@@ -36,6 +36,8 @@ class BreedingRule extends AttributeRule {
         if (isActivated) {
             isActivated = !this._isCorrect || this._hasParentChanged(event);
         }
+
+        return isActivated;
     }
 
     _evaluateBreeding(event) {
