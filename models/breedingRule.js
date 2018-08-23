@@ -45,8 +45,19 @@ class BreedingRule extends AttributeRule {
             return false;
         }
 
-        let motherAlleles = this._getProperty(event, "context.selected.motherAlleles", true);
-        let fatherAlleles = this._getProperty(event, "context.selected.fatherAlleles", true);
+        let motherConstant = false;
+        let motherAlleles = this._getProperty(event, "context.selected.motherAlleles", false);
+        if (motherAlleles == null) {
+            motherAlleles = this._getProperty(event, "context.constant.motherAlleles", true);
+            motherConstant = true;
+        }
+
+        let fatherConstant = false;
+        let fatherAlleles = this._getProperty(event, "context.selected.fatherAlleles", false);
+        if (fatherAlleles == null) {
+            fatherAlleles = this._getProperty(event, "context.constant.fatherAlleles", true);
+            fatherConstant = true;
+        }
 
         let offspringResults = [];
         for(let offspring of targeOffspring) {
@@ -86,13 +97,19 @@ class BreedingRule extends AttributeRule {
             this._target = offspringResults.find((item) => item.isCorrect == this._isCorrect).targetCharacteristic;
             this._selected = "n/a";
             this._concepts = this._targetMap[this._target].conceptIds;
-            this._incorrectParent = this._parentSubstitutionString(
-                speciesName, 
-                motherAlleles,
-                fatherAlleles,
-                this.attribute,
-                this._target
-            );
+            if (motherConstant) {
+                this._incorrectParent = "dad";
+            } else if (fatherConstant) {
+                this._incorrectParent = "mom";
+            } else { 
+                this._incorrectParent = this._parentSubstitutionString(
+                    speciesName, 
+                    motherAlleles,
+                    fatherAlleles,
+                    this.attribute,
+                    this._target
+                );
+            }
         }
 
         return isActivated;
