@@ -19,8 +19,10 @@ class MoveRule extends AttributeRule {
     }
 
     _evaluateMove(event) {
-        // If this rules doesn't apply, don't bother computing moves
-        if (!super.evaluate(event)) {
+        // If this rule doesn't apply or is simple the wrong move,
+        // don't bother computing moves since another rule will report
+        // the move as wrong.
+        if (!super.evaluate(event) || !this._isCorrect) {
             return false;
         }
 
@@ -54,11 +56,8 @@ class MoveRule extends AttributeRule {
             this._target
         );
 
-        let isActivated = (this._selected === this._target);
-        if (isActivated) {
-            this._isCorrect = currentRemainingMoves < previousRemainingMoves;
-            this._concepts = ["LG99.A"];
-        }
+        this._isCorrect = currentRemainingMoves < previousRemainingMoves;
+        this._concepts = ["LG99.A"];
 
         return isActivated;
     }

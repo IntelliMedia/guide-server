@@ -309,6 +309,64 @@ if (typeof exports === 'undefined') {
         return moves;
     }
 
+    BiologicaX.numberOfMovesToContributeToOffspringCharacteristic = function(
+        speciesName, 
+        motherAlleles,
+        fatherAlleles,
+        trait,
+        offspringCharacteristic) {
+
+        let motherTraitAlleles = BiologicaX.findAllelesForTraitWithoutSides(speciesName, motherAlleles, trait);
+        // Sex-linked traits can have only one allele if the wrong sex is selected
+        // Push an Y onto alleles to avoid counting this as a move (it will match the 
+        // characteristic in the traitRules)
+        if (motherTraitAlleles.length < 2) {
+            motherTraitAlleles.push("Y");
+        }
+        motherTraitAlleles.sort();
+
+        let fatherTraitAlleles = BiologicaX.findAllelesForTraitWithoutSides(speciesName, fatherAlleles, trait);
+        // Sex-linked traits can have only one allele if the wrong sex is selected
+        // Push an Y onto alleles to avoid counting this as a move (it will match the 
+        // characteristic in the traitRules)
+        if (fatherTraitAlleles.length < 2) {
+            fatherTraitAlleles.push("X");
+        }        
+        fatherTraitAlleles.sort();
+
+        let offspringAlleleTargets = BioLogica.Species[speciesName].traitRules[trait][offspringCharacteristic];
+
+        let minMoves = Number.MAX_SAFE_INTEGER;
+        for (var offspringAlleleTarget of offspringAlleleTargets) {
+            minMoves = Math.min(minMoves, BiologicaX.minimumParentMoves(
+                motherTraitAlleles, 
+                fatherTraitAlleles, 
+                offspringAlleleTarget));
+        }
+        return minMoves;
+    }
+
+    BiologicaX.minimumParentMoves = function(motherAlleles, fatherAlleles, offspringAlleles) {
+        offspringAlleles.sort();
+
+        if (motherAlleles.length != offspringAlleles.length
+        || fatherAlleles.length != offspringAlleles.length) {
+            throw new Error("Parent allele arrays must be the same length to compute minimum moves.");
+        }
+
+        // Can each parent contribute an allele to the target allele pattern?
+        let moves = 0;
+        if (!motherAlleles.includes(offspringAlleles[0])) { ++moves; }
+        if (!fatherAlleles.includes(offspringAlleles[1])) { ++moves; }
+
+        // Flip sides and see if parents can contribute to the "other" side
+        let flippedSidesMove = 0;
+        if (!motherAlleles.includes(offspringAlleles[1])) { ++flippedSidesMove; }
+        if (!fatherAlleles.includes(offspringAlleles[0])) { ++flippedSidesMove; }
+
+        return Math.min(moves, flippedSidesMove);
+    }
+
     BiologicaX.canParentsProduceOffspringWithCharacteristic = function(
         speciesName, 
         motherAlleles,

@@ -6,6 +6,7 @@ const AttributeConceptsRepository = require('../storage/attributeConceptsReposit
 const AttributeRule = require('../models/attributeRule');
 const MoveRule = require('../models/moveRule');
 const BreedingRule = require('../models/breedingRule');
+const ParentChangedRule = require('../models/parentChangedRule');
 
 /**
  * This class creates rules of specific types
@@ -20,13 +21,6 @@ class RulesFactory {
         let groupName = session.groupId;
         let speciesName = event.context.species;
 
-        let legacy = false;
-
-        if (legacy) {
-            let evaluatorTags = event.action.toLowerCase() + ", " + event.target.toLowerCase();
-            return this._loadRulesFromSheetAsync(session, session.groupId, evaluatorTags);
-        } else {
-
         if (event.isMatch('USER', 'SUBMITTED', 'ORGANISM')
          || event.isMatch('USER', 'SUBMITTED', 'EGG')) {
             return this._loadAttributeConceptsAsync(session, groupName, speciesName)
@@ -35,27 +29,17 @@ class RulesFactory {
                 || event.isMatch('USER', 'SELECTED', 'GAMETE')) {
             return this._loadAttributeConceptsAsync(session, groupName, speciesName)
                 .then(() => this._createOrganismChangedRules(speciesName));
-        } else if (event.isMatch('USER', 'BRED', 'CLUTCH')) {
+        } else if (event.isMatch('USER', 'BRED', 'CLUTCH')
+                || event.isMatch('USER', 'SUBMITTED', 'PARENTS')) {
             return this._loadAttributeConceptsAsync(session, groupName, speciesName)
                 .then(() => this._createBreedingRules(speciesName));
+        } else if (event.isMatch('USER', 'CHANGED', 'PARENT')) {
+            return this._loadAttributeConceptsAsync(session, groupName, speciesName)
+                .then(() => this._createParentChangedRules(speciesName));
         } else {
             let evaluatorTags = event.action.toLowerCase() + ", " + event.target.toLowerCase();
             return this._loadRulesFromSheetAsync(session, session.groupId, evaluatorTags);
         }
-        // } else if (event.isMatch('USER', 'BRED', 'CLUTCH')) {
-        //     //evaluator = new Evaluator();
-        // } else if (event.isMatch('USER', 'CHANGED', 'PARENT')) {
-        //     //evaluator = new Evaluator();
-        // } else if (event.isMatch('USER', 'SELECTED', 'OFFSPRING')) {
-        //     //evaluator = new Evaluator();
-        // } else if (event.isMatch('USER', 'SUBMITTED', 'PARENTS')) {
-        //     //evaluator = new Evaluator();
-        // } else {
-        //     throw new Error("Unable to find evaluator for event: " + event.toString());
-        // }
-
-        }
-
     }
 
     _loadAttributeConceptsAsync(session, groupName, speciesName) {
@@ -173,12 +157,26 @@ class RulesFactory {
         return rules;
     }
 
-    static CreateBreedRule(species, trait) {
+    _createParentChangedRules(species) {
+        let rules = [];
 
-    }
+        let attributes = [...new Set(this.attributeConcepts.map(item => item.attribute))];
 
-    static CreateParentChangeRule(species, trait) {
+        for(let attribute of attributes) {
+            let targets = this.attributeConcepts.filter((item) => item.attribute === attribute);
+            var targetMap = {};
+            for(let target of targets) {
+                targetMap[target.target] = target;
+            }
+    
+            let rule = new ParentChangedRule(
+                attribute,
+                targetMap);
+    
+            rules.push(rule);
+        }
 
+        return rules;
     }
 }
 
