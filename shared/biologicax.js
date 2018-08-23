@@ -244,12 +244,25 @@ if (typeof exports === 'undefined') {
         return false;
     }
 
-    BiologicaX.findAllele = function(species, alleles, side, gene) {
-        var allOptions = '(?:' + species.geneList[gene].alleles.join('|') + ')';
+    BiologicaX.findAllele = function(species, alleles, side, trait) {
+        var allOptions = '(?:' + species.geneList[trait].alleles.join('|') + ')';
         var regex = new RegExp('(' + side + ':' + allOptions + ')(?:,|$)', '');
         var matches = alleles.match(regex);
         return (matches != null ? matches[1] : null)
-    }  
+    }
+    
+    BiologicaX.findAlleles = function(species, alleles, trait) {
+        var allOptions = species.geneList[trait].alleles.join('|');
+        var regex = new RegExp('([ab]:(' + allOptions + '))(?:,|$)', 'g');
+
+        let match;
+        let matches = [];
+        while (match = regex.exec(alleles)) {
+            matches.push(match[1]);
+        }
+
+        return matches.join(',');
+    }
 
     BiologicaX.findAllelesForTraitWithoutSides = function(speciesName, alleles, trait) {
         var species = BioLogica.Species[speciesName];
@@ -264,6 +277,25 @@ if (typeof exports === 'undefined') {
 
         return matches;
     } 
+
+    BiologicaX.hasAttributeChanged = function(speciesName, currentAlleles, currentSex, previousAlleles, previousSex, attribute) {
+
+        if (currentAlleles == null || currentSex == null) {
+            throw new Error("Unable to detect change: missing current alleles or sex");
+        }
+
+        if (previousAlleles == null || previousSex == null) {
+            throw new Error("Unable to detect change: missing previous alleles or sex");
+        }
+
+        let species = BioLogica.Species[speciesName];
+        if (attribute === "sex") {
+            return currentSex != previousSex;
+        } else {
+            return (BiologicaX.findAlleles(species, currentAlleles, attribute) != 
+                BiologicaX.findAlleles(species, previousAlleles, attribute));
+        }
+    }
     
     BiologicaX.numberOfMovesToCharacteristic = function(speciesName, alleles, sex, trait, characteristic) {
 
