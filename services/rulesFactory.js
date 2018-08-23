@@ -23,22 +23,37 @@ class RulesFactory {
 
         if (event.isMatch('USER', 'SUBMITTED', 'ORGANISM')
          || event.isMatch('USER', 'SUBMITTED', 'EGG')) {
+            this._populatePreviousProperty(session, event);
             return this._loadAttributeConceptsAsync(session, groupName, speciesName)
                 .then(() => this._createOrganismMatchRules(speciesName));
-        } else if (event.isMatch('USER', 'CHANGED', 'ALLELE')
-                || event.isMatch('USER', 'SELECTED', 'GAMETE')) {
+        } else if (event.isMatch('USER', 'CHANGED', 'ALLELE')) {
+            this._populatePreviousProperty(session, event);
             return this._loadAttributeConceptsAsync(session, groupName, speciesName)
                 .then(() => this._createOrganismChangedRules(speciesName));
         } else if (event.isMatch('USER', 'BRED', 'CLUTCH')
                 || event.isMatch('USER', 'SUBMITTED', 'PARENTS')) {
+            this._populatePreviousProperty(session, event);
             return this._loadAttributeConceptsAsync(session, groupName, speciesName)
                 .then(() => this._createBreedingRules(speciesName));
         } else if (event.isMatch('USER', 'CHANGED', 'PARENT')) {
+            this._populatePreviousProperty(session, event);
             return this._loadAttributeConceptsAsync(session, groupName, speciesName)
                 .then(() => this._createParentChangedRules(speciesName));
         } else {
+            this._populatePreviousProperty(session, event);
             let evaluatorTags = event.action.toLowerCase() + ", " + event.target.toLowerCase();
             return this._loadRulesFromSheetAsync(session, session.groupId, evaluatorTags);
+        }
+    }
+
+    _populatePreviousProperty(session, event) {
+        // Create previous property
+        if (!event.context.hasOwnProperty("previous")) {
+            let previousEvent = session.findPreviousEvent(event);
+            if (previousEvent != null && previousEvent.context.hasOwnProperty("selected")) {
+                event.context.previous = Object.assign(previousEvent.context.selected, {});
+                console.log("Add previous to event: " + JSON.stringify(event.context.previous, null, '\t'));
+            }
         }
     }
 

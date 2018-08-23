@@ -72,15 +72,7 @@ class RulesEvaluator {
                 || attributesToEvaluate.indexOf(attribute) >= 0) {
 
                 if (rule.evaluate(event)) {
-
-                    // Process the rule is the user actively made the correct choice
-                    // or allowed the incorrect choice to remain
-                    // Don't process rules where the player did nothing and the
-                    // current state was correct to avoid concept inflation.
-                    if (!rule.isCorrect() || this._hasSelectionChanged(selectionChangedCache, attribute, event))
-                    {
-                        activatedRules.push(rule);
-                    }
+                    activatedRules.push(rule);
                 }
             }
         }

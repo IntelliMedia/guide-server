@@ -95,6 +95,37 @@ sessionSchema.methods.logEvent = function(event) {
   this.events.push(event);
 }
 
+sessionSchema.methods.findPreviousEvent = function(event) {
+  let foundEvent = null;
+  for(let i = (this.events.length - 2); i >= 0; --i) {
+    let previousEvent = this.events[i];
+    // Situations that indicate a previous event can't be found
+    if (!previousEvent.context.hasOwnProperty("challengeId")
+      || previousEvent.context.challengeId != event.context.challengeId) {
+      break;
+    }
+
+    if (previousEvent.context.hasOwnProperty("remediation")
+      && previousEvent.context.remediation != event.context.remediation) {
+      break;
+    }
+
+    if (event.time - previousEvent.time > 600000) {
+      break;
+    } 
+
+    // Is this the same event type?
+    if (previousEvent.actor === event.actor
+      && previousEvent.action === event.action 
+      && previousEvent.target === event.target) {
+        foundEvent = previousEvent;
+        break;
+      }
+  }
+
+  return foundEvent;
+}
+
 sessionSchema.methods.errorAlert = function(e) {
     console.error(e); 
     return this.sendAlert(GuideProtocol.Alert.Error, e.toString(), true);
