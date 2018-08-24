@@ -51,10 +51,14 @@ if (typeof exports === 'undefined') {
     BiologicaX.sexToString = function(sex) {
         // If sex is already a string, just return it.
         if (typeof sex === "string") {
-            return sex;
+            return capitalizeFirstLetter(sex);
         } else {
             return (sex == 0 ? "Male" : "Female");
         }
+    }
+
+    function capitalizeFirstLetter(string) {
+        return string.charAt(0).toUpperCase() + string.slice(1);
     }
 
     BiologicaX.sexFromString = function(str) {
