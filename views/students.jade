@@ -29,7 +29,7 @@ block content
           tr
             td
               a(href='./student/#{student.id}') #{student.id}          
-            td.scoreBox #{Math.round(student.studentModel.avgProbabilityLearnedOfAllConcepts() * 1000)/10}
+            td.scoreBox #{Math.round(student.studentModel.avgProbabilityLearnedOfAllConcepts() * 1000000)/1000000}
             td #{student.classId}
             td #{student.groupId}
             td(align="center") 

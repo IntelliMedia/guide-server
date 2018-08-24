@@ -1,6 +1,6 @@
 var colorAxis = {
     min: 0,
-    max: 100,
+    max: 1,
     stops: [
         [0, '#aa0000'],
         [0.5, '#eeee00'],

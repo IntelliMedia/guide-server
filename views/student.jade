@@ -40,9 +40,9 @@ block content
         for conceptState in student.studentModel.bktConceptStates
           tr
             td #{conceptState.conceptId}       
-            td.scoreBox #{Math.round(conceptState.probabilityLearned * 1000)/10}
-            td #{(conceptState.L0 * 1000)/10}
-            td #{((conceptState.totalCorrect / conceptState.totalAttempts)*1000)/10}
+            td.scoreBox #{Math.round(conceptState.probabilityLearned*1000000)/1000000}
+            td #{Math.round(conceptState.L0*1000000)/1000000}
+            td #{Math.round(((conceptState.totalCorrect / conceptState.totalAttempts)*1000)/10)}
             td #{conceptState.totalCorrect}
             td #{conceptState.totalAttempts}
             td #{moment(conceptState.timestamp).calendar()}
