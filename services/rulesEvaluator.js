@@ -66,14 +66,18 @@ class RulesEvaluator {
 
         let selectionChangedCache = {};
         for (let rule of rules) {
-            let attribute = rule.attribute;
-            if (attribute === undefined 
-                || attribute === "n/a" 
-                || attributesToEvaluate.indexOf(attribute) >= 0) {
+            try {
+                let attribute = rule.attribute;
+                if (attribute === undefined 
+                    || attribute === "n/a" 
+                    || attributesToEvaluate.indexOf(attribute) >= 0) {
 
-                if (rule.evaluate(event)) {
-                    activatedRules.push(rule);
+                    if (rule.evaluate(event)) {
+                        activatedRules.push(rule);
+                    }
                 }
+            } catch(err) {
+                this.session.errorAlert(err);
             }
         }
         
