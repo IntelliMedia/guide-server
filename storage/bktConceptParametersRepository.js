@@ -1,6 +1,7 @@
 'use strict';
 
 const Stringx = require("../utilities/stringx");
+const Alert = require("../models/Alert");
 
 const BKTConceptParametersCsvDeserializer = require("./bktConceptParametersCsvDeserializer");
 const GoogleSheetRepository = require("./googleSheetRepository");
@@ -24,8 +25,17 @@ class BKTConceptParametersRepository extends GoogleSheetRepository {
             }
         }
 
-        throw new Error("BKT parameters not defined for conceptId: " + conceptId + "\n   Source: " +
-            GoogleSheetRepository.sourceAsUrl(this.objs[0]));
+        let err = new Error("BKT parameters not defined for conceptId: " + conceptId + "\n   Source: " +
+        GoogleSheetRepository.sourceAsUrl(this.objs[0]));
+
+        for(let conceptParameters of this.objs) {
+            if (conceptParameters.conceptId === "DEFAULT") {
+                Alert.error(err);
+                return conceptParameters;
+            }
+        }
+
+        throw err;
     }
 }
 
