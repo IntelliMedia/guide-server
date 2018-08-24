@@ -596,7 +596,12 @@ if (typeof exports === 'undefined') {
             displayName = "partial armor";
         } else if (displayName === "no armor") {
             displayName = "no armor";
+        } else if (displayName === "black") {
+            displayName = "gray";
+        } else if (displayName === "dilute") {
+            displayName = "deep";
         }
+        
         return displayName;
     }    
 

@@ -71,6 +71,10 @@ class EventRouter {
             } else if (event.isMatch('SYSTEM', 'ENDED', 'SESSION')) {
                 return this.handleSystemEndedSessionAsync(student, session, event);
 
+            } else if (event.isMatch('USER', 'NAVIGATED', 'CHALLENGE')) {
+                session.debugAlert("Ignored message: " + event.toString() + " user=" + event.studentId);
+                return Promise.resolve(null);
+
             } else if (event.isMatch('USER', '*', '*')) {
                 // Evaluate user actions and potentially take tutoring action
                 let tutor = new Tutor(student, session);
