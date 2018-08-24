@@ -7,6 +7,8 @@ const AttributeRule = require('../models/attributeRule');
 const MoveRule = require('../models/moveRule');
 const BreedingRule = require('../models/breedingRule');
 const ParentChangedRule = require('../models/parentChangedRule');
+const ChallengeConceptsRepository = require('../storage/challengeConceptsRepository');
+const ChallengeRule = require('../models/challengeRule');
 
 /**
  * This class creates rules of specific types
@@ -14,6 +16,7 @@ const ParentChangedRule = require('../models/parentChangedRule');
 class RulesFactory {
     constructor() {
         this.attributeConcepts = null;
+        this._rules = [];
     }
 
     createRulesForEventAsync(session, event) {
@@ -21,10 +24,10 @@ class RulesFactory {
         let speciesName = event.context.species;
         let groupName = session.groupId;
         this._populatePreviousProperty(session, event);
-        let evaluatorTags = event.action.toLowerCase() + ", " + event.target.toLowerCase();
         return this._loadAttributeConceptsAsync(session, groupName, speciesName)
             .then(() => this._loadEventRulesAsync(event))
-            .then(() => this._loadRulesFromSheetAsync(session, session.groupId, evaluatorTags));
+            .then(() => this._createChallengeIdRulesAsync(session, session.groupId))
+            .then(() => this._rules);
     }
 
     _loadEventRulesAsync(event) {
@@ -110,9 +113,37 @@ class RulesFactory {
         .then(() => rulesRepository.objs);
     }   
 
-    _createOrganismMatchRules(species) {
-        let rules = [];
+    _createChallengeIdRulesAsync(session, groupName) {
+        let challengeConceptsRepository;
+        return Group.findOne({ "name": groupName }).then((group) => {
+            if (!group) {
+                throw new Error("Unable to find group with name: " + groupName);
+            }
 
+            let tags = "challenge-concepts";
+            let ids = group.getCollectionIds(tags);
+            
+            if (ids.length == 0) {
+                session.warningAlert("Unable to find challenge concepts sheet for [" + tags + "] defined in '" + groupName + "' group");
+            }
+
+            challengeConceptsRepository = new ChallengeConceptsRepository(global.cacheDirectory);
+            return challengeConceptsRepository.loadCollectionsAsync(ids, group.cacheDisabled);
+        }).then(() => {
+            if (challengeConceptsRepository) {
+        
+                for(let challengeConcept of challengeConceptsRepository.objs) {            
+                    let rule = new ChallengeRule(
+                        challengeConcept.challengeId,
+                        challengeConcept);
+            
+                    this._rules.push(rule);
+                }
+            }
+        });
+    } 
+
+    _createOrganismMatchRules(species) {
         let attributes = [...new Set(this.attributeConcepts.map(item => item.attribute))];
 
         for(let attribute of attributes) {
@@ -126,15 +157,11 @@ class RulesFactory {
                 attribute,
                 targetMap);
     
-            rules.push(rule);
+            this._rules.push(rule);
         }
-
-        return rules;
     }
 
     _createBreedingRules(species) {
-        let rules = [];
-
         let attributes = [...new Set(this.attributeConcepts.map(item => item.attribute))];
 
         for(let attribute of attributes) {
@@ -148,15 +175,11 @@ class RulesFactory {
                 attribute,
                 targetMap);
     
-            rules.push(rule);
+            this._rules.push(rule);
         }
-
-        return rules;
     }
 
     _createOrganismChangedRules(species) {
-        let rules = [];
-
         let attributes = [...new Set(this.attributeConcepts.map(item => item.attribute))];
 
         for(let attribute of attributes) {
@@ -170,15 +193,11 @@ class RulesFactory {
                 attribute,
                 targetMap);
     
-            rules.push(rule);
+            this._rules.push(rule);
         }
-
-        return rules;
     }
 
     _createParentChangedRules(species) {
-        let rules = [];
-
         let attributes = [...new Set(this.attributeConcepts.map(item => item.attribute))];
 
         for(let attribute of attributes) {
@@ -192,10 +211,8 @@ class RulesFactory {
                 attribute,
                 targetMap);
     
-            rules.push(rule);
+            this._rules.push(rule);
         }
-
-        return rules;
     }
 }
 
