@@ -122,6 +122,7 @@ class StringCondition extends RuleCondition {
         if (normalize === true) {
             this.target = this.target.toLowerCase();
         }
+        this.target = this.target.splitAndTrim(",");
     }
 
     evaluate(obj) {
@@ -131,7 +132,7 @@ class StringCondition extends RuleCondition {
             stringValue = stringValue.toLowerCase();
         }
 
-        return this.target == stringValue;
+        return this.target.includes(stringValue);
     }
  
 }

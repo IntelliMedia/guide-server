@@ -18,31 +18,35 @@ class RulesFactory {
 
     createRulesForEventAsync(session, event) {
         
-        let groupName = session.groupId;
         let speciesName = event.context.species;
+        let groupName = session.groupId;
+        this._populatePreviousProperty(session, event);
+        let evaluatorTags = event.action.toLowerCase() + ", " + event.target.toLowerCase();
+        return this._loadAttributeConceptsAsync(session, groupName, speciesName)
+            .then(() => this._loadEventRulesAsync(event))
+            .then(() => this._loadRulesFromSheetAsync(session, session.groupId, evaluatorTags));
+    }
 
+    _loadEventRulesAsync(event) {
+
+        let speciesName = event.context.species;
         if (event.isMatch('USER', 'SUBMITTED', 'ORGANISM')
          || event.isMatch('USER', 'SUBMITTED', 'EGG')) {
-            this._populatePreviousProperty(session, event);
-            return this._loadAttributeConceptsAsync(session, groupName, speciesName)
-                .then(() => this._createOrganismMatchRules(speciesName));
+            return this._createOrganismMatchRules(speciesName);
+
         } else if (event.isMatch('USER', 'CHANGED', 'ALLELE')) {
-            this._populatePreviousProperty(session, event);
-            return this._loadAttributeConceptsAsync(session, groupName, speciesName)
-                .then(() => this._createOrganismChangedRules(speciesName));
+            return this._createOrganismChangedRules(speciesName);
+
         } else if (event.isMatch('USER', 'BRED', 'CLUTCH')
                 || event.isMatch('USER', 'SUBMITTED', 'PARENTS')) {
-            this._populatePreviousProperty(session, event);
-            return this._loadAttributeConceptsAsync(session, groupName, speciesName)
-                .then(() => this._createBreedingRules(speciesName));
+            return this._createBreedingRules(speciesName);
+
         } else if (event.isMatch('USER', 'CHANGED', 'PARENT')) {
-            this._populatePreviousProperty(session, event);
-            return this._loadAttributeConceptsAsync(session, groupName, speciesName)
-                .then(() => this._createParentChangedRules(speciesName));
+            return this._createParentChangedRules(speciesName);
+
         } else {
-            this._populatePreviousProperty(session, event);
-            let evaluatorTags = event.action.toLowerCase() + ", " + event.target.toLowerCase();
-            return this._loadRulesFromSheetAsync(session, session.groupId, evaluatorTags);
+            return Promise.resolve();
+
         }
     }
 
