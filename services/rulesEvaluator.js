@@ -127,7 +127,8 @@ class RulesEvaluator {
 
         attributes = _.uniq(attributes);
 
-        // "Workaround" because of overlapping names in Biologica. Geniventure sends "color" as a 
+        // This workaround should be removed in the future - rgtaylor 2018-08-24
+        // Workaround because of overlapping names in Biologica. Geniventure sends "color" as a 
         // selectableAttributes to refer to the "colored" trait.
         let index = attributes.indexOf("color");
         if (index >= 0) {

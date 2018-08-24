@@ -23,6 +23,7 @@ class RulesFactory {
         
         let speciesName = event.context.species;
         
+        // This workaround should be removed in the future - rgtaylor 2018-08-24
         // Default to Drake is not defined
         if (speciesName == undefined || speciesName == null) {
             speciesName = "Drake";
@@ -31,12 +32,35 @@ class RulesFactory {
             //throw new Error("Event does not contain context.species property");
         }
 
+        this._fixEvent(event);
+
         let groupName = session.groupId;
         this._populatePreviousProperty(session, event);
         return this._loadAttributeConceptsAsync(session, groupName, speciesName)
             .then(() => this._loadEventRulesAsync(event, speciesName))
             .then(() => this._createChallengeIdRulesAsync(session, session.groupId))
             .then(() => this._rules);
+    }
+
+    // This workaround should be removed in the future - rgtaylor 2018-08-24
+    // Workarounds necessary because data from Geniventure doesn't match the species traitRules
+    _fixEvent(obj) {
+        if (typeof obj != 'object') {
+            return;
+        }
+
+        if (Array.isArray(obj)) {
+            for (let item of obj) {
+                this._fixEvent(item);
+            }
+        } else {
+            Object.keys(obj).forEach((key,index) => {
+                if (key === "nose spike" && !obj.hasOwnProperty("nose")) {
+                    obj["nose"] = obj["nose spike"]
+                }
+                this._fixEvent(obj[key]);
+            });
+        }
     }
 
     _loadEventRulesAsync(event, speciesName) {
