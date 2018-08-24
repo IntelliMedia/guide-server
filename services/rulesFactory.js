@@ -22,17 +22,22 @@ class RulesFactory {
     createRulesForEventAsync(session, event) {
         
         let speciesName = event.context.species;
+        
+        // Default to Drake is not defined
+        if (speciesName == undefined || speciesName == null) {
+            speciesName = "Drake";
+        }
+
         let groupName = session.groupId;
         this._populatePreviousProperty(session, event);
         return this._loadAttributeConceptsAsync(session, groupName, speciesName)
-            .then(() => this._loadEventRulesAsync(event))
+            .then(() => this._loadEventRulesAsync(event, speciesName))
             .then(() => this._createChallengeIdRulesAsync(session, session.groupId))
             .then(() => this._rules);
     }
 
-    _loadEventRulesAsync(event) {
+    _loadEventRulesAsync(event, speciesName) {
 
-        let speciesName = event.context.species;
         if (event.isMatch('USER', 'SUBMITTED', 'ORGANISM')
          || event.isMatch('USER', 'SUBMITTED', 'EGG')) {
             return this._createOrganismMatchRules(speciesName);
