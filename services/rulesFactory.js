@@ -26,6 +26,9 @@ class RulesFactory {
         // Default to Drake is not defined
         if (speciesName == undefined || speciesName == null) {
             speciesName = "Drake";
+            event.context.species = speciesName;
+            // TODO throw an error when this is eventually fixed in Geniventure
+            //throw new Error("Event does not contain context.species property");
         }
 
         let groupName = session.groupId;
