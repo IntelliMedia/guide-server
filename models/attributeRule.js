@@ -75,7 +75,7 @@ class AttributeRule extends Rule {
 
         let isActivated = this._targetMap.hasOwnProperty(this._target);
         if (isActivated) {
-            this._isCorrect = (this._selected === this._target);
+            this._isCorrect = BiologicaX.isSexEqual(this._selected, this._target);
             this._concepts = this._targetMap[this._target].conceptIds;
         }
 

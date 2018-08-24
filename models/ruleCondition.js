@@ -107,8 +107,7 @@ class SexCondition extends RuleCondition {
 
     evaluate(obj) {
         let sex = this.getValue(obj);
-        let normalizedSex = BiologicaX.sexToString(sex).toLowerCase();
-        let result = this.target === normalizedSex;
+        let result = BiologicaX.isSexEqual(this.target, sex);
         return result;
     }    
 }

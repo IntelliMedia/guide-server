@@ -66,6 +66,12 @@ if (typeof exports === 'undefined') {
         }
     }
 
+    // To deal with inconsistent capitalization of sex
+    BiologicaX.isSexEqual = function(sexL, sexR) {
+        return BiologicaX.sexToString(sexL).toLowerCase() 
+            === BiologicaX.sexToString(sexR).toLowerCase();
+    }
+
     BiologicaX.randomizeAlleles = function(species, genes, alleles) {
 
         var allelesToRandomize = [];
@@ -290,7 +296,7 @@ if (typeof exports === 'undefined') {
 
         let species = BioLogica.Species[speciesName];
         if (attribute === "sex") {
-            return currentSex != previousSex;
+            return BiologicaX.isSexEqual( currentSex, previousSex);
         } else {
             return (BiologicaX.findAlleles(species, currentAlleles, attribute) != 
                 BiologicaX.findAlleles(species, previousAlleles, attribute));
@@ -601,7 +607,7 @@ if (typeof exports === 'undefined') {
         } else if (displayName === "dilute") {
             displayName = "deep";
         }
-        
+
         return displayName;
     }    
 
