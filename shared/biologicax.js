@@ -606,7 +606,10 @@ if (typeof exports === 'undefined') {
             displayName = "gray";
         } else if (displayName === "dilute") {
             displayName = "deep";
+        } else if (displayName === "colored") {
+            displayName = "color";
         }
+
 
         return displayName;
     }    

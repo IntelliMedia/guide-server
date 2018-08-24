@@ -125,16 +125,16 @@ class RulesEvaluator {
             attributes = event.context.selectableAttributes;
         }
 
-        // If the attributes include any color related genes, add "color"
-        // to the attribute list to ensure that color rules are evaluated
-        // if (attributes.some((attribute) => BiologicaX.doesAttributeAffectCharacterisitic(
-        //     BioLogica.Species.Drake,
-        //     attribute, 
-        //     "color"))) {
-        //         attributes.push("color");
-        //     }
+        attributes = _.uniq(attributes);
 
-        return attributes = _.uniq(attributes);
+        // "Workaround" because of overlapping names in Biologica. Geniventure sends "color" as a 
+        // selectableAttributes to refer to the "colored" trait.
+        let index = attributes.indexOf("color");
+        if (index >= 0) {
+            attributes[index] = "colored";
+        }
+
+        return attributes;
     }
 }
 
