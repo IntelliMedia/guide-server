@@ -9,7 +9,7 @@ const stringx = require("../utilities/stringx");
 const _ = require('lodash');
 const propPath = require('property-path');
 
-class ChallengeRule extends Rule {   
+class ChallengeRule extends Rule {
     constructor(challengeId, targetMap) {
         super("n/a");
 
@@ -17,7 +17,7 @@ class ChallengeRule extends Rule {
         this._targetMap = targetMap;
         this._isCorrect = null;
         this._concepts = targetMap.conceptIds;
-        this._selected = null;  
+        this._selected = null;
     }
 
     sourceAsUrl() {
@@ -43,7 +43,7 @@ class ChallengeRule extends Rule {
 
         return {
             selected: this._selected,
-            target: this._target
+            target: this._target.join(",")
         };
     }
 
@@ -56,7 +56,7 @@ class ChallengeRule extends Rule {
             isActivated = this._target.includes(this._selected.toLowerCase());
             this._isCorrect = this._getProperty(event, "context.correct", true);
         }
-        
+
         return isActivated;
     }
 

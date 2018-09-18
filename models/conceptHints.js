@@ -88,6 +88,10 @@ class ConceptHints {
                     console.warn("Unable to find substitution for: " + block);
                 }
 
+                if (substitutionPhrase == undefined || substitutionPhrase == null) {
+                    throw new Error("Unable to identify substitution phrase in hint: " + hint);
+                }
+
                 value = value.replace(block, substitutionPhrase.trim());
             }
         } while (replacementBlock != null);
