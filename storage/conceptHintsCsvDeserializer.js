@@ -11,19 +11,18 @@ class ConceptHintsCsvDeserializer extends CsvDeserializer {
     constructor() {
         super();
     }
-  
+
     parseRow(currentRowIndex, source, columnMap, headerRow, currentRow) {
         return [new ConceptHints(
             source,
-            currentRowIndex, 
+            currentRowIndex,
             this._asNumber(this._getCell(currentRow, columnMap, "priority")),
-            this._asNumber(this._getCell(currentRow, columnMap, "bottomedoutpriority")),
             this._getCell(currentRow, columnMap, "conceptid"),
             this._asNumber(this._getCell(currentRow, columnMap, "minimumattempts")),
             this._asNumber(this._getCell(currentRow, columnMap, "probabilitylearnedthreshold")),
             this._getCell(currentRow, columnMap, "tags"),
             this._extractHints(headerRow, currentRow))];
-    }    
+    }
 
     _extractHints(headerRow, currentRow) {
         var hints = [];

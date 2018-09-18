@@ -20,14 +20,14 @@ class HintRecommender {
             }
 
             let ids = group.getCollectionIds(tags);
-            
+
             if (ids.length == 0) {
                 session.warningAlert("Unable to find Hint sheet for [" + tags + "] defined in '" + groupName + "' group");
             }
 
             return this.hintRepository.loadCollectionsAsync(ids, group.cacheDisabled);
         });
-    }    
+    }
 
     // Hint delivery order of preference:
     // On incorrect selection:
@@ -44,14 +44,14 @@ class HintRecommender {
                     let conceptState = studentModel.getBktConceptState(misconception.conceptId);
                     misconception.conceptState = conceptState;
                 });
-    
+
                 let challengeId = event.context.challengeId;
                 return this._selectHints(
                     student,
-                    session, 
-                    groupName, 
-                    event.context.challengeType, 
-                    challengeId, 
+                    session,
+                    groupName,
+                    event.context.challengeType,
+                    challengeId,
                     misconceptions);
             }
 
@@ -74,25 +74,25 @@ class HintRecommender {
 
         let hintsForChallengeType = this.hintRepository.filter(challengeType);
         for (let misconception of misconceptions) {
-            let conceptHints = hintsForChallengeType.filter((item) => 
+            let conceptHints = hintsForChallengeType.filter((item) =>
                 misconception.conceptId === item.conceptId
                 && misconception.conceptState.totalAttempts >= item.minimumAttempts
                 && misconception.conceptState.probabilityLearned <= item.probabilityLearnedThreshold);
 
             if (conceptHints.length == 0) {
                 if (!(hintsForChallengeType.some((item) => item.conceptId === misconception.conceptId))) {
-                    session.warningAlert("No hint defined for " + challengeType + " challenge for concept: " + misconception.conceptId); 
-                }  
+                    session.warningAlert("No hint defined for " + challengeType + " challenge for concept: " + misconception.conceptId);
+                }
             }
 
-            for (let conceptHint of conceptHints) { 
+            for (let conceptHint of conceptHints) {
                 mostRecentHint = student.studentModel.mostRecentAction("HINT", challengeId, misconception.attribute);
                 let hintIndex = this._incrementHintIndex(mostRecentHint, conceptHint);
-                let hintDialog = conceptHint.getHint(hintIndex, misconception.substitutionVariables); 
+                let hintDialog = conceptHint.getHint(hintIndex, misconception.substitutionVariables);
 
                 let bottomOutHintAlreadyDelivered = false;
                 let priorityAdjustment = 0;
-                if (mostRecentHint 
+                if (mostRecentHint
                     && mostRecentHint.context.attribute === misconception.attribute
                     && mostRecentHint.context.conceptId === conceptHint.conceptId) {
                         priorityAdjustment = 10;
@@ -104,7 +104,7 @@ class HintRecommender {
                 let hintLevel = hintIndex + 1;
                 let isBottomOut = hintLevel == conceptHint.hints.length;
 
-                let currentPriority = (bottomOutHintAlreadyDelivered ? conceptHint.bottomedOutPriority : conceptHint.priority);
+                let currentPriority = conceptHint.priority;
                 currentPriority += priorityAdjustment;
 
                 let action = TutorAction.createHintAction(
@@ -114,7 +114,7 @@ class HintRecommender {
                     misconception.conceptId,
                     misconception.conceptState.probabilityLearned,
                     challengeType,
-                    challengeId,   
+                    challengeId,
                     misconception.attribute,
                     hintDialog,
                     hintLevel,
@@ -123,7 +123,7 @@ class HintRecommender {
                 hintActions.push(action);
             }
         }
-        return hintActions;     
+        return hintActions;
     };
 
     _incrementHintIndex(mostRecentHint, conceptHint) {

@@ -45,17 +45,20 @@ class TutorialPlanner {
             this.session.debugAlert("Possible Tutor Actions: " + filteredAndSorted.length + "\n" + filteredAndSorted.map(a => {
                 let actionDescription;
                 if (a.action === "HINT") {
+                    actionDescription = "{0} | {1} | {2} | {3} | {4} | {5} | {6}".format(
+                        a.context.priority,
+                        a.action,
+                        a.context.conceptId,
+                        a.context.attribute,
+                        a.context.hintLevel,
+                        a.context.isBottomOut,
+                        a.context.hintDialog);
+                } else if (a.action === "REMEDIATE") {
                     actionDescription = "{0} | {1} | {2} | {3} | {4}".format(
                         a.context.priority,
                         a.action,
                         a.context.conceptId,
-                        a.context.hintLevel,
-                        a.context.hintDialog);
-                } else if (a.action === "REMEDIATE") {
-                    actionDescription = "{0} | {1} | {2} | {3}".format(
-                        a.context.priority,
-                        a.action,
-                        a.context.conceptId,
+                        a.context.attribute,
                         a.context.practiceCriteria);
                 } else {
                     actionDescription =  "Unknown action: {0}".format(a.action);

@@ -20,16 +20,16 @@ class RemediationRecommender {
             }
 
             let ids = group.getCollectionIds(tags);
-            
+
             if (ids.length == 0) {
                 session.warningAlert("Unable to find Remediation sheet for [" + tags + "] defined in '" + groupName + "' group");
             }
 
             return this.remediationRepository.loadCollectionsAsync(ids, group.cacheDisabled);
         });
-    }    
+    }
 
-    // Based on current event and student model, determine if remediation is necessary 
+    // Based on current event and student model, determine if remediation is necessary
     evaluateAsync(student, session, event) {
         let studentModel = student.studentModel;
         let groupName = session.groupId;
@@ -40,14 +40,14 @@ class RemediationRecommender {
                     let conceptState = studentModel.getBktConceptState(misconception.conceptId);
                     misconception.conceptState = conceptState;
                 });
-    
+
                 let challengeId = event.context.challengeId;
                 return this._selectRemediations(
                     student,
-                    session, 
-                    groupName, 
-                    event.context.challengeType, 
-                    challengeId, 
+                    session,
+                    groupName,
+                    event.context.challengeType,
+                    challengeId,
                     misconceptions);
             }
 
@@ -70,15 +70,19 @@ class RemediationRecommender {
 
         let remediationsForChallengeType = this.remediationRepository.filter(challengeType);
         for (let misconception of misconceptions) {
-            let remediations = remediationsForChallengeType.filter((item) => 
-                item.conceptId === misconception.conceptId 
+            let remediations = remediationsForChallengeType.filter((item) =>
+                item.conceptId === misconception.conceptId
                 && misconception.conceptState.totalAttempts >= item.minimumAttempts
                 && misconception.conceptState.probabilityLearned <= item.probabilityLearnedThreshold);
 
-            for (let remediation of remediations) { 
+            for (let remediation of remediations) {
                 let priorityAdjustment = (mostRecentRemediation && mostRecentRemediation.context.conceptId === remediation.conceptId ? 10 : 0);
+                let mostRecentHint = student.studentModel.mostRecentAction("HINT", challengeId, misconception.attribute);
+                priorityAdjustment += (mostRecentHint
+                        && mostRecentHint.context.conceptId === remediation.conceptId
+                        && mostRecentHint.context.attribute === misconception.attribute
+                        && mostRecentHint.context.isBottomOut === true ? mostRecentHint.context.priority * 2 : 0);
 
-                mostRecentRemediation = student.studentModel.mostRecentAction("REMEDIATE", challengeId);
                 // TODO: Determine if this is bottom out remediation
                 let isBottomOut = false;
 
@@ -89,7 +93,7 @@ class RemediationRecommender {
                     misconception.conceptId,
                     misconception.conceptState.probabilityLearned,
                     challengeType,
-                    challengeId, 
+                    challengeId,
                     remediation.practiceCriteria,
                     misconception.attribute,
                     isBottomOut);
@@ -97,7 +101,7 @@ class RemediationRecommender {
                 remediateActions.push(action);
             }
         }
-        return remediateActions;     
+        return remediateActions;
     };
 
     _sortMisconceptionsByPreviousHintAndThenAscendingScore(misconceptions, mostRecentRemediation) {

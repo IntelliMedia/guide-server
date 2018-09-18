@@ -2,13 +2,12 @@
 
 const _ = require('lodash');
 
-class ConceptHints {   
-    constructor(source, id, priority, bottomedOutPriority, conceptId, minimumAttempts, probabilityLearnedThreshold, tags, hints) {
+class ConceptHints {
+    constructor(source, id, priority, conceptId, minimumAttempts, probabilityLearnedThreshold, tags, hints) {
         this.findReplacementBlock = new RegExp("\\[(?:([^\\]\\:]+)\\:)?([^\\]]*)\\]", "i");
         this.source = source;
         this.id = id;
         this.priority = priority;
-        this.bottomedOutPriority = bottomedOutPriority;
         this.conceptId = conceptId;
         this.minimumAttempts = minimumAttempts;
         this.probabilityLearnedThreshold = probabilityLearnedThreshold;
@@ -22,7 +21,7 @@ class ConceptHints {
 
     getHint(hintIndex, substitutionVariables) {
         if (hintIndex >= this.hints.length) {
-            throw new Error("Requested hint level (" + hintIndex + ") not defined in: " 
+            throw new Error("Requested hint level (" + hintIndex + ") not defined in: "
                 + this.source + " for row " + this.id);
         }
 
@@ -34,7 +33,7 @@ class ConceptHints {
     // Substituion variables have the following format:
     //   [<variableName>: <phrase1>, <phrase2>, ...]
     // Where the <phrase> is selected by the variable value
-    // Example 1: 
+    // Example 1:
     //   [selectedTrait: dull, wingless, armless, legless, not gray, without color, has horns]
     // Becomes:
     //   not gray
@@ -65,8 +64,8 @@ class ConceptHints {
                         // If not, don't define phrases and default to simple replacement
                         selector = replacementBlock[2].trim();
                     }
-                } 
-                
+                }
+
                 // Default the substituion string to the variable name in case it isn't
                 // defined in the substitutionVariables
                 var substitutionPhrase = selector;
@@ -82,9 +81,9 @@ class ConceptHints {
                         if (phraseMatch != null) {
                             substitutionPhrase = phraseMatch[0];
                         }
-                    } 
+                    }
                 }
-                else 
+                else
                 {
                     console.warn("Unable to find substitution for: " + block);
                 }
@@ -94,7 +93,7 @@ class ConceptHints {
         } while (replacementBlock != null);
 
         return value;
-    }    
+    }
 
     // TODO rgtaylor 2018-06-20 Remove this hardcoded workaround for matching root words
     _getWordRoot(word) {
