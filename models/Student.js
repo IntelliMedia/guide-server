@@ -28,9 +28,7 @@ studentSchema.statics.findOrCreate = function(studentId) {
 
 studentSchema.methods.reset = function() {
   let studentId = this.id;
-  return this.studentModel.remove().then(() => {
-    return this.remove();
-  }).then(() => {
+  return this.remove().then(() => {
     return Student.findOrCreate(studentId);
   });
 }
