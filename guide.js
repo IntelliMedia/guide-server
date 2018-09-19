@@ -45,7 +45,7 @@ const cors = require('cors');
 const http = require('http');
 
 /**
- * Configure the path where the web app is located 
+ * Configure the path where the web app is located
  */
 if (!process.env.BASE_PATH) {
   process.env.BASE_PATH = '/';
@@ -103,37 +103,48 @@ app.set('json spaces', 2);
 /**
  * Connect to MongoDB.
  */
-var dbc = mongoose.connect(mongoDbUri, {
-  useMongoClient: true
-});
-
-mongoose.connection.on('open', function (ref) {
-  console.info('Connected to MongoDB: %s', mongoDbUri);
-
-  // Initialize authorization module
-  authz.initialize(dbc, (err) => {
+  mongoose.connect(mongoDbUri, {
+    useNewUrlParser: true,
+    useCreateIndex: true
+  })
+  .then(() => {
     if (err) {
-      console.error('Unable to initialize AuthZ: ' + err)
+      console.error('MongoDB Connection Error. Please make sure that MongoDB is running.');
+      console.error(err);
       process.exit(1);
     }
-    else {
-      router.use(function (req, res, next) {
-        req.acl = authz.acl;
-        authz.getIsAllowed(req.user, (isAllowed, isAllowedErr) => {
-          if (isAllowedErr) {
-            console.error('Unable to get isAllowed function: ' + isAllowedErr);
-            next(isAllowedErr);
-            return;
-          }
-          res.locals.isAllowed = isAllowed;
-          next();
-        });
-      });
+    console.info('Connected to MongoDB: %s', mongoDbUri);
 
-      initializeRoutes();
-    }
+    // Initialize authorization module
+    authz.initialize(mongoose.connection, (authzErr) => {
+      if (authzErr) {
+        console.error('Unable to initialize AuthZ: ' + authzErr)
+        process.exit(1);
+      }
+      else {
+        router.use(function (req, res, next) {
+          req.acl = authz.acl;
+          authz.getIsAllowed(req.user, (isAllowed, isAllowedErr) => {
+            if (isAllowedErr) {
+              console.error('Unable to get isAllowed function: ' + isAllowedErr);
+              next(isAllowedErr);
+              return;
+            }
+            res.locals.isAllowed = isAllowed;
+            next();
+          });
+        });
+
+        initializeRoutes();
+      }
+    });
+  })
+  .catch((err) => {
+    console.error('MongoDB Connection Error. Please make sure that MongoDB is running.');
+    console.error(err);
+    process.exit(1);
   });
-});
+
 mongoose.connection.on('error', () => {
   console.error('MongoDB Connection Error. Please make sure that MongoDB is running.');
   process.exit(1);
@@ -148,7 +159,7 @@ app.set('port', process.env.PORT || 3000);
  * Jade Template configuration.
  */
 // Variables accessible in templates
-app.locals.basepath = process.env.BASE_PATH; 
+app.locals.basepath = process.env.BASE_PATH;
 app.locals.moment = require('moment');
 
 app.set('views', path.join(__dirname, 'views'));
@@ -251,7 +262,7 @@ function initializeRoutes() {
   router.get('/group/:groupId', authz.middleware(1), groupController.index);
   router.delete('/group/:groupId', authz.middleware(1), groupController.delete);
   router.post('/group/modify', authz.middleware(1), groupController.modify);
-  router.post('/group/clear-cache', authz.middleware(1), groupController.clearCache);  
+  router.post('/group/clear-cache', authz.middleware(1), groupController.clearCache);
   router.post('/group/duplicate', authz.middleware(1), groupController.duplicate);
   router.get('/alerts', authz.middleware(), alertsController.index);
   router.get('/alerts/:alertId', authz.middleware(1), alertsController.alert);

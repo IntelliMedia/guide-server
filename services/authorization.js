@@ -27,7 +27,7 @@ exports.getIsAllowed = (user, cb) => {
 
   // Get all roles this user has
   exports.acl.userRoles(user.id).then((roles) => {
-    return exports.acl._rolesResources(roles); 
+    return exports.acl._rolesResources(roles);
   })
   // Get all permissions associated with roles
   .then((resources) => {
@@ -37,7 +37,7 @@ exports.getIsAllowed = (user, cb) => {
   .then((permissions) =>
   {
     var isAllowedFunc = function(resource, requestedPermission) {
-        return (permissions[resource] 
+        return (permissions[resource]
           && (permissions[resource].indexOf(requestedPermission) >= 0 || permissions[resource].indexOf('*') >= 0));
     }
 
@@ -75,10 +75,10 @@ function initializeRoles() {
           ]
       }
     ], (err) => {
-      if (err) { 
+      if (err) {
         console.error(err);
-        throw err; 
-      }     
+        throw err;
+      }
     });
 }
 
@@ -204,7 +204,7 @@ exports.usersMiddleware = (numPathComponents, userId, actions) => {
   return function(req, res, next) {
 
     var _userId = req.user.id;
-    var _resource = "users";    
+    var _resource = "users";
     var _actions = actions;
     if(!_actions){
       _actions = req.method.toLowerCase();
