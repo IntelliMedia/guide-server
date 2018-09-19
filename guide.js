@@ -108,11 +108,6 @@ app.set('json spaces', 2);
     useCreateIndex: true
   })
   .then(() => {
-    if (err) {
-      console.error('MongoDB Connection Error. Please make sure that MongoDB is running.');
-      console.error(err);
-      process.exit(1);
-    }
     console.info('Connected to MongoDB: %s', mongoDbUri);
 
     // Initialize authorization module
