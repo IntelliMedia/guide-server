@@ -9,6 +9,7 @@ const BreedingRule = require('../models/breedingRule');
 const ParentChangedRule = require('../models/parentChangedRule');
 const ChallengeConceptsRepository = require('../storage/challengeConceptsRepository');
 const ChallengeRule = require('../models/challengeRule');
+const Biologicax = require('../shared/biologicax');
 
 /**
  * This class creates rules of specific types
@@ -20,9 +21,9 @@ class RulesFactory {
     }
 
     createRulesForEventAsync(session, event) {
-        
+
         let speciesName = event.context.species;
-        
+
         // This workaround should be removed in the future - rgtaylor 2018-08-24
         // Default to Drake is not defined
         if (speciesName == undefined || speciesName == null) {
@@ -32,7 +33,7 @@ class RulesFactory {
             //throw new Error("Event does not contain context.species property");
         }
 
-        this._fixEvent(event);
+        BiologicaX.fixIncomingEvent(event);
 
         let groupName = session.groupId;
         this._populatePreviousProperty(session, event);
@@ -42,26 +43,7 @@ class RulesFactory {
             .then(() => this._rules);
     }
 
-    // This workaround should be removed in the future - rgtaylor 2018-08-24
-    // Workarounds necessary because data from Geniventure doesn't match the species traitRules
-    _fixEvent(obj) {
-        if (typeof obj != 'object') {
-            return;
-        }
 
-        if (Array.isArray(obj)) {
-            for (let item of obj) {
-                this._fixEvent(item);
-            }
-        } else {
-            Object.keys(obj).forEach((key,index) => {
-                if (key === "nose spike" && !obj.hasOwnProperty("nose")) {
-                    obj["nose"] = obj["nose spike"]
-                }
-                this._fixEvent(obj[key]);
-            });
-        }
-    }
 
     _loadEventRulesAsync(event, speciesName) {
 
@@ -108,7 +90,7 @@ class RulesFactory {
 
                 let tags = speciesName.toLowerCase() + ", attribute-concepts";
                 let ids = group.getCollectionIds(tags);
-                
+
                 if (ids.length == 0) {
                     session.warningAlert("Unable to find attribute concepts sheet for [" + tags + "] defined in '" + groupName + "' group");
                 }
@@ -121,7 +103,7 @@ class RulesFactory {
                 }
             })
         }
-    } 
+    }
 
     _loadRulesFromSheetAsync(session, groupName, tags) {
         let rulesRepository = new RulesRepository(global.cacheDirectory);
@@ -131,7 +113,7 @@ class RulesFactory {
             }
 
             let ids = group.getCollectionIds(tags);
-            
+
             this.ruleSourceUrls = ids.map((id) => {
                 return rulesRepository.getGoogleSheetUrl(id);
             });
@@ -143,7 +125,7 @@ class RulesFactory {
             return rulesRepository.loadCollectionsAsync(ids, group.cacheDisabled);
         })
         .then(() => rulesRepository.objs);
-    }   
+    }
 
     _createChallengeIdRulesAsync(session, groupName) {
         let challengeConceptsRepository;
@@ -154,7 +136,7 @@ class RulesFactory {
 
             let tags = "challenge-concepts";
             let ids = group.getCollectionIds(tags);
-            
+
             if (ids.length == 0) {
                 session.warningAlert("Unable to find challenge concepts sheet for [" + tags + "] defined in '" + groupName + "' group");
             }
@@ -163,17 +145,17 @@ class RulesFactory {
             return challengeConceptsRepository.loadCollectionsAsync(ids, group.cacheDisabled);
         }).then(() => {
             if (challengeConceptsRepository) {
-        
-                for(let challengeConcept of challengeConceptsRepository.objs) {            
+
+                for(let challengeConcept of challengeConceptsRepository.objs) {
                     let rule = new ChallengeRule(
                         challengeConcept.challengeId,
                         challengeConcept);
-            
+
                     this._rules.push(rule);
                 }
             }
         });
-    } 
+    }
 
     _createOrganismMatchRules(species) {
         let attributes = [...new Set(this.attributeConcepts.map(item => item.attribute))];
@@ -184,11 +166,11 @@ class RulesFactory {
             for(let target of targets) {
                 targetMap[target.target] = target;
             }
-    
+
             let rule = new AttributeRule(
                 attribute,
                 targetMap);
-    
+
             this._rules.push(rule);
         }
     }
@@ -202,11 +184,11 @@ class RulesFactory {
             for(let target of targets) {
                 targetMap[target.target] = target;
             }
-    
+
             let rule = new BreedingRule(
                 attribute,
                 targetMap);
-    
+
             this._rules.push(rule);
         }
     }
@@ -220,11 +202,11 @@ class RulesFactory {
             for(let target of targets) {
                 targetMap[target.target] = target;
             }
-    
+
             let rule = new MoveRule(
                 attribute,
                 targetMap);
-    
+
             this._rules.push(rule);
         }
     }
@@ -238,11 +220,11 @@ class RulesFactory {
             for(let target of targets) {
                 targetMap[target.target] = target;
             }
-    
+
             let rule = new ParentChangedRule(
                 attribute,
                 targetMap);
-    
+
             this._rules.push(rule);
         }
     }

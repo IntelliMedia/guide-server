@@ -1,7 +1,7 @@
 /**
  * This file contains methods that eXtend the Biologica.js library
  * https://github.com/concord-consortium/biologica.js
- * 
+ *
  */
 
 if (typeof exports === 'undefined') {
@@ -24,7 +24,7 @@ if (typeof exports === 'undefined') {
     if (!array)
         return false;
 
-    // compare lengths - can save a lot of time 
+    // compare lengths - can save a lot of time
     if (this.length != array.length)
         return false;
 
@@ -33,13 +33,13 @@ if (typeof exports === 'undefined') {
         if (this[i] instanceof Array && array[i] instanceof Array) {
             // recurse into the nested arrays
             if (!this[i].equals(array[i]))
-                return false;       
-        }           
-        else if (this[i] != array[i]) { 
+                return false;
+        }
+        else if (this[i] != array[i]) {
             // Warning - two different object instances will never be equal: {x:20} != {x:20}
-            return false;   
-        }           
-    }       
+            return false;
+        }
+    }
     return true;
     }
     // Hide method from for-in loops
@@ -72,7 +72,7 @@ if (typeof exports === 'undefined') {
 
     // To deal with inconsistent capitalization of sex
     BiologicaX.isSexEqual = function(sexL, sexR) {
-        return BiologicaX.sexToString(sexL).toLowerCase() 
+        return BiologicaX.sexToString(sexL).toLowerCase()
             === BiologicaX.sexToString(sexR).toLowerCase();
     }
 
@@ -136,7 +136,7 @@ if (typeof exports === 'undefined') {
         var alleleArray = allelesWithoutSide.split(",");
 
         for (let gene in species.geneList) {
-            if (alleleArray.every((allele) => 
+            if (alleleArray.every((allele) =>
                 species.geneList[gene].alleles.indexOf(allele) >= 0)) {
                     return gene;
                 }
@@ -146,7 +146,7 @@ if (typeof exports === 'undefined') {
     }
 
     BiologicaX.getCharacteristic = function(organism, trait) {
-        var characteristic = null; 
+        var characteristic = null;
         if (trait.includes("metallic")) {
             characteristic = organism.getCharacteristic('color');
             if (BiologicaX.isColorMetallic(characteristic)) {
@@ -215,9 +215,9 @@ if (typeof exports === 'undefined') {
         return (armor !== 'No armor');
     }
 
-    BiologicaX.hasTrait = function(phenotype, characteristic, trait) { 
+    BiologicaX.hasTrait = function(phenotype, characteristic, trait) {
         // First check the most obvious comparison
-        if (phenotype.hasOwnProperty(characteristic) && 
+        if (phenotype.hasOwnProperty(characteristic) &&
             phenotype[characteristic] == trait) {
             return true;
         }
@@ -260,7 +260,7 @@ if (typeof exports === 'undefined') {
         var matches = alleles.match(regex);
         return (matches != null ? matches[1] : null)
     }
-    
+
     BiologicaX.findAlleles = function(species, alleles, trait) {
         var allOptions = species.geneList[trait].alleles.join('|');
         var regex = new RegExp('([ab]:(' + allOptions + '))(?:,|$)', 'g');
@@ -286,7 +286,7 @@ if (typeof exports === 'undefined') {
         }
 
         return matches;
-    } 
+    }
 
     BiologicaX.hasAttributeChanged = function(speciesName, currentAlleles, currentSex, previousAlleles, previousSex, attribute) {
 
@@ -302,17 +302,17 @@ if (typeof exports === 'undefined') {
         if (attribute === "sex") {
             return BiologicaX.isSexEqual( currentSex, previousSex);
         } else {
-            return (BiologicaX.findAlleles(species, currentAlleles, attribute) != 
+            return (BiologicaX.findAlleles(species, currentAlleles, attribute) !=
                 BiologicaX.findAlleles(species, previousAlleles, attribute));
         }
     }
-    
+
     BiologicaX.numberOfMovesToCharacteristic = function(speciesName, alleles, sex, trait, characteristic) {
 
         let currentAlleles = BiologicaX.findAllelesForTraitWithoutSides(speciesName, alleles, trait);
-        
+
         // Sex-linked traits can have only one allele if the wrong sex is selected
-        // Push an Y onto alleles to avoid counting this as a move (it will match the 
+        // Push an Y onto alleles to avoid counting this as a move (it will match the
         // characteristic in the traitRules)
         if (currentAlleles.length < 2) {
             currentAlleles.push("Y");
@@ -352,7 +352,7 @@ if (typeof exports === 'undefined') {
     }
 
     BiologicaX.numberOfMovesToContributeToOffspringCharacteristic = function(
-        speciesName, 
+        speciesName,
         motherAlleles,
         fatherAlleles,
         trait,
@@ -360,7 +360,7 @@ if (typeof exports === 'undefined') {
 
         let motherTraitAlleles = BiologicaX.findAllelesForTraitWithoutSides(speciesName, motherAlleles, trait);
         // Sex-linked traits can have only one allele if the wrong sex is selected
-        // Push an Y onto alleles to avoid counting this as a move (it will match the 
+        // Push an Y onto alleles to avoid counting this as a move (it will match the
         // characteristic in the traitRules)
         if (motherTraitAlleles.length < 2) {
             motherTraitAlleles.push("Y");
@@ -369,11 +369,11 @@ if (typeof exports === 'undefined') {
 
         let fatherTraitAlleles = BiologicaX.findAllelesForTraitWithoutSides(speciesName, fatherAlleles, trait);
         // Sex-linked traits can have only one allele if the wrong sex is selected
-        // Push an Y onto alleles to avoid counting this as a move (it will match the 
+        // Push an Y onto alleles to avoid counting this as a move (it will match the
         // characteristic in the traitRules)
         if (fatherTraitAlleles.length < 2) {
             fatherTraitAlleles.push("X");
-        }        
+        }
         fatherTraitAlleles.sort();
 
         let offspringAlleleTargets = BioLogica.Species[speciesName].traitRules[trait][offspringCharacteristic];
@@ -381,8 +381,8 @@ if (typeof exports === 'undefined') {
         let minMoves = Number.MAX_SAFE_INTEGER;
         for (var offspringAlleleTarget of offspringAlleleTargets) {
             minMoves = Math.min(minMoves, BiologicaX.minimumParentMoves(
-                motherTraitAlleles, 
-                fatherTraitAlleles, 
+                motherTraitAlleles,
+                fatherTraitAlleles,
                 offspringAlleleTarget));
         }
         return minMoves;
@@ -410,7 +410,7 @@ if (typeof exports === 'undefined') {
     }
 
     BiologicaX.canParentsProduceOffspringWithCharacteristic = function(
-        speciesName, 
+        speciesName,
         motherAlleles,
         fatherAlleles,
         trait,
@@ -450,7 +450,7 @@ if (typeof exports === 'undefined') {
     }
 
     BiologicaX.whichParentDoesntContributeToOffspringWithCharacteristic = function(
-        speciesName, 
+        speciesName,
         motherAlleles,
         fatherAlleles,
         trait,
@@ -483,10 +483,10 @@ if (typeof exports === 'undefined') {
                 break;
             } else if (!motherContributes) {
                 nonContributingParent = "mother";
-                break;               
+                break;
             } else if (!fatherContributes) {
                 nonContributingParent = "father";
-                break;               
+                break;
             }
 
             // Flip sides and see if parents can contribute to the "other" side
@@ -498,15 +498,15 @@ if (typeof exports === 'undefined') {
                 break;
             } else if (!motherContributes) {
                 nonContributingParent = "mother";
-                break;               
+                break;
             } else if (!fatherContributes) {
                 nonContributingParent = "father";
-                break;               
+                break;
             }
         }
 
         return nonContributingParent;
-    }  
+    }
 
     BiologicaX.getTraitFromAlleles = function(species, alleles) {
 
@@ -524,7 +524,7 @@ if (typeof exports === 'undefined') {
 
         throw new Error("Unable to identify trait from alleles: " + alleles);
     }
-    
+
     BiologicaX.getCharacteristicFromTrait = function(species, trait) {
         var normalizedTrait = trait.toLowerCase();
 
@@ -532,7 +532,7 @@ if (typeof exports === 'undefined') {
             if (!species.traitRules.hasOwnProperty(characteristic)) {
                 continue;
             }
-            
+
             for (let trait in species.traitRules[characteristic]) {
                 if (!species.traitRules[characteristic].hasOwnProperty(trait)) {
                     continue;
@@ -550,13 +550,13 @@ if (typeof exports === 'undefined') {
 
         if (BiologicaX.doesAttributeAffectCharacterisitic(
             species,
-            trait.toLowerCase(), 
+            trait.toLowerCase(),
             "color")) {
                 return "color";
             }
 
         throw new Error("Unabled to identify characteristic for: " + trait);
-   } 
+   }
 
    BiologicaX.allelesInTraitArray = function(targetAlleles, traitAlleles) {
        if (!targetAlleles || targetAlleles.length == 0 || !traitAlleles || traitAlleles.length == 0) {
@@ -576,9 +576,9 @@ if (typeof exports === 'undefined') {
        }
 
        return true;
-   }   
+   }
 
-    // If necessary, convert internal name for trait or characteristic to 
+    // If necessary, convert internal name for trait or characteristic to
     // a user-friendly display name
     BiologicaX.getDisplayName = function(trait) {
         let displayName = trait.toLowerCase();
@@ -616,12 +616,45 @@ if (typeof exports === 'undefined') {
 
 
         return displayName;
-    }    
+    }
 
     BiologicaX.getChallengeIdBase = function(challengeId) {
         // Trailing number on the challenge ID should be ignored since they
         // represent different trials of the same challenege
         return challengeId.replace(/-?\d*$/,"");
+    }
+
+    // TODO rgtaylor 2018-08-24 This "workaround" should be removed in the future.
+    // Workarounds necessary because data from Geniventure doesn't match the species traitRules defined in Biologicajs
+    BiologicaX.fixIncomingEvent = function(obj) {
+        if (typeof obj != 'object') {
+            return;
+        }
+
+        if (Array.isArray(obj)) {
+            for (let item of obj) {
+                BiologicaX.fixIncomingEvent(item);
+            }
+        } else {
+            Object.keys(obj).forEach((key,index) => {
+                if (key === "nose spike" && !obj.hasOwnProperty("nose")) {
+                    obj["nose"] = obj["nose spike"]
+                }
+                BiologicaX.fixIncomingEvent(obj[key]);
+            });
+        }
+    }
+
+    // TODO rgtaylor 2018-09-21 This "workaround" should be removed in the future.
+    // Workarounds necessary because data that Geniventure is expecting doesn't match the species
+    // traitRules defined in Biologicajs.
+    BiologicaX.fixOutgoingEvent = function(event) {
+
+        if (event.hasOwnProperty('context') && event.context.hasOwnProperty('attribute')) {
+            if (event.context.attribute === "colored") {
+                event.context.attribute = "color";
+            }
+        }
     }
 
 }).call(this);

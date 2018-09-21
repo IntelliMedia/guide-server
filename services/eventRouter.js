@@ -7,6 +7,7 @@ const Tutor = require('./tutor');
 const await = require('asyncawait/await');
 const guideProtocol = require('../shared/guide-protocol.js');
 const stringx = require("../utilities/stringx");
+const Biologicax = require('../shared/biologicax');
 
 class EventRouter {
     constructor() {
@@ -17,7 +18,7 @@ class EventRouter {
         // open this.session, pick up the groupId from the submit message.
         if (event.context && event.context.groupId) {
             session.groupId = event.context.groupId;
-        } 
+        }
 
         // Is this the beginning of the session?
         if (event.isMatch("SYSTEM", "STARTED", "SESSION")) {
@@ -39,7 +40,7 @@ class EventRouter {
             if (action) {
                 // Include the sequence number in the response so that the client
                 // can determine whether this action is still relevant to the user.
-                action.sequence = event.sequence; 
+                action.sequence = event.sequence;
 
                 console.info("Send: {0} to userId {1} (sequence: {2})".format(
                     action.toString(),
@@ -47,6 +48,7 @@ class EventRouter {
                     action.sequence
                 ));
                 session.logEvent(action);
+                BiologicaX.fixOutgoingEvent(action);
                 session.emit(GuideProtocol.Event.Channel, action.toJson());
             } else {
                 session.debugAlert("No tutoring action recommended.");
