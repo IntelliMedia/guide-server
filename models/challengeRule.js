@@ -53,7 +53,7 @@ class ChallengeRule extends Rule {
 
         this._selected = this._getProperty(event, "context.challengeId", false);
         if (this._selected != null && (event.action === "SUBMITTED" || event.action === "SELECTED")) {
-            isActivated = this._target.includes(this._selected.toLowerCase());
+            isActivated = this._selected && this._selected.toLowerCase().includes(this._target);
             this._isCorrect = this._getProperty(event, "context.correct", true);
         }
 
