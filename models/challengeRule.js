@@ -13,7 +13,8 @@ class ChallengeRule extends Rule {
     constructor(challengeId, targetMap) {
         super("n/a");
 
-        this._target = challengeId.toLowerCase().splitAndTrim(",");
+        this._target = challengeId.trim();
+        this._regexTarget = new RegExp("^{0}[-\\d]*$".format(this._target), "i");
         this._targetMap = targetMap;
         this._isCorrect = null;
         this._concepts = targetMap.conceptIds;
@@ -43,7 +44,7 @@ class ChallengeRule extends Rule {
 
         return {
             selected: this._selected,
-            target: this._target.join(",")
+            target: this._target
         };
     }
 
@@ -53,7 +54,8 @@ class ChallengeRule extends Rule {
 
         this._selected = this._getProperty(event, "context.challengeId", false);
         if (this._selected != null && (event.action === "SUBMITTED" || event.action === "SELECTED")) {
-            isActivated = this._selected && this._selected.toLowerCase().includes(this._target);
+            let matches = this._selected.match(this._regexTarget);
+            isActivated = (matches != null && matches.length == 1);
             this._isCorrect = this._getProperty(event, "context.correct", true);
         }
 
