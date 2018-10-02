@@ -2,6 +2,7 @@
 
 const students = require('../controllers/students');
 const Student = require('../models/Student');
+const Session = require('../models/Session');
 const TutorAction = require('../models/TutorAction');
 const Tutor = require('./tutor');
 const await = require('asyncawait/await');
@@ -121,13 +122,12 @@ class EventRouter {
 
     handleSystemEndedSessionAsync(student, session, event) {
 
-        session.infoAlert("Session Ended");
+        if (session && session.active) {
+            session.infoAlert("Session Ended");
+            Session.deactivate(session);
+        }
 
-        return new Promise((resolve, reject) => {
-            session.active = false;
-            session.endTime = event.time;
-            resolve();
-        });
+        return Promise.resolve();
     }
 }
 

@@ -1,4 +1,6 @@
 const Student = require('../models/Student');
+const Session = require('../models/Session');
+const ConceptObservation = require('../models/ConceptObservation');
 const Concept = require('../models/Concept');
 
 /**
@@ -51,4 +53,35 @@ exports.reset = (req, res) => {
         return res.redirect(process.env.BASE_PATH + 'students');
       });
   }
+}
+
+exports.delete = (req, res) => {
+  if (req.body.studentId) {
+    var studentId = req.body.studentId;
+    exports.deleteStudent(studentId)
+      .then(() => {
+        return res.redirect(process.env.BASE_PATH + 'students');
+      })
+      .catch((err) => {
+        console.error(err);
+        req.flash('errors', { msg: 'Unable to delete student. ' + err.toString()});
+        return res.redirect(process.env.BASE_PATH + 'students');
+      });
+  }
+}
+
+exports.deleteStudent = (studentId) => {
+  console.info("Delete student: " + studentId);
+  return Student.remove({ 'id': studentId }).exec()
+    .then(() => {
+      console.info("Delete sessions for student: " + studentId);
+      return Session.remove({ 'studentId': studentId }).exec();
+    })
+    .then(() => {
+      console.info("Delete observations for student: " + studentId);
+      return ConceptObservation.remove({ 'studentId': studentId }).exec();
+    })
+    .catch((err) => {
+      console.error(err);
+    });
 }

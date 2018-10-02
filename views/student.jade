@@ -3,28 +3,36 @@ extends layout
 block extraHeader
     script(type='text/javascript', src="https://code.highcharts.com/highcharts.js")
     script(type='text/javascript', src="https://code.highcharts.com/modules/heatmap.js")
-    script(type='text/javascript', src="https://code.highcharts.com/modules/exporting.js") 
+    script(type='text/javascript', src="https://code.highcharts.com/modules/exporting.js")
     link(rel='stylesheet', href='./css/status-indicators.css')
-    script(src='./js/status-indicators.js') 
+    script(src='./js/status-indicators.js')
 
 block content
-  h1 Student 
-    if isAllowed('students', 'post')     
-      div.pull-right
+  h1 Student
+    div.pull-right
+      if isAllowed('students', 'post')
         form.form-horizontal(action='./student/reset', method='POST')
           .form-group.floatLeft
             input(type='hidden', name='_csrf', value=_csrf)
             input(type='hidden', name='studentId', value='#{student.id}')
             button.btn.btn-danger(type='submit' name='action' value='resetModel')
               i.fa.fa-trash
-              | Reset Model 
+              | Reset Model
+      if isAllowed('students', 'post')
+        form.form-horizontal(action='./student/delete', method='POST')
+          .form-group.floatLeft
+            input(type='hidden', name='_csrf', value=_csrf)
+            input(type='hidden', name='studentId', value='#{student.id}')
+            button.btn.btn-danger(type='submit' name='action' value='deleteStudent')
+              i.fa.fa-trash
+              | Delete Student
   h3 #{student.id}
   h4 #{student.classId}
   h4 #{student.groupId}
   h4
     a(href='./sessions?studentId=#{student.id}') Sessions
-    |   
-    a(href='./student/#{student.id}?view=json') JSON  
+    p
+    a(href='./student/#{student.id}?view=json') JSON
   div
     table.table.table-striped
       thead
@@ -39,7 +47,7 @@ block content
       tbody
         for conceptState in student.studentModel.bktConceptStates
           tr
-            td #{conceptState.conceptId}       
+            td #{conceptState.conceptId}
             td.scoreBox #{Math.round(conceptState.probabilityLearned*1000000)/1000000}
             td #{Math.round(conceptState.L0*1000000)/1000000}
             td #{Math.round(((conceptState.totalCorrect / conceptState.totalAttempts)*1000)/10)}

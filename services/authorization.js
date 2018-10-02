@@ -64,7 +64,7 @@ function initializeRoles() {
               {resources:['users'], permissions:['get', 'post']},
               {resources:['account+roles','roles'], permissions:['get', 'post']},
               {resources:['groups', 'group'], permissions:['get', 'post', 'delete']},
-              {resources:['sessions','session', 'alerts','students','student','student+reset','api'], permissions:['get', 'post', 'delete']}
+              {resources:['sessions','session', 'alerts','students','student','student+reset', 'student+delete','api'], permissions:['get', 'post', 'delete']}
           ]
       },
       {

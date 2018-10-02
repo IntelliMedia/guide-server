@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const StudentController = require('../controllers/student');
 
 const sessionSchema = new mongoose.Schema({
       id: String,
@@ -7,39 +8,28 @@ const sessionSchema = new mongoose.Schema({
       classId: String,
       groupId: String,
       startTime: Date,
-      endTime: Date,      
+      endTime: Date,
       sequence: Number,
       events: []
 }, { timestamps: true });
 
 sessionSchema.statics.findOrCreate = (sessionId) => {
-  return new Promise((resolve, reject) => {
-    Session.findOne({ 'id': sessionId }, (err, session) => {
-      if (err) {
-        reject(err);
-      }
-
-      if (!session) {
-        session = new Session();
-        session.id = sessionId;
-        session.sequence = -1;
-        //session.startTime = Date.now;
-      }
-
-      // Initialize empty collections
-      if (session.events == null) {
-        session.events = [];
-      }
-
-      session.save((err) => {
-        if (err) {
-          reject(err);
+    return Session.findOne({ 'id': sessionId }).exec()
+      .then((session) => {
+        if (!session) {
+          session = new Session();
+          session.id = sessionId;
+          session.sequence = -1;
+          session.events = [];
+          return session.save();
+          //session.startTime = Date.now;
         } else {
-          resolve(session);
+          return Promise.resolve(session);
         }
+      })
+      .catch((err) => {
+        console.error('Unable to find or create session for: ' + session.id);
       });
-    });
-  });
 }
 
 sessionSchema.statics.deactivate = (session) => {
@@ -49,34 +39,38 @@ sessionSchema.statics.deactivate = (session) => {
     } else {
       session.endTime = Date.now();
     }
-    session.save((err) => { 
+    session.save((err) => {
         if (err) {
             console.error('Unable to save session for: ' + session.id);
+        }
+
+        if (session.studentId.startsWith("TEMP-")) {
+          return StudentController.delete(session.studentId);
         }
     });
   }
 
   sessionSchema.statics.getAllActiveSessions = (studentId) => {
-    return new Promise((resolve, reject) => { 
+    return new Promise((resolve, reject) => {
       var query = {'active': true};
       if (studentId) {
         query.studentId = studentId;
       }
       Session.find(query, function(err, sessions) {
-        if (err) throw err;  
+        if (err) throw err;
         resolve(sessions.sort(compareStartTime));
       });
     });
   };
-  
+
   sessionSchema.statics.getAllInactiveSessions = (studentId) => {
-    return new Promise((resolve, reject) => {  
+    return new Promise((resolve, reject) => {
       var query = {'active': false};
       if (studentId) {
         query.studentId = studentId;
       }
       Session.find(query, function(err, sessions) {
-        if (err) throw err;  
+        if (err) throw err;
         resolve(sessions.sort(compareStartTime));
       });
     });
@@ -112,11 +106,11 @@ sessionSchema.methods.findPreviousEvent = function(event) {
 
     if (event.time - previousEvent.time > 600000) {
       break;
-    } 
+    }
 
     // Is this the same event type?
     if (previousEvent.actor === event.actor
-      && previousEvent.action === event.action 
+      && previousEvent.action === event.action
       && previousEvent.target === event.target) {
         foundEvent = previousEvent;
         break;
@@ -127,7 +121,7 @@ sessionSchema.methods.findPreviousEvent = function(event) {
 }
 
 sessionSchema.methods.errorAlert = function(e) {
-    console.error(e); 
+    console.error(e);
     return this.sendAlert(GuideProtocol.Alert.Error, e.toString(), true);
 }
 
@@ -168,7 +162,7 @@ sessionSchema.methods.sendAlert = function(type, msg, writeToEventLog) {
   if (writeToEventLog) {
     this.logEvent(event);
   }
-   
+
   return event;
 }
 

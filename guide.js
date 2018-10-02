@@ -251,6 +251,7 @@ function initializeRoutes() {
   router.post('/students/modify', authz.middleware(1), studentsController.modify);
   router.get('/student/:studentId', authz.middleware(1), studentController.index);
   router.post('/student/reset', authz.middleware(), studentController.reset);
+  router.post('/student/delete', authz.middleware(), studentController.delete);
   router.get('/api/student/:studentId', authz.middleware(1), StudentDataVisualization.getStudent);
   router.get('/groups', authz.middleware(1), groupsController.index);
   router.post('/groups/modify', authz.middleware(1), groupsController.modify);
