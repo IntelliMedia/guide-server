@@ -33,15 +33,15 @@ class StudentModelService {
             }
 
             let ids = group.getCollectionIds(tags);
-            
+
             if (ids.length == 0) {
                 throw new Error("Unable find student model sheet for [" + tags + "] defined in '" + groupName + "' group");
             }
 
             return parameterRepo.loadCollectionsAsync(ids, group.cacheDisabled);
         });
-    }  
-    
+    }
+
     updateDashboardAsync(student, session) {
         if (student.learnPortalEndpoint) {
             let dashboardService = new DashboardService();
@@ -57,13 +57,10 @@ class StudentModelService {
         else
         {
             return Promise.resolve(true);
-        }          
+        }
     }
 
     processConceptDataPoint(student, session, conceptId, isCorrect, challengeId, attribute, substitutionVariables, timestamp, source) {
-
-        let observation = ConceptObservation.record(timestamp, conceptId, attribute, student.id, challengeId, isCorrect);
-     
         let conceptState = student.studentModel.getBktConceptState(conceptId, this.bktEvaluator.getL0(conceptId));
         try {
             conceptState.probabilityLearned = this.bktEvaluator.update(conceptId, isCorrect, conceptState.probabilityLearned);
@@ -76,11 +73,11 @@ class StudentModelService {
             if (isCorrect != true) {
                 student.studentModel.addMisconception(conceptId, challengeId, attribute, substitutionVariables, timestamp, source);
             }
-        } catch(err) {
-            Alert.error(err, session); 
-        }
 
-        return observation;
+            return ConceptObservation.record(timestamp, conceptId, conceptState.probabilityLearned, attribute, student.id, challengeId, isCorrect);
+        } catch(err) {
+            Alert.error(err, session);
+        }
     }
 }
 

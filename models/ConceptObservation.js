@@ -3,16 +3,18 @@ const mongoose = require('mongoose');
 const conceptObservationSchema = new mongoose.Schema({
   timestamp: Date,
   conceptId: String,
+  probabilityLearned: { type: Number, default: 0},
   attribute: String,
   studentId: String,
   challengeId: String,
   isCorrect: Boolean
 }, {timestamps: false});
 
-conceptObservationSchema.statics.record = function(timestamp, conceptId, attribute, studentId, challengeId, isCorrect) {
+conceptObservationSchema.statics.record = function(timestamp, conceptId, probabilityLearned, attribute, studentId, challengeId, isCorrect) {
   let observation = new ConceptObservation({
     timestamp: timestamp,
     conceptId: conceptId,
+    probabilityLearned: probabilityLearned,
     attribute: attribute,
     studentId: studentId,
     challengeId: challengeId,
