@@ -21,7 +21,7 @@ class RulesEvaluator {
         this.student = student;
         this.session = session;
         this.studentModelService = new StudentModelService();
-    }  
+    }
 
     evaluateAsync(event) {
         try {
@@ -46,12 +46,12 @@ class RulesEvaluator {
         if (rules.length > 0) {
             this.session.debugAlert("Evaluating " + rules.length + " rules for event: " + event.toString());
         } else {
-            this.session.warningAlert("No rules found for event: " + event.toString());          
-            return activatedRules;          
+            this.session.warningAlert("No rules found for event: " + event.toString());
+            return activatedRules;
         }
 
         let challengeId = event.context.challengeId;
-        console.log("Evaluate rules for: {0} ({1} | {2} | {3})".format(this.student.id, this.session.classId, this.session.groupId, challengeId)); 
+        console.log("Evaluate rules for: {0} ({1} | {2} | {3})".format(this.student.id, this.session.classId, this.session.groupId, challengeId));
 
         let attributesToEvaluate = this._selectableAttributes(event);
         let attributeNames = attributesToEvaluate.join(",");
@@ -59,7 +59,7 @@ class RulesEvaluator {
 
         if (attributesToEvaluate.length == 0
             && rules.some((rule) => {
-                return (rule.attribute != undefined && rule.attribute != "n/a"); 
+                return (rule.attribute != undefined && rule.attribute != "n/a");
             })) {
             this.session.errorAlert("context.selectableAttributes is missing or empty");
         }
@@ -68,8 +68,8 @@ class RulesEvaluator {
         for (let rule of rules) {
             try {
                 let attribute = rule.attribute;
-                if (attribute === undefined 
-                    || attribute === "n/a" 
+                if (attribute === undefined
+                    || attribute === "n/a"
                     || attributesToEvaluate.indexOf(attribute) >= 0) {
 
                     if (rule.evaluate(event)) {
@@ -80,43 +80,44 @@ class RulesEvaluator {
                 this.session.errorAlert(err);
             }
         }
-        
+
         return activatedRules;
     }
 
     _updateStudentModelAsync(activatedRules, event) {
-        
+
         if (activatedRules.length == 0) {
-            this.session.debugAlert("No rules fired. Skip student model update.");               
-            return Promise.resolve();     
+            this.session.debugAlert("No rules fired. Skip student model update.");
+            return Promise.resolve();
         }
 
         let savePromises = [];
         let rulesFiredMsgs = [];
 
-        if (activatedRules.length > 0) {           
+        if (activatedRules.length > 0) {
             for (let rule of activatedRules) {
-                for (let conceptId of rule.concepts()) { 
+                for (let conceptId of rule.concepts()) {
                     savePromises.push(this.studentModelService.processConceptDataPoint(
                         this.student,
                         this.session,
-                        conceptId, 
-                        rule.isCorrect(), 
-                        event.context.challengeId, 
-                        rule.attribute, 
+                        conceptId,
+                        rule.isCorrect(),
+                        event.context.challengeType,
+                        event.context.challengeId,
+                        rule.attribute,
                         rule.substitutionVariables(),
-                        event.time, 
+                        event.time,
                         rule.sourceAsUrl()));
 
-                    rulesFiredMsgs.push("Rule Triggered ->  Correct:{0} | {1} | {2} | rule: {3}".format( 
+                    rulesFiredMsgs.push("Rule Triggered ->  Correct:{0} | {1} | {2} | rule: {3}".format(
                         rule.isCorrect(), conceptId, rule.attribute, rule.sourceAsUrl()));
                 }
-            }                
+            }
         }
 
         this.session.debugAlert("Fired " + rulesFiredMsgs.length + " rules: \n" + rulesFiredMsgs.join("\n"));
         savePromises.push(this.studentModelService.updateDashboardAsync(this.student, this.session));
-        
+
         return Promise.all(savePromises);
     }
 
@@ -132,7 +133,7 @@ class RulesEvaluator {
         attributes = _.uniq(attributes);
 
         // This workaround should be removed in the future - rgtaylor 2018-08-24
-        // Workaround because of overlapping names in Biologica. Geniventure sends "color" as a 
+        // Workaround because of overlapping names in Biologica. Geniventure sends "color" as a
         // selectableAttributes to refer to the "colored" trait.
         let index = attributes.indexOf("color");
         if (index >= 0) {

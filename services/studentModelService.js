@@ -60,7 +60,7 @@ class StudentModelService {
         }
     }
 
-    processConceptDataPoint(student, session, conceptId, isCorrect, challengeId, attribute, substitutionVariables, timestamp, source) {
+    processConceptDataPoint(student, session, conceptId, isCorrect, challengeType, challengeId, attribute, substitutionVariables, timestamp, source) {
         let conceptState = student.studentModel.getBktConceptState(conceptId, this.bktEvaluator.getL0(conceptId));
         try {
             conceptState.probabilityLearned = this.bktEvaluator.update(conceptId, isCorrect, conceptState.probabilityLearned);
@@ -74,7 +74,7 @@ class StudentModelService {
                 student.studentModel.addMisconception(conceptId, challengeId, attribute, substitutionVariables, timestamp, source);
             }
 
-            return ConceptObservation.record(timestamp, conceptId, conceptState.probabilityLearned, attribute, student.id, challengeId, isCorrect);
+            return ConceptObservation.record(timestamp, conceptId, conceptState.probabilityLearned, attribute, student.id, challengeType, challengeId, isCorrect);
         } catch(err) {
             Alert.error(err, session);
         }
