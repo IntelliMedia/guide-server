@@ -113,12 +113,13 @@ class EventRouter {
         return new Promise((resolve, reject) => {
 
             if (!event.context.hasOwnProperty("classId") || !event.context.classId) {
-                throw new Error("context.classId is missing or undefined");
+                reject(new Error("context.classId is missing or undefined"));
+                return;
             }
 
             if (!event.context.hasOwnProperty("groupId") || !event.context.groupId) {
-                event.context.groupId = "Slice2-June26";
-                //throw new Error("student.groupId is missing or undefined");
+                reject(new Error("student.groupId is missing or undefined"));
+                return;
             }
 
             student.lastSignIn = new Date(event.time);

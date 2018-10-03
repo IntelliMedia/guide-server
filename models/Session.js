@@ -32,29 +32,25 @@ sessionSchema.statics.findOrCreate = (sessionId) => {
 }
 
   sessionSchema.statics.getAllActiveSessions = (studentId) => {
-    return new Promise((resolve, reject) => {
-      var query = {'active': true};
-      if (studentId) {
-        query.studentId = studentId;
-      }
-      Session.find(query, function(err, sessions) {
-        if (err) throw err;
-        resolve(sessions.sort(compareStartTime));
+    var query = {'active': true};
+    if (studentId) {
+      query.studentId = studentId;
+    }
+    return Session.find(query).exec()
+      .then((sessions) => {
+        return sessions.sort(compareStartTime);
       });
-    });
   };
 
   sessionSchema.statics.getAllInactiveSessions = (studentId) => {
-    return new Promise((resolve, reject) => {
-      var query = {'active': false};
-      if (studentId) {
-        query.studentId = studentId;
-      }
-      Session.find(query, function(err, sessions) {
-        if (err) throw err;
-        resolve(sessions.sort(compareStartTime));
+    var query = {'active': false};
+    if (studentId) {
+      query.studentId = studentId;
+    }
+    return Session.find(query).exec()
+      .then((sessions) => {
+        return sessions.sort(compareStartTime);
       });
-    });
   };
 
 

@@ -86,7 +86,7 @@ function handleEvent(socket, data) {
 function findSessionBySocket(socket) {
     return new Promise((resolve, reject) => {
         if (!socket) {
-            reject('Cannot find session since socket is null');
+            reject(new Error('Cannot find session since socket is null'));
         }
 
         if (socketMap[socket]) {
