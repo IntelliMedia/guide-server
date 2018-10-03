@@ -1,6 +1,7 @@
 const http = require('http');
 const socketio = require('socket.io');
 const Session = require('../models/Session');
+const sessions = require('../controllers/sessions');
 const EventRouter = require('./eventRouter');
 const Alert = require('../models/Alert');
 const guideProtocol = require('../shared/guide-protocol.js');
@@ -35,21 +36,21 @@ function  initializeV3(server) {
 
         socket.on('disconnect', function () {
             handleDisconnect(socket);
-        });       
- 
-        socket.on(GuideProtocol.Event.Channel, function(data) {      
-            handleEvent(socket, data);      
         });
-    });      
+
+        socket.on(GuideProtocol.Event.Channel, function(data) {
+            handleEvent(socket, data);
+        });
+    });
 }
 
 function handleConnect(socket) {
     var address = socket.handshake.address;
-    console.info('Connected to ' + address);      
+    console.info('Connected to ' + address);
 }
 
 function handleConnectError(err) {
-    console.error('Connect failed: ' + err);     
+    console.error('Connect failed: ' + err);
 }
 
 function handleDisconnect(socket) {
@@ -57,9 +58,9 @@ function handleDisconnect(socket) {
     console.info('Disconnected from ' + address);
     findSessionBySocket(socket).then((session) => {
         if (session && session.active) {
-            Session.deactivate(session);
+            sessions.deactivate(session);
         }
-    })            
+    })
 }
 
 function handleEvent(socket, data) {
@@ -70,15 +71,15 @@ function handleEvent(socket, data) {
         receivedEvent = event;
         console.info("Received: " + event.toString() + " user=" + event.studentId);
         console.log("Event: " + JSON.stringify(event, null, '\t'));
-        return findSession(socket, receivedEvent.studentId, receivedEvent.session); 
+        return findSession(socket, receivedEvent.studentId, receivedEvent.session);
     })
-    .then((session) => { 
+    .then((session) => {
         currentSession = session;
         let eventRouter = new EventRouter();
         return eventRouter.processAsync(currentSession, receivedEvent);
-    })        
-    .catch((err) => { 
-        Alert.error(err, currentSession, receivedEvent); 
+    })
+    .catch((err) => {
+        Alert.error(err, currentSession, receivedEvent);
     });
 }
 
@@ -92,7 +93,7 @@ function findSessionBySocket(socket) {
             return resolve(socketMap[socket]);
         } else {
             return resolve(null);
-        }        
+        }
     });
 }
 
@@ -114,17 +115,17 @@ function findSession(socket, studentId, sessionId) {
             initializeSessionSocket(socketMap[socket], socket)
             return resolve(socketMap[socket]);
         }
-        
+
         if (sessionId) {
 
             Session.findOrCreate(sessionId).then((session) => {
                 socketMap[socket] = session;
                 initializeSessionSocket(session, socket);
-                resolve(session);         
+                resolve(session);
             }).catch((err) => {
                 console.error(err);
-                reject(err);                
-            });            
+                reject(err);
+            });
 
         } else {
             reject('Unable to find session with id: ' + sessionId);
@@ -137,6 +138,6 @@ function initializeSessionSocket(session, socket) {
         session.socket = socket;
         session.emit = (channel, message) => {
             socket.emit(channel, message);
-        };                    
-    }    
+        };
+    }
 }

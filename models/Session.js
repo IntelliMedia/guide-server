@@ -1,5 +1,4 @@
 const mongoose = require('mongoose');
-const StudentController = require('../controllers/student');
 
 const sessionSchema = new mongoose.Schema({
       id: String,
@@ -31,24 +30,6 @@ sessionSchema.statics.findOrCreate = (sessionId) => {
         console.error('Unable to find or create session for: ' + session.id);
       });
 }
-
-sessionSchema.statics.deactivate = (session) => {
-    session.active = false;
-    if (session.events.length > 0) {
-      session.endTime = session.events[session.events.length-1].time;
-    } else {
-      session.endTime = Date.now();
-    }
-    session.save((err) => {
-        if (err) {
-            console.error('Unable to save session for: ' + session.id);
-        }
-
-        if (session.studentId.startsWith("TEMP-")) {
-          return StudentController.delete(session.studentId);
-        }
-    });
-  }
 
   sessionSchema.statics.getAllActiveSessions = (studentId) => {
     return new Promise((resolve, reject) => {

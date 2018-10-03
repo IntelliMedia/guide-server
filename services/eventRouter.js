@@ -1,8 +1,8 @@
 'use strict';
 
 const students = require('../controllers/students');
+const sessions = require('../controllers/sessions');
 const Student = require('../models/Student');
-const Session = require('../models/Session');
 const TutorAction = require('../models/TutorAction');
 const Tutor = require('./tutor');
 const await = require('asyncawait/await');
@@ -56,7 +56,20 @@ class EventRouter {
             }
         })
         .then(() => {
-            return this.saveAsync(session, currentStudent);
+            return session.save();
+        })
+        .then(() => {
+            return currentStudent.save();
+        })
+        .then(() => {
+            if (event.isMatch("SYSTEM", "ENDED", "SESSION")) {
+                session.infoAlert("Session Ended");
+                if (session && session.active) {
+                    return sessions.deactivate(session);
+                }
+            }
+
+            return Promise.resolve();
         });
     }
 
@@ -72,7 +85,8 @@ class EventRouter {
                 return this.handleSystemStartedSessionAsync(student, session, event);
 
             } else if (event.isMatch('SYSTEM', 'ENDED', 'SESSION')) {
-                return this.handleSystemEndedSessionAsync(student, session, event);
+                // Ignore this message since it is handled at the end (after save)
+                return Promise.resolve(null);
 
             } else if (event.isMatch('USER', 'NAVIGATED', 'CHALLENGE')) {
                 session.debugAlert("Ignored message: " + event.toString() + " user=" + event.studentId);
@@ -118,16 +132,6 @@ class EventRouter {
 
             resolve();
         });
-    }
-
-    handleSystemEndedSessionAsync(student, session, event) {
-
-        if (session && session.active) {
-            session.infoAlert("Session Ended");
-            Session.deactivate(session);
-        }
-
-        return Promise.resolve();
     }
 }
 

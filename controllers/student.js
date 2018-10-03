@@ -5,7 +5,7 @@ const Concept = require('../models/Concept');
 
 /**
  * GET /
- * Session page.
+ * Student page.
  */
 exports.index = (req, res) => {
   const studentId = req.params.studentId;
@@ -72,14 +72,14 @@ exports.delete = (req, res) => {
 
 exports.deleteStudent = (studentId) => {
   console.info("Delete student: " + studentId);
-  return Student.remove({ 'id': studentId }).exec()
+  return Student.deleteMany({ 'id': studentId }).exec()
     .then(() => {
       console.info("Delete sessions for student: " + studentId);
-      return Session.remove({ 'studentId': studentId }).exec();
+      return Session.deleteMany({ 'studentId': studentId }).exec();
     })
     .then(() => {
       console.info("Delete observations for student: " + studentId);
-      return ConceptObservation.remove({ 'studentId': studentId }).exec();
+      return ConceptObservation.deleteMany({ 'studentId': studentId }).exec();
     })
     .catch((err) => {
       console.error(err);

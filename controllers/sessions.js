@@ -1,4 +1,5 @@
 const Session = require('../models/Session');
+const StudentController = require('../controllers/student');
 const moment = require('moment');
 var Archiver = require('archiver');
 
@@ -43,7 +44,7 @@ exports.modify = (req, res) => {
         for (let session of sessions) {
           zip.append(JSON.stringify(session.events, null, 2), { name: session.id + ".json" });
         }
-        zip.finalize(); 
+        zip.finalize();
       }).catch((err) => {
         console.error(err);
         req.flash('errors', { msg: "Unable to zip session data. " + err.toString()});
@@ -63,7 +64,7 @@ exports.modify = (req, res) => {
     console.info("Deactivate all sessions.");
     Session.getAllActiveSessions().then((sessions) => {
       for (let session of sessions) {
-        Session.deactivate(session);
+        exports.deactivate(session);
       }
       return res.redirect(process.env.BASE_PATH + 'sessions');
     }).catch((err) => {
@@ -72,3 +73,22 @@ exports.modify = (req, res) => {
     });
   }
 };
+
+exports.deactivate = (session) => {
+  console.info("Session deactivate");
+  session.active = false;
+  if (session.events.length > 0) {
+    session.endTime = session.events[session.events.length-1].time;
+  } else {
+    session.endTime = Date.now();
+  }
+  return session.save()
+    .then(() => {
+        if (session.studentId.startsWith("TEMP-")) {
+          console.info("Delete temp user");
+          return StudentController.deleteStudent(session.studentId);
+        } else {
+          return Promise.resolve();
+        }
+    });
+}
