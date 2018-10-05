@@ -12,7 +12,6 @@ console.info("%s %s", guideInfo.name, guideInfo.version);
  * Configuration Variables
  */
 global.cacheDirectory = "./data/cache";
-let mongoDbUri = "mongodb://localhost/guide3";
 
 /**
  * Setup global promise lib
@@ -44,6 +43,31 @@ const upload = multer({ dest: path.join(__dirname, 'uploads') });
 const cors = require('cors');
 const http = require('http');
 
+
+/**
+ * Load environment variables from .env file, where API keys and passwords are configured.
+ */
+let envFilename;
+switch (process.env.NODE_ENV) {
+  case 'production':
+    envFilename = 'private/env.production';
+    break;
+
+  case 'staging':
+    envFilename = 'private/env.staging';
+    break;
+
+  case 'development':
+    envFilename = 'private/env.development';
+    break;
+
+  default:
+    envFilename = './env.example';
+}
+
+dotenv.load({ path: envFilename });
+console.info('Server configured using: ' + envFilename);
+
 /**
  * Configure the path where the web app is located
  */
@@ -51,24 +75,10 @@ if (!process.env.BASE_PATH) {
   process.env.BASE_PATH = '/';
 }
 
-/**
- * Load environment variables from .env file, where API keys and passwords are configured.
- */
-switch (process.env.NODE_ENV) {
-  case 'production':
-    console.info('Server configured for production');
-    dotenv.load({ path: 'private/env.production' });
-    break;
-
-  case 'development':
-    console.info('Server configured for development');
-    dotenv.load({ path: 'private/env.dev' });
-    break;
-
-  default:
-    console.info('Server configured for example');
-    dotenv.load({ path: '.env.example' });
+if (!process.env.MONGODB_URI) {
+  throw new Error("MONGODB_URI environment variable is not defined. Specify database in environment file.")
 }
+let mongoDbUri = process.env.MONGODB_URI;
 
 /**
  * Controllers (route handlers).
@@ -182,7 +192,7 @@ router.use(session({
   saveUninitialized: true,
   secret: process.env.SESSION_SECRET,
   store: new MongoStore({
-    url: process.env.MONGODB_URI || process.env.MONGOLAB_URI,
+    url: mongoDbUri,
     autoReconnect: true
   })
 }));

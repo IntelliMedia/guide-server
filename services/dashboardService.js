@@ -1,7 +1,15 @@
 'use strict';
 
+if (!process.env.FIREBASE_DB_URL) {
+  throw new Error("FIREBASE_DB_URL environment variable is not defined.");
+}
+
+if (!process.env.FIREBASE_CREDENTIAL_FILE) {
+  throw new Error("FIREBASE_CREDENTIAL_FILE environment variable is not defined.");
+}
+
 const firebase = require("firebase-admin");
-const serviceAccount = require("../private/GVDemo-d6f050998c64.json"); 
+const serviceAccount = require("../" + process.env.FIREBASE_CREDENTIAL_FILE);
 
 // Singletons so that we don't have to reinitilize this each time
 let firebaseApp = null;
@@ -18,7 +26,7 @@ class DashboardService {
             let learnPortalCredential = firebase.credential.cert(serviceAccount);
             firebaseApp = firebase.initializeApp({
                 credential: learnPortalCredential,
-                databaseURL: "https://gvdemo-6f015.firebaseio.com"
+                databaseURL: process.env.FIREBASE_DB_URL
             }, "Dashboard");
         }
 
@@ -27,7 +35,7 @@ class DashboardService {
         }
     }
 
-    updateStudentDataAsync(session, studentModel, pathToUserITSData) { 
+    updateStudentDataAsync(session, studentModel, pathToUserITSData) {
 
       let data = null;
       try {
@@ -38,8 +46,8 @@ class DashboardService {
             };
 
           console.log("Push this to dashboard:\n" + JSON.stringify(data, null, 2));
-          
-          console.log("Save student model in Geniventure dashboard db; path=" + pathToUserITSData);  
+
+          console.log("Save student model in Geniventure dashboard db; path=" + pathToUserITSData);
           // Call this promise instead of returning it to run this in parallel since the Firebase DB
           // is taking 60+ seconds for set to return.
           firebaseDb.ref(pathToUserITSData).set(data)
