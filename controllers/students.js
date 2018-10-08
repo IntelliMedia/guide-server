@@ -6,10 +6,18 @@ const moment = require('moment');
  * Students page.
  */
 exports.index = (req, res) => {
-  Student.find({}).exec()
+  let filter = {};
+  let subtitle;
+  if (req.query.classId) {
+    filter = {'classId': req.query.classId};
+    subtitle = `Class: ${req.query.classId}`;
+  }
+
+  Student.find(filter).exec()
     .then((students) => {
       res.render('students', {
         title: 'Students',
+        subtitle: subtitle,
         students: students.sort(compareId)
       })
     })
@@ -17,7 +25,7 @@ exports.index = (req, res) => {
       console.error(err);
       req.flash('errors', { msg: 'Unable to load students. ' + err.toString()});
       return res.redirect(process.env.BASE_PATH + 'home');
-    }); 
+    });
 };
 
 function compareId(a,b) {

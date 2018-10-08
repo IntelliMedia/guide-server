@@ -13,19 +13,22 @@
       ul.nav.navbar-nav
         if isAllowed('students','get')
           li(class=(title == 'Students') ? 'active' : undefined)
-            a(href='./students') Students   
+            a(href='./students') Students
+        if isAllowed('classes','get')
+          li(class=(title == 'Classes') ? 'active' : undefined)
+            a(href='./classes') Classes
+        if isAllowed('sessions','get')
+          li(class=(title == 'Sessions') ? 'active' : undefined)
+            a(href='./sessions') Sessions
         if isAllowed('groups','get')
           li(class=(title == 'Groups') ? 'active' : undefined)
             a(href='./groups') Groups
-        if isAllowed('sessions','get')
-          li(class=(title == 'Sessions') ? 'active' : undefined)
-            a(href='./sessions') Sessions        
-        if isAllowed('alerts','get')              
+        if isAllowed('alerts','get')
           li(class=(title == 'Alerts') ? 'active' : undefined)
-            a(href='./alerts') Alerts              
+            a(href='./alerts') Alerts
         if isAllowed('users', 'get')
           li(class=(title == 'Users') ? 'active' : undefined)
-            a(href='./users') Users                              
+            a(href='./users') Users
       ul.nav.navbar-nav.navbar-right
         if !user
           li(class=(title == 'Login') ? 'active' : undefined)

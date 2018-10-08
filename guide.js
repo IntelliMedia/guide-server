@@ -88,6 +88,7 @@ const sessionsController = require('./controllers/sessions');
 const sessionController = require('./controllers/session');
 const studentsController = require('./controllers/students');
 const studentController = require('./controllers/student');
+const classesController = require('./controllers/classes');
 const groupsController = require('./controllers/groups');
 const groupController = require('./controllers/group');
 const alertsController = require('./controllers/alerts');
@@ -263,6 +264,7 @@ function initializeRoutes() {
   router.post('/student/reset', authz.middleware(), studentController.reset);
   router.post('/student/delete', authz.middleware(), studentController.delete);
   router.get('/api/student/:studentId', authz.middleware(1), StudentDataVisualization.getStudent);
+  router.get('/classes', authz.middleware(1), classesController.index);
   router.get('/groups', authz.middleware(1), groupsController.index);
   router.post('/groups/modify', authz.middleware(1), groupsController.modify);
   router.get('/group/:groupId', authz.middleware(1), groupController.index);
