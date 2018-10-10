@@ -88,9 +88,9 @@ class EventRouter {
                 // Ignore this message since it is handled at the end (after save)
                 return Promise.resolve(null);
 
-            } else if (event.isMatch('USER', 'NAVIGATED', 'CHALLENGE')) {
-                session.debugAlert("Ignored message: " + event.toString() + " user=" + event.studentId);
-                return Promise.resolve(null);
+            // } else if (event.isMatch('USER', 'NAVIGATED', 'CHALLENGE')) {
+            //     session.debugAlert("Ignored message: " + event.toString());
+            //     return Promise.resolve(null);
 
             } else if (event.isMatch('USER', '*', '*')) {
                 // Evaluate user actions and potentially take tutoring action
@@ -98,7 +98,7 @@ class EventRouter {
                 return tutor.processAsync(event);
 
             } else {
-                session.warningAlert("Unhandled message: " + event.toString() + " user=" + event.studentId);
+                session.warningAlert("Unhandled message: " + event.toString());
                 return Promise.resolve(null);
             }
         } catch(err) {
