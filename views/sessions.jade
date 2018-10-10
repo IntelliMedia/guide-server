@@ -21,45 +21,22 @@ block content
                     button.btn.btn-danger(type='submit' name='action' value='delete')
                       i.fa.fa-trash
                       | Delete all
-     table.table.table-striped
+    table.table.table-striped
       thead
         tr
           th Session ID
+          th Active
           th Student ID
           th Class ID
           th Group ID
           th Start Time
           th Total Events
       tbody
-        for session in activeSessions
+        for session in sessions
           tr
             td
               a(href='./session/#{session.id}') #{session.id}
-            td #{session.studentId}
-            td #{session.classId}
-            td #{session.groupId}
-            td #{moment(session.startTime).calendar()}
-          if session.events
-            td #{session.events.length}
-          else
-            td No events
-
-  div
-     h3 Inactive
-     table.table.table-striped
-      thead
-        tr
-          th Session ID
-          th Student ID
-          th Class ID
-          th Group ID
-          th Start Time
-          th Total Events
-      tbody
-        for session in inactiveSessions
-          tr
-            td
-              a(href='./session/#{session.id}') #{session.id}
+            td #{session.active}
             td #{session.studentId}
             td #{session.classId}
             td #{session.groupId}
@@ -68,3 +45,5 @@ block content
               td #{session.events.length}
             else
               td No events
+  div
+    include ./paginate.jade

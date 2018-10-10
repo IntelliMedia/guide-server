@@ -4,7 +4,7 @@ block content
   h1 Alerts
 
   div.pull-right
-    if isAllowed('alerts', 'post')      
+    if isAllowed('alerts', 'post')
       form.form-horizontal(action='./alerts/clear', method='POST')
         .form-group
           input(type='hidden', name='_csrf', value=_csrf)
@@ -17,7 +17,7 @@ block content
       thead
         tr
           th Type
-          th Timestamp          
+          th Timestamp
           th Message
           th Details
       tbody
@@ -26,12 +26,14 @@ block content
             td
               case alert.type
                 when 'error'
-                  s.fa.fa-exclamation-circle 
+                  s.fa.fa-exclamation-circle
                 when 'warning'
                   s.fa.fa-exclamation-triangle
                 when 'info'
                   s.fa.fa-info-circle
-            td #{moment(alert.timestamp).calendar()}                                  
+            td #{moment(alert.timestamp).calendar()}
             td #{alert.message}
             td
-              a(href='./alerts/#{alert.id}') View          
+              a(href='./alerts/#{alert.id}') View
+  div
+    include ./paginate.jade

@@ -44,3 +44,5 @@ block content
             td(align="center")
               a(href='./sessions?studentId=#{student.id}') #{student.totalSessions}
             td #{moment(student.lastSignIn).calendar()}
+    div
+      include ./paginate.jade

@@ -1,24 +1,37 @@
 const Alert = require('../models/Alert');
 const moment = require('moment');
+const paginate = require('express-paginate');
 
 /**
  * GET /
  * Alerts page.
  */
 exports.index = (req, res) => {
-  Alert.find({}).sort({timestamp: -1}).exec().then((alerts) => {
-    res.render('alerts', {
-      title: 'Alerts',
-      alerts: alerts
+  let itemCount = 0;
+  Alert.count()
+    .then((resultsCount) => {
+        itemCount = resultsCount;
+        return Alert.find({}).sort({timestamp: -1}).limit(req.query.limit).skip(req.skip).lean().exec();
+    })
+    .then((alerts) => {
+      const pageCount = Math.ceil(itemCount / req.query.limit);
+
+      res.render('alerts', {
+        title: 'Alerts',
+        alerts: alerts,
+        pageCount,
+        itemCount,
+        pages: paginate.getArrayPages(req)(3, pageCount, req.query.page)
+      });
+    })
+    .catch((err) => {
+      console.error(err);
+      req.flash('errors', { msg: err.toString() });
+      res.render('alerts', {
+        title: 'Alerts',
+        alerts: []
+      });
     });
-  }).catch((err) => {
-    console.error(err);
-    req.flash('errors', { msg: err.toString() });
-    res.render('alerts', {
-      title: 'Alerts',
-      alerts: []
-    });
-  });
 };
 
 exports.alert = (req, res) => {
@@ -49,7 +62,7 @@ exports.alert = (req, res) => {
       console.error(err);
       req.flash('errors', { msg: 'Unable to display alert: ' + err.toString()});
       return res.redirect(process.env.BASE_PATH + 'alerts');
-    });   
+    });
 };
 
 exports.clear = (req, res) => {

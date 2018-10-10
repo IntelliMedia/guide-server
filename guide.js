@@ -42,6 +42,7 @@ const multer = require('multer');
 const upload = multer({ dest: path.join(__dirname, 'uploads') });
 const cors = require('cors');
 const http = require('http');
+const paginate = require('express-paginate');
 
 
 /**
@@ -161,6 +162,9 @@ mongoose.connection.on('disconnected', () => {
 
 app.set('port', process.env.PORT || 3000);
 
+// keep this before all routes that will use pagination
+app.use(paginate.middleware(30, 50));
+
 /**
  * Jade Template configuration.
  */
@@ -250,6 +254,7 @@ socketManager.initialize(server);
 module.exports = app;
 
 function initializeRoutes() {
+
   /**
    * Primary app routes.
    */

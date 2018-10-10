@@ -2,6 +2,7 @@ const Student = require('../models/Student');
 const moment = require('moment');
 const studentController = require('../controllers/student');
 const datex = require('../utilities/datex');
+const paginate = require('express-paginate');
 
 /**
  * GET /
@@ -15,13 +16,23 @@ exports.index = (req, res) => {
     subtitle = `Class: ${req.query.classId}`;
   }
 
-  Student.find(filter).exec()
+  let itemCount = 0;
+  Student.count(filter)
+    .then((resultsCount) => {
+        itemCount = resultsCount;
+        return Student.find(filter).limit(req.query.limit).skip(req.skip).exec();
+    })
     .then((students) => {
+      const pageCount = Math.ceil(itemCount / req.query.limit);
+
       res.render('students', {
         title: 'Students',
         subtitle: subtitle,
         filter: JSON.stringify(filter),
-        students: students.sort(compareId)
+        students: students,
+        pageCount,
+        itemCount,
+        pages: paginate.getArrayPages(req)(3, pageCount, req.query.page)
       })
     })
     .catch((err) => {

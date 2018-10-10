@@ -2,29 +2,42 @@ const Session = require('../models/Session');
 const StudentController = require('../controllers/student');
 const moment = require('moment');
 var Archiver = require('archiver');
+const paginate = require('express-paginate');
 
 /**
  * GET /
  * Sessions page.
  */
 exports.index = (req, res) => {
-  var studentId = req.query.studentId;
-  var activeSessions = [];
-  Session.getAllActiveSessions(studentId).then((sessions) => {
-    activeSessions = sessions;
-    return Session.getAllInactiveSessions(studentId);
-  }).then((inactiveSessions) => {
-    res.render('sessions', {
-      title: 'Sessions',
-      activeSessions: activeSessions,
-      inactiveSessions: inactiveSessions,
-      studentId: studentId
+  let filter = {};
+  let studentId = req.query.studentId;
+  if (req.query.classId) {
+    filter = {'classId': req.query.classId};
+  }
+
+  let itemCount = 0;
+  Session.count(filter)
+    .then((resultsCount) => {
+        itemCount = resultsCount;
+        return Session.find(filter).limit(req.query.limit).skip(req.skip).exec();
+    })
+    .then((sessions) => {
+      const pageCount = Math.ceil(itemCount / req.query.limit);
+
+      res.render('sessions', {
+        title: 'Sessions',
+        sessions: sessions,
+        studentId: studentId,
+        pageCount,
+        itemCount,
+        pages: paginate.getArrayPages(req)(10, pageCount, req.query.page)
+      })
+    })
+    .catch((err) => {
+      console.error(err);
+      req.flash('errors', { msg: 'Unable to load sessions. ' + err.toString()});
+      return res.redirect(process.env.BASE_PATH + 'sessions');
     });
-  }).catch((err) => {
-    console.error(err);
-    req.flash('errors', { msg: "Unable to load sessions. " + err.toString() });
-    return res.redirect(process.env.BASE_PATH + '');
-  });
 };
 
 exports.post = (req, res) => {

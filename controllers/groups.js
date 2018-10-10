@@ -1,16 +1,27 @@
 const Group = require('../models/Group');
 const moment = require('moment');
+const paginate = require('express-paginate');
 
 /**
  * GET /
  * Groups page.
  */
 exports.index = (req, res) => {
-  Group.find({}).exec()
+  let itemCount = 0;
+  Group.count({})
+    .then((resultsCount) => {
+        itemCount = resultsCount;
+        return Group.find({}).limit(req.query.limit).skip(req.skip).lean().exec();
+    })
     .then((groups) => {
+      const pageCount = Math.ceil(itemCount / req.query.limit);
+
       res.render('groups', {
         title: 'Groups',
-        groups: groups.sort(compareName)
+        groups: groups,
+        pageCount,
+        itemCount,
+        pages: paginate.getArrayPages(req)(3, pageCount, req.query.page)
       });
     })
     .catch((err) => {

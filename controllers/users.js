@@ -1,11 +1,18 @@
 const User = require('../models/User');
 const authz = require('../services/authorization');
+const paginate = require('express-paginate');
 
 exports.index = (req, res) => {
-  User.find({}, function(err, users) {
-      if (err) throw err;
-
-      var roleMap = [];
+  let users;
+  var roleMap = [];
+  let itemCount = 0;
+  User.count({})
+    .then((resultsCount) => {
+        itemCount = resultsCount;
+        return User.find({}).limit(req.query.limit).skip(req.skip).exec();
+    })
+    .then((results) => {
+      users = results;
       var promises = [];
       users.forEach((user) => {
         promises.push(authz.acl.userRoles(user.id).then((roles) => {
@@ -13,17 +20,23 @@ exports.index = (req, res) => {
         }));
       });
 
-      Promise.all(promises).then(() => {
+      return Promise.all(promises);
+    })
+    .then(() => {
+        const pageCount = Math.ceil(itemCount / req.query.limit);
+
         res.render('users', {
-          title: 'Users',    
+          title: 'Users',
           users: users,
-          roleMap: roleMap  
+          roleMap: roleMap,
+          pageCount,
+          itemCount,
+          pages: paginate.getArrayPages(req)(3, pageCount, req.query.page)
         });
       })
       .catch((err) =>
       {
         console.error(err);
         if (err) throw err;
-      }); 
-  });    
+      });
 };

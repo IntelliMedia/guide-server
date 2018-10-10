@@ -1,5 +1,6 @@
 const Class = require('../models/Class');
 const moment = require('moment');
+const paginate = require('express-paginate');
 
 /**
  * GET /
@@ -8,9 +9,16 @@ const moment = require('moment');
 exports.index = (req, res) => {
   Class.allClasses()
     .then((classes) => {
+      let itemCount = classes.length;
+      let classesOnPage = classes.sort(compareId).splice(req.skip, req.query.limit);
+      const pageCount = Math.ceil(itemCount / req.query.limit);
+
       res.render('classes', {
         title: 'Classes',
-        classes: classes.sort(compareId)
+        classes: classesOnPage,
+        pageCount,
+        itemCount,
+        pages: paginate.getArrayPages(req)(3, pageCount, req.query.page)
       });
     })
     .catch((err) => {
