@@ -7,13 +7,20 @@ block extraHeader
 block content
   h1 Students
     if isAllowed('students', 'post')
-      div.pull-right
-        form.form-horizontal(action='./students/modify', method='POST')
-          .form-group.floatLeft
+      div.pull-right.form-inline
+        form.form-group(action='./students', method='POST')
             input(type='hidden', name='_csrf', value=_csrf)
-            button.btn.btn-danger(type='submit' name='action' value='deleteAll')
-              i.fa.fa-trash
-              | Delete all
+            input(type='hidden', name='filter', value='#{filter}')
+            button.btn.btn-primary(type='submit' name='action' value='download' style='margin-right: 5px;')
+              i.fa.fa-download
+              | Download Data
+        if isAllowed('students', 'delete')
+          form.form-group(action='./students/delete', method='POST')
+              input(type='hidden', name='_csrf', value=_csrf)
+              input(type='hidden', name='filter', value='#{filter}')
+              button.btn.btn-danger(type='submit' name='action' value='delete')
+                i.fa.fa-trash
+                | Delete all
   if subtitle
     h3 #{subtitle}
   div

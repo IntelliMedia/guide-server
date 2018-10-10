@@ -63,15 +63,15 @@ function initializeRoles() {
           allows:[
               {resources:['users'], permissions:['get', 'post']},
               {resources:['account+roles','roles'], permissions:['get', 'post']},
-              {resources:['groups', 'group'], permissions:['get', 'post', 'delete']},
-              {resources:['classes', 'sessions','session', 'alerts','students','student','student+reset', 'student+delete','api'], permissions:['get', 'post', 'delete']}
+              {resources:['groups', 'group', 'students', 'students+delete', 'student', 'student+delete', 'sessions', 'sessions+delete'], permissions:['get', 'post', 'delete']},
+              {resources:['classes', 'session', 'alerts', 'api'], permissions:['get', 'post', 'delete']}
           ]
       },
       {
           roles:['researcher'],
           allows:[
-              {resources:['groups', 'group', 'student', 'student+reset'], permissions:['get', 'post']},
-              {resources:['sessions','session','alerts','students','api'], permissions:['get']}
+              {resources:['groups', 'group', 'students', 'student', 'sessions'], permissions:['get', 'post']},
+              {resources:['classes', 'session', 'alerts', 'api'], permissions:['get']}
           ]
       }
     ], (err) => {

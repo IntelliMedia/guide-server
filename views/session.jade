@@ -2,20 +2,11 @@ extends layout
 
 block content
   h1 Session 
-  div.pull-right
-    if isAllowed('sessions', 'get')      
-      form.form-horizontal(action='./session/#{session.id}', method='GET')
-        .form-group
-          input(type='hidden', name='_csrf', value=_csrf)
-          input(type='hidden', name='format', value="json")
-          button.btn.btn-primary(type='submit')
-            i.fa.fa-download
-            | Download
   h3 #{session.id}
 
   .row
     div
-      h2 ITS Event Log  
+      h2 ITS Event Log
       table.table.table-striped
         thead
           tr
@@ -24,6 +15,6 @@ block content
         tbody
           for event in session.events
             tr
-              td 
-                a(href='./session/#{session.id}/event/#{session.events.indexOf(event)}') #{event.actor} #{event.action} #{event.target}          
+              td
+                a(href='./session/#{session.id}/event/#{session.events.indexOf(event)}') #{event.actor} #{event.action} #{event.target}
               td #{new Date(event.time)}

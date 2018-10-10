@@ -10,22 +10,24 @@ block extraHeader
 block content
   h1 Student
     div.pull-right
-      if isAllowed('students', 'post')
-        form.form-horizontal(action='./student/reset', method='POST')
-          .form-group.floatLeft
-            input(type='hidden', name='_csrf', value=_csrf)
-            input(type='hidden', name='studentId', value='#{student.id}')
-            button.btn.btn-danger(type='submit' name='action' value='resetModel')
-              i.fa.fa-trash
-              | Reset Model
-      if isAllowed('students', 'post')
-        form.form-horizontal(action='./student/delete', method='POST')
-          .form-group.floatLeft
-            input(type='hidden', name='_csrf', value=_csrf)
-            input(type='hidden', name='studentId', value='#{student.id}')
-            button.btn.btn-danger(type='submit' name='action' value='deleteStudent')
-              i.fa.fa-trash
-              | Delete Student
+      if isAllowed('student', 'post')
+        div.pull-right.form-inline
+          form.form-group(action='./student', method='POST')
+              input(type='hidden', name='_csrf', value=_csrf)
+              input(type='hidden', name='studentId', value='#{student.id}')
+              button.btn.btn-primary(type='submit' name='action' value='download' style='margin-right: 5px;')
+                i.fa.fa-download
+                | Download Data
+              button.btn.btn-warning(type='submit' name='action' value='reset' style='margin-right: 5px;')
+                i.fa.fa-eraser
+                | Reset Model
+          if isAllowed('student', 'delete')
+            form.form-group(action='./student/delete', method='POST')
+                input(type='hidden', name='_csrf', value=_csrf)
+                input(type='hidden', name='studentId', value='#{student.id}')
+                button.btn.btn-danger(type='submit' name='action' value='delete')
+                  i.fa.fa-trash
+                  | Delete
   h3 #{student.id}
   h4 #{student.classId}
   h4 #{student.groupId}

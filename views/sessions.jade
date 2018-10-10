@@ -6,22 +6,21 @@ block content
     h4 #{studentId}
 
   div
-     h3 Active 
+     h3 Active
         if !studentId
-          div.pull-right
-            form.form-horizontal(action='./sessions/modify', method='POST')
-              .form-group.floatLeft
+          if isAllowed('sessions', 'post')
+            div.pull-right.form-inline
+              form.form-group(action='./sessions', method='POST')
                 input(type='hidden', name='_csrf', value=_csrf)
-                button.btn.btn-primary(type='submit' name='action' value='downloadAll' style='margin-right: 5px;')
-                  i.fa.fa-download
-                  | Download all
-                if isAllowed('sessions', 'post')
-                  button.btn.btn-warning(type='submit' name='action' value='deactivateAll' style='margin-right: 5px;')
-                    i.fa.fa-hourglass-end
-                    | Deactivate all  
-                  button.btn.btn-danger(type='submit' name='action' value='deleteAll')
-                    i.fa.fa-trash
-                    | Delete all                
+                button.btn.btn-warning(type='submit' name='action' value='deactivateAll' style='margin-right: 5px;')
+                  i.fa.fa-hourglass-end
+                  | Deactivate all
+              if isAllowed('sessions', 'delete')
+                form.form-group(action='./sessions/delete', method='POST')
+                    input(type='hidden', name='_csrf', value=_csrf)
+                    button.btn.btn-danger(type='submit' name='action' value='delete')
+                      i.fa.fa-trash
+                      | Delete all
      table.table.table-striped
       thead
         tr
@@ -34,19 +33,19 @@ block content
       tbody
         for session in activeSessions
           tr
-            td 
-              a(href='./session/#{session.id}') #{session.id}          
+            td
+              a(href='./session/#{session.id}') #{session.id}
             td #{session.studentId}
             td #{session.classId}
             td #{session.groupId}
             td #{moment(session.startTime).calendar()}
-          if session.events  
+          if session.events
             td #{session.events.length}
           else
             td No events
 
   div
-     h3 Inactive  
+     h3 Inactive
      table.table.table-striped
       thead
         tr
@@ -59,13 +58,13 @@ block content
       tbody
         for session in inactiveSessions
           tr
-            td 
-              a(href='./session/#{session.id}') #{session.id}          
+            td
+              a(href='./session/#{session.id}') #{session.id}
             td #{session.studentId}
             td #{session.classId}
             td #{session.groupId}
             td #{moment(session.startTime).calendar()}
-            if session.events  
+            if session.events
               td #{session.events.length}
             else
               td No events

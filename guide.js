@@ -255,14 +255,16 @@ function initializeRoutes() {
    */
   router.get('/', homeController.index);
   router.get('/sessions', authz.middleware(), sessionsController.index);
-  router.post('/sessions/modify', authz.middleware(1), sessionsController.modify);
+  router.post('/sessions', authz.middleware(1), sessionsController.post);
+  router.post('/sessions/delete', authz.middleware(1), sessionsController.delete);
   router.get('/session/:sessionId', authz.middleware(1), sessionController.index);
   router.get('/session/:sessionId/event/:eventIndex', authz.middleware(1), sessionController.event);
   router.get('/students', authz.middleware(1), studentsController.index);
-  router.post('/students/modify', authz.middleware(1), studentsController.modify);
+  router.post('/students', authz.middleware(1), studentsController.post);
+  router.post('/students/delete', authz.middleware(1), studentsController.delete);
   router.get('/student/:studentId', authz.middleware(1), studentController.index);
-  router.post('/student/reset', authz.middleware(), studentController.reset);
-  router.post('/student/delete', authz.middleware(), studentController.delete);
+  router.post('/student', authz.middleware(), studentController.post);
+  router.post('/student/delete', authz.middleware(1), studentController.delete);
   router.get('/api/student/:studentId', authz.middleware(1), StudentDataVisualization.getStudent);
   router.get('/classes', authz.middleware(1), classesController.index);
   router.get('/groups', authz.middleware(1), groupsController.index);

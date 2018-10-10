@@ -2,6 +2,7 @@ const Student = require('../models/Student');
 const Session = require('../models/Session');
 const ConceptObservation = require('../models/ConceptObservation');
 const Concept = require('../models/Concept');
+const StudentDataExporter = require('../services/studentDataExporter');
 
 /**
  * GET /
@@ -35,22 +36,24 @@ exports.index = (req, res) => {
     });
 };
 
-exports.reset = (req, res) => {
-  if (req.body.studentId) {
+exports.post = (req, res) => {
+  if (req.body.action == 'download') {
+    let filename = 'GuideExport-' + req.body.studentId;
+    var filter = { 'id': req.body.studentId};
+    exports.downloadData(filter, filename, res)
+      .catch((err) => {
+        req.flash('errors', { msg: 'Unable to download data. ' + err.toString()});
+        res.redirect('back');
+      });
+  } else if (req.body.action == 'reset') {
     var studentId = req.body.studentId;
-    console.info("Reset student model: " + studentId);
-    Student.findOne({ 'id': studentId }).exec()
-      .then((student) => {
-        console.info("Save student: " + studentId);
-        return student.reset();
-      })
+    exports.resetStudentModel(studentId)
       .then(() => {
-        return res.redirect(process.env.BASE_PATH + 'student/' + studentId);
+        res.redirect('back');
       })
       .catch((err) => {
-        console.error(err);
         req.flash('errors', { msg: 'Unable to reset student. ' + err.toString()});
-        return res.redirect(process.env.BASE_PATH + 'students');
+        res.redirect('back');
       });
   }
 }
@@ -60,14 +63,41 @@ exports.delete = (req, res) => {
     var studentId = req.body.studentId;
     exports.deleteStudent(studentId)
       .then(() => {
-        return res.redirect(process.env.BASE_PATH + 'students');
+        res.redirect(process.env.BASE_PATH + 'students');
       })
       .catch((err) => {
-        console.error(err);
         req.flash('errors', { msg: 'Unable to delete student. ' + err.toString()});
-        return res.redirect(process.env.BASE_PATH + 'students');
+        res.redirect('back');
       });
   }
+}
+
+exports.resetStudentModel = (studentId) => {
+  console.info("Reset student model: " + studentId);
+  return Student.findOne({ 'id': studentId }).exec()
+    .then((student) => {
+      console.info("Save student: " + studentId);
+      return student.reset();
+    })
+    .catch((err) => {
+      console.error(err);
+    });
+}
+
+exports.downloadData = (studentFilter, filename, response) => {
+  console.info("Download student data -> filter: " + JSON.stringify(studentFilter, null, 2));
+  let exporter;
+  return Student.find(studentFilter).exec()
+    .then((students) => {
+      exporter = new StudentDataExporter(filename, response);
+      return exporter.add(students);
+    })
+    .then(() => {
+      return exporter.finalize();
+    })
+    .catch((err) => {
+      console.error(err);
+    });
 }
 
 exports.deleteStudent = (studentId) => {
