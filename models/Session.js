@@ -31,37 +31,6 @@ sessionSchema.statics.findOrCreate = (sessionId) => {
       });
 }
 
-  sessionSchema.statics.getAllActiveSessions = (studentId) => {
-    var query = {'active': true};
-    if (studentId) {
-      query.studentId = studentId;
-    }
-    return Session.find(query).exec()
-      .then((sessions) => {
-        return sessions.sort(compareStartTime);
-      });
-  };
-
-  sessionSchema.statics.getAllInactiveSessions = (studentId) => {
-    var query = {'active': false};
-    if (studentId) {
-      query.studentId = studentId;
-    }
-    return Session.find(query).exec()
-      .then((sessions) => {
-        return sessions.sort(compareStartTime);
-      });
-  };
-
-
-  function compareStartTime(a,b) {
-    if (a.startTime > b.startTime)
-      return -1;
-    if (a.startTime < b.startTime)
-      return 1;
-    return 0;
-  }
-
 sessionSchema.methods.logEvent = function(event) {
   this.events.push(event);
 }

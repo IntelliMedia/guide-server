@@ -17,7 +17,7 @@ class Class {
         if (ids) {
           ids.forEach((id) => classes.push(new Class(id)));
         }
-        return classes;
+        return classes.sort();
       })
       .catch((err) => {
         console.error('Unable to find or create session for: ' + session.id);

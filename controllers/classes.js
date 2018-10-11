@@ -1,16 +1,21 @@
 const Class = require('../models/Class');
 const moment = require('moment');
 const paginate = require('express-paginate');
+const MongoQS = require('mongo-querystring');
 
 /**
  * GET /
  * Groups page.
  */
 exports.index = (req, res) => {
+  var qs = new MongoQS();
+  let filter = qs.parse(req.query);
+
   Class.allClasses()
     .then((classes) => {
+      classes = filterArray(classes, filter);
       let itemCount = classes.length;
-      let classesOnPage = classes.sort(compareId).splice(req.skip, req.query.limit);
+      let classesOnPage = classes.splice(req.skip, req.query.limit);
       const pageCount = Math.ceil(itemCount / req.query.limit);
 
       res.render('classes', {
@@ -24,16 +29,14 @@ exports.index = (req, res) => {
     .catch((err) => {
       console.error(err);
       req.flash('errors', { msg: err.toString() });
-      return res.redirect(process.env.BASE_PATH + '');
+      res.redirect('back');
     });
 };
 
-function compareId(a,b) {
-  if (a.id < b.id)
-    return -1;
-  if (a.id > b.id)
-    return 1;
-  return 0;
+function filterArray(array, targetObj) {
+  return array.filter((item) => {
+    return Object.keys(targetObj).every(e => targetObj[e] == item[e]);
+  });
 }
 
 exports.modify = (req, res) => {
@@ -47,7 +50,7 @@ exports.modify = (req, res) => {
     .catch((err) => {
       console.error(err);
       req.flash('errors', { msg: err.toString() });
-      return res.redirect(process.env.BASE_PATH + 'classes');
+      res.redirect('back');
     });
   }
   // Delete all groups
@@ -59,7 +62,7 @@ exports.modify = (req, res) => {
       .catch((err) => {
         console.error(err);
         req.flash('errors', { msg: err.toString() });
-        return res.redirect(process.env.BASE_PATH + 'classes');
+        res.redirect('back');
       });
   }
 };

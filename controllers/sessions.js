@@ -3,23 +3,22 @@ const StudentController = require('../controllers/student');
 const moment = require('moment');
 var Archiver = require('archiver');
 const paginate = require('express-paginate');
+const MongoQS = require('mongo-querystring');
 
 /**
  * GET /
  * Sessions page.
  */
 exports.index = (req, res) => {
-  let filter = {};
-  let studentId = req.query.studentId;
-  if (req.query.classId) {
-    filter = {'classId': req.query.classId};
-  }
+  var qs = new MongoQS();
+  let filter = qs.parse(req.query);
+  let studentId = filter.hasOwnProperty('studentId') ? filter.studentId : undefined;
 
   let itemCount = 0;
   Session.count(filter)
     .then((resultsCount) => {
         itemCount = resultsCount;
-        return Session.find(filter).limit(req.query.limit).skip(req.skip).exec();
+        return Session.find(filter).sort({startTime: -1}).limit(req.query.limit).skip(req.skip).exec();
     })
     .then((sessions) => {
       const pageCount = Math.ceil(itemCount / req.query.limit);
@@ -28,6 +27,7 @@ exports.index = (req, res) => {
         title: 'Sessions',
         sessions: sessions,
         studentId: studentId,
+        filter: filter,
         pageCount,
         itemCount,
         pages: paginate.getArrayPages(req)(10, pageCount, req.query.page)
@@ -43,15 +43,17 @@ exports.index = (req, res) => {
 exports.post = (req, res) => {
   if (req.body.action == 'deactivateAll') {
     console.info("Deactivate all sessions.");
-    Session.getAllActiveSessions().then((sessions) => {
-      for (let session of sessions) {
-        exports.deactivate(session);
-      }
-      return res.redirect(process.env.BASE_PATH + 'sessions');
-    }).catch((err) => {
-      console.error(err);
-      req.flash('errors', { msg: "Unable to deactivate sessions. " + err.toString()});
-    });
+    Session.find({active: true}).exec()
+      .then((sessions) => {
+        for (let session of sessions) {
+          exports.deactivate(session);
+        }
+        return res.redirect(process.env.BASE_PATH + 'sessions');
+      }).catch((err) => {
+        console.error(err);
+        req.flash('errors', { msg: "Unable to deactivate sessions. " + err.toString()});
+        res.redirect('back');
+      });
   }
 };
 
@@ -63,6 +65,7 @@ exports.delete = (req, res) => {
     }).catch((err) => {
       console.error(err);
       req.flash('errors', { msg: "Unable to delete session. " + err.toString()});
+      res.redirect('back');
     });
   }
 };

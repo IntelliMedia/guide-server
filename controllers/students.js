@@ -3,13 +3,16 @@ const moment = require('moment');
 const studentController = require('../controllers/student');
 const datex = require('../utilities/datex');
 const paginate = require('express-paginate');
+const MongoQS = require('mongo-querystring');
 
 /**
  * GET /
  * Students page.
  */
 exports.index = (req, res) => {
-  let filter = {};
+  var qs = new MongoQS();
+  let filter = qs.parse(req.query);
+
   let subtitle;
   if (req.query.classId) {
     filter = {'classId': req.query.classId};
@@ -20,7 +23,7 @@ exports.index = (req, res) => {
   Student.count(filter)
     .then((resultsCount) => {
         itemCount = resultsCount;
-        return Student.find(filter).limit(req.query.limit).skip(req.skip).exec();
+        return Student.find(filter).sort({id: -1}).limit(req.query.limit).skip(req.skip).exec();
     })
     .then((students) => {
       const pageCount = Math.ceil(itemCount / req.query.limit);
@@ -38,7 +41,7 @@ exports.index = (req, res) => {
     .catch((err) => {
       console.error(err);
       req.flash('errors', { msg: 'Unable to load students. ' + err.toString()});
-      return res.redirect(process.env.BASE_PATH + 'home');
+      return res.redirect(process.env.BASE_PATH);
     });
 };
 

@@ -1,15 +1,19 @@
 const User = require('../models/User');
 const authz = require('../services/authorization');
 const paginate = require('express-paginate');
+const MongoQS = require('mongo-querystring');
 
 exports.index = (req, res) => {
+  var qs = new MongoQS();
+  let filter = qs.parse(req.query);
+
   let users;
   var roleMap = [];
   let itemCount = 0;
-  User.count({})
+  User.count(filter)
     .then((resultsCount) => {
         itemCount = resultsCount;
-        return User.find({}).limit(req.query.limit).skip(req.skip).exec();
+        return User.find(filter).sort({email: 0}).limit(req.query.limit).skip(req.skip).exec();
     })
     .then((results) => {
       users = results;

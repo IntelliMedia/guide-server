@@ -1,17 +1,21 @@
 const Alert = require('../models/Alert');
 const moment = require('moment');
 const paginate = require('express-paginate');
+const MongoQS = require('mongo-querystring');
 
 /**
  * GET /
  * Alerts page.
  */
 exports.index = (req, res) => {
+  var qs = new MongoQS();
+  let filter = qs.parse(req.query);
+
   let itemCount = 0;
-  Alert.count()
+  Alert.count(filter)
     .then((resultsCount) => {
         itemCount = resultsCount;
-        return Alert.find({}).sort({timestamp: -1}).limit(req.query.limit).skip(req.skip).lean().exec();
+        return Alert.find(filter).sort({timestamp: -1}).limit(req.query.limit).skip(req.skip).lean().exec();
     })
     .then((alerts) => {
       const pageCount = Math.ceil(itemCount / req.query.limit);
