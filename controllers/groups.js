@@ -2,6 +2,7 @@ const Group = require('../models/Group');
 const moment = require('moment');
 const paginate = require('express-paginate');
 const MongoQS = require('mongo-querystring');
+const Audit = require('../models/Audit');
 
 /**
  * GET /
@@ -48,6 +49,7 @@ exports.modify = (req, res) => {
   if (req.body.action == 'addNew') {
     console.info("Add new group.");
     let group = new Group({ name: "New Group"});
+    Audit.record(req.user.email, 'added', 'group');
     group.save().then((group) => {
       return res.redirect(process.env.BASE_PATH + 'group/' + group._id);
     })
@@ -60,6 +62,7 @@ exports.modify = (req, res) => {
   // Delete all groups
   else if (req.body.action == 'deleteAll') {
     console.info("Delete all groups.");
+    Audit.record(req.user.email, 'deleted', 'all groups');
     Group.remove({}).then(() => {
         return res.redirect(process.env.BASE_PATH + 'groups');
       })

@@ -93,6 +93,7 @@ const classesController = require('./controllers/classes');
 const groupsController = require('./controllers/groups');
 const groupController = require('./controllers/group');
 const alertsController = require('./controllers/alerts');
+const auditsController = require('./controllers/audits');
 const usersController = require('./controllers/users');
 const userController = require('./controllers/user');
 const socketManager = require('./services/socketManager');
@@ -282,6 +283,7 @@ function initializeRoutes() {
   router.get('/alerts', authz.middleware(), alertsController.index);
   router.get('/alerts/:alertId', authz.middleware(1), alertsController.alert);
   router.post('/alerts/clear', authz.middleware(1), alertsController.clear);
+  router.get('/audits', authz.middleware(), auditsController.index);
   router.get('/users', usersController.index);
   router.get('/login', userController.getLogin);
   router.post('/login', userController.postLogin);

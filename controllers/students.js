@@ -4,6 +4,7 @@ const studentController = require('../controllers/student');
 const datex = require('../utilities/datex');
 const paginate = require('express-paginate');
 const MongoQS = require('mongo-querystring');
+const Audit = require('../models/Audit');
 
 /**
  * GET /
@@ -64,6 +65,7 @@ exports.post = (req, res) => {
     if (filter.hasOwnProperty('classId')) {
       filename = 'GuideExport-Class-' + trimClassId(filter.classId);
     }
+    Audit.record(req.user.email, 'downloaded', 'student data', JSON.stringify(filter, null, 2));
     studentController.downloadData(filter, filename, res)
       .catch((err) => {
         req.flash('errors', { msg: "Unable to download student data. " + err.toString()});
@@ -76,6 +78,7 @@ exports.delete = (req, res) => {
   if (req.body.action == 'delete') {
     let filter = req.body.filter ? JSON.parse(req.body.filter) : {};
     console.info("Delete students -> filter: " + JSON.stringify(filter, null, 2));
+    Audit.record(req.user.email, 'deleted', 'students', JSON.stringify(filter, null, 2));
     Student.remove(filter).then(() => {
       return res.redirect(process.env.BASE_PATH + 'students');
     })

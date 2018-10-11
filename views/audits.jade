@@ -1,0 +1,24 @@
+extends layout
+
+block content
+  h1 Audit Trail
+
+  div
+     table.table.table-striped
+      thead
+        tr
+          th Timestamp
+          th User
+          th Action
+          th Target
+          th Details
+      tbody
+        for audit in audits
+          tr
+            td #{moment(audit.timestamp).calendar()}
+            td #{audit.user}
+            td #{audit.action}
+            td #{audit.target}
+            td #{audit.details}
+  div
+    include ./paginate.jade

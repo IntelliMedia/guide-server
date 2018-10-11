@@ -61,7 +61,7 @@ function initializeRoles() {
       {
           roles:['administrator'],
           allows:[
-              {resources:['users'], permissions:['get', 'post']},
+              {resources:['users', 'audits'], permissions:['get', 'post']},
               {resources:['account+roles','roles'], permissions:['get', 'post']},
               {resources:['groups', 'group', 'students', 'students+delete', 'student', 'student+delete', 'sessions', 'sessions+delete'], permissions:['get', 'post', 'delete']},
               {resources:['classes', 'session', 'alerts', 'api'], permissions:['get', 'post', 'delete']}

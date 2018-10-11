@@ -2,6 +2,7 @@ const Group = require('../models/Group');
 const Concept = require('../models/Concept');
 const FileRepository = require('../storage/fileRepository');
 const CsvDeserializer = require('../storage/csvDeserializer');
+const Audit = require('../models/Audit');
 
 /**
  * GET /
@@ -33,8 +34,9 @@ exports.delete = (req, res) => {
     return res.redirect(process.env.BASE_PATH + 'groups');
   }
 
+  Audit.record(req.user.email, 'deleted', 'group', `${modifiedGroup.name} (${modifiedGroup.id})`);
   Group.remove({ '_id': groupId }).exec()
-    .then(() => { 
+    .then(() => {
       return res.send({redirect: './groups'});
     })
     .catch((err) => {
@@ -48,6 +50,7 @@ exports.duplicate = (req, res) => {
   if (req.body.hasOwnProperty("id")) {
     var modifiedGroup = req.body;
     console.info("Duplicate group: " + modifiedGroup.id);
+    Audit.record(req.user.email, 'duplicated', 'group', `${modifiedGroup.name} (${modifiedGroup.id})`);
     Group.findOne({ '_id': modifiedGroup.id }).exec()
       .then((group) => {
         console.info("Update group: " + group._id);
@@ -73,6 +76,7 @@ exports.modify = (req, res) => {
   if (req.body.hasOwnProperty("id")) {
     var modifiedGroup = req.body;
     console.info("Update group: " + modifiedGroup.id);
+    Audit.record(req.user.email, 'updated', 'group', `${modifiedGroup.name} (${modifiedGroup.id})`);
     Group.findOne({ '_id': modifiedGroup.id }).exec()
     .then((group) => {
       group.replace(modifiedGroup);
@@ -94,6 +98,7 @@ exports.clearCache = (req, res) => {
     var group = req.body;
     console.info("Clear local file cache for group: " + group.id);
     try {
+      Audit.record(req.user.email, 'cleared', 'group configuration cache');
       let cacheRepository = new FileRepository(global.cacheDirectory, new CsvDeserializer());
       for (let id of group.repositoryLinks.map((c) => { return c.googleSheetDocId; })) {
         cacheRepository.deleteCollection(id);

@@ -1,4 +1,5 @@
 const Alert = require('../models/Alert');
+const Audit = require('../models/Audit');
 const moment = require('moment');
 const paginate = require('express-paginate');
 const MongoQS = require('mongo-querystring');
@@ -70,6 +71,7 @@ exports.alert = (req, res) => {
 };
 
 exports.clear = (req, res) => {
+  Audit.record(req.user.email, 'deleted', 'all alerts');
   Alert.remove({}).then(() => {
     return res.redirect(process.env.BASE_PATH + 'alerts');
   }).catch((err) => {

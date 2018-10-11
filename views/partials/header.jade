@@ -26,6 +26,9 @@
         if isAllowed('alerts','get')
           li(class=(title == 'Alerts') ? 'active' : undefined)
             a(href='./alerts') Alerts
+        if isAllowed('audits', 'get')
+          li(class=(title == 'Audits') ? 'active' : undefined)
+            a(href='./audits') Audits
         if isAllowed('users', 'get')
           li(class=(title == 'Users') ? 'active' : undefined)
             a(href='./users') Users

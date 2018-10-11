@@ -3,6 +3,7 @@ const Session = require('../models/Session');
 const ConceptObservation = require('../models/ConceptObservation');
 const Concept = require('../models/Concept');
 const StudentDataExporter = require('../services/studentDataExporter');
+const Audit = require('../models/Audit');
 
 /**
  * GET /
@@ -40,6 +41,7 @@ exports.post = (req, res) => {
   if (req.body.action == 'download') {
     let filename = 'GuideExport-' + req.body.studentId;
     var filter = { 'id': req.body.studentId};
+    Audit.record(req.user.email, 'downloaded', 'student data', JSON.stringify(filter, null, 2));
     exports.downloadData(filter, filename, res)
       .catch((err) => {
         req.flash('errors', { msg: 'Unable to download data. ' + err.toString()});
@@ -61,6 +63,7 @@ exports.post = (req, res) => {
 exports.delete = (req, res) => {
   if (req.body.studentId) {
     var studentId = req.body.studentId;
+    Audit.record(req.user.email, 'deleted', 'student', studentId);
     exports.deleteStudent(studentId)
       .then(() => {
         res.redirect(process.env.BASE_PATH + 'students');

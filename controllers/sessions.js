@@ -4,6 +4,7 @@ const moment = require('moment');
 var Archiver = require('archiver');
 const paginate = require('express-paginate');
 const MongoQS = require('mongo-querystring');
+const Audit = require('../models/Audit');
 
 /**
  * GET /
@@ -43,6 +44,7 @@ exports.index = (req, res) => {
 exports.post = (req, res) => {
   if (req.body.action == 'deactivateAll') {
     console.info("Deactivate all sessions.");
+    Audit.record(req.user.email, 'deactivate', 'active sessions');
     Session.find({active: true}).exec()
       .then((sessions) => {
         for (let session of sessions) {
@@ -60,6 +62,7 @@ exports.post = (req, res) => {
 exports.delete = (req, res) => {
   if (req.body.action == 'delete') {
     console.info("Delete all sessions.");
+    Audit.record(req.user.email, 'deleted', 'all sessions');
     Session.remove({}).then(() => {
       return res.redirect(process.env.BASE_PATH + 'sessions');
     }).catch((err) => {

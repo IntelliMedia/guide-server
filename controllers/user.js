@@ -5,6 +5,7 @@ const passport = require('passport');
 const User = require('../models/User');
 const authz = require('../services/authorization');
 const _ = require('underscore');
+const Audit = require('../models/Audit');
 
 /**
  * GET /login
@@ -93,16 +94,17 @@ exports.postSignup = (req, res, next) => {
   newUser.password = req.body.password;
 
   exports.createUser(newUser, (user, err) => {
-    if (err) { 
+    if (err) {
       req.flash('errors', { msg: err });
-      res.redirect(process.env.BASE_PATH + 'signup'); 
+      res.redirect(process.env.BASE_PATH + 'signup');
     }
     else {
+      Audit.record(newUser.email, 'created', 'account', user.id);
       req.logIn(user, (logInErr) => {
         if (logInErr) { return next(logInErr); }
         req.flash('success', { msg: 'Success! New account created.' });
         res.redirect(req.session.returnTo || './');
-      }); 
+      });
     }
   });
 };
@@ -116,7 +118,7 @@ exports.createUser = (user, cb) => {
   User.findOne({ email: user.email }).exec().then((existingUser) => {
     if (existingUser) {
       throw 'Account with that email address already exists.';
-    }    
+    }
     return user.save();
   })
   // Save new user in database
@@ -154,7 +156,7 @@ function extractUserInfo(req, res) {
     return {
     id: userId,
     url: userUrl
-  }; 
+  };
 }
 
 /**
@@ -174,7 +176,7 @@ exports.getAccount = (req, res) => {
         title: 'Account Management',
         selectedUser: user,
         selectedUserRoles: roles
-      }); 
+      });
     });
   });
 };
@@ -233,13 +235,14 @@ exports.postUpdateRoles = (req, res, next) => {
   }
   if (req.body.guestCheckbox == 'on') {
     selectedRoles.push('guest');
-  }    
+  }
 
   // Get user object from ID
+  Audit.record(req.user.email, 'updated', 'roles', `${userInfo.id} -> (${selectedRoles.join(',')})`);
   User.findById(userInfo.id).then((user) => {
     return authz.acl.userRoles(userInfo.id);
   })
-  // Remove deselected roles  
+  // Remove deselected roles
   .then((roles) => {
     var removedRoles = _.difference(roles, selectedRoles);
     if (removedRoles.length > 0) {
@@ -253,7 +256,7 @@ exports.postUpdateRoles = (req, res, next) => {
     }
   })
   // Add selected roles
-  .then((roles) => {    
+  .then((roles) => {
     var addedRoles = _.difference(selectedRoles, roles);
     if (addedRoles.length > 0) {
       return authz.acl.addUserRoles(userInfo.id, addedRoles).then(() => {
@@ -293,6 +296,7 @@ exports.postUpdatePassword = (req, res, next) => {
     return res.redirect(process.env.BASE_PATH + 'account/' + userInfo.url);
   }
 
+  Audit.record(req.user.email, 'updated', 'password', userInfo.id);
   User.findById(userInfo.id, (err, user) => {
     if (err) { return next(err); }
     user.password = req.body.password;
@@ -312,6 +316,7 @@ exports.postDeleteAccount = (req, res, next) => {
   const userInfo = extractUserInfo(req, res);
 
   // Remove all roles assigned to this user
+  Audit.record(req.user.email, 'deleted', 'account', userInfo.id);
   authz.acl.userRoles( userInfo.id).then((roles) => {
     if (roles.length > 0) {
       return authz.acl.removeUserRoles( userInfo.id, roles);
@@ -322,10 +327,10 @@ exports.postDeleteAccount = (req, res, next) => {
   })
   // Remove user from database
   .then(() =>
-  {    
+  {
     return User.remove({ _id: userInfo.id });
   })
-  .then(() => {        
+  .then(() => {
         if (userInfo.id == req.user.id) {
           req.logout();
           req.flash('info', { msg: 'Your account has been deleted.' });
