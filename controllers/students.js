@@ -23,7 +23,7 @@ exports.index = (req, res) => {
   Student.count(filter)
     .then((resultsCount) => {
         itemCount = resultsCount;
-        return Student.find(filter).sort({id: -1}).limit(req.query.limit).skip(req.skip).exec();
+        return Student.find(filter).sort({id: 1}).limit(req.query.limit).skip(req.skip).exec();
     })
     .then((students) => {
       const pageCount = Math.ceil(itemCount / req.query.limit);

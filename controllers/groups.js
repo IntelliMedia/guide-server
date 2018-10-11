@@ -15,7 +15,7 @@ exports.index = (req, res) => {
   Group.count(filter)
     .then((resultsCount) => {
         itemCount = resultsCount;
-        return Group.find(filter).limit(req.query.limit).skip(req.skip).lean().exec();
+        return Group.find(filter).sort({name: 1}).limit(req.query.limit).skip(req.skip).lean().exec();
     })
     .then((groups) => {
       const pageCount = Math.ceil(itemCount / req.query.limit);
