@@ -60,13 +60,13 @@ function trimClassId(classId) {
 
 exports.post = (req, res) => {
   if (req.body.action == 'download') {
-    let filename = 'GuideExport-' + (new Date()).toFilename();
+    let exportName = (new Date()).toFilename();
     let filter = req.body.filter ? JSON.parse(req.body.filter) : {};
     if (filter.hasOwnProperty('classId')) {
-      filename = 'GuideExport-Class-' + trimClassId(filter.classId);
+      exportName = 'Class-' + trimClassId(filter.classId);
     }
     Audit.record(req.user.email, 'downloaded', 'student data', JSON.stringify(filter, null, 2));
-    studentController.downloadData(filter, filename, res)
+    studentController.downloadData(filter, exportName, res)
       .catch((err) => {
         req.flash('errors', { msg: "Unable to download student data. " + err.toString()});
         res.redirect('back');

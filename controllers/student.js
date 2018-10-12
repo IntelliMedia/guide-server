@@ -39,10 +39,10 @@ exports.index = (req, res) => {
 
 exports.post = (req, res) => {
   if (req.body.action == 'download') {
-    let filename = 'GuideExport-' + req.body.studentId;
+    let exportName = req.body.studentId;
     var filter = { 'id': req.body.studentId};
     Audit.record(req.user.email, 'downloaded', 'student data', JSON.stringify(filter, null, 2));
-    exports.downloadData(filter, filename, res)
+    exports.downloadData(filter, exportName, res)
       .catch((err) => {
         req.flash('errors', { msg: 'Unable to download data. ' + err.toString()});
         res.redirect('back');
@@ -81,9 +81,6 @@ exports.resetStudentModel = (studentId) => {
     .then((student) => {
       console.info("Save student: " + studentId);
       return student.reset();
-    })
-    .catch((err) => {
-      console.error(err);
     });
 }
 
@@ -97,9 +94,6 @@ exports.downloadData = (studentFilter, filename, response) => {
     })
     .then(() => {
       return exporter.finalize();
-    })
-    .catch((err) => {
-      console.error(err);
     });
 }
 
@@ -113,8 +107,5 @@ exports.deleteStudent = (studentId) => {
     .then(() => {
       console.info("Delete observations for student: " + studentId);
       return ConceptObservation.deleteMany({ 'studentId': studentId }).exec();
-    })
-    .catch((err) => {
-      console.error(err);
     });
 }
