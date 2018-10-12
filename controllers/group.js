@@ -3,6 +3,7 @@ const Concept = require('../models/Concept');
 const FileRepository = require('../storage/fileRepository');
 const CsvDeserializer = require('../storage/csvDeserializer');
 const Audit = require('../models/Audit');
+const Alert = require('../models/Alert');
 
 /**
  * GET /
@@ -22,9 +23,8 @@ exports.index = (req, res) => {
       });
     })
     .catch((err) => {
-      console.error(err);
-      req.flash('errors', { msg: 'Group with ID is not found: ' + groupId});
-      return res.redirect(process.env.BASE_PATH + 'groups');
+      Alert.flash(req, 'Unable to display group page', err);
+      res.render('error');
     });
 };
 
@@ -34,15 +34,14 @@ exports.delete = (req, res) => {
     return res.redirect(process.env.BASE_PATH + 'groups');
   }
 
-  Audit.record(req.user.email, 'deleted', 'group', `${modifiedGroup.name} (${modifiedGroup.id})`);
+  Audit.record(req.user.email, 'deleted', 'group', groupId);
   Group.remove({ '_id': groupId }).exec()
     .then(() => {
       return res.send({redirect: './groups'});
     })
     .catch((err) => {
-      console.error(err);
-      req.flash('errors', { msg: 'Group with ID is not found: ' + groupId});
-      return res.send({redirect: './groups'});
+      Alert.flash(req, 'Unable to delete group', err);
+      res.redirect(process.env.BASE_PATH + 'groups');
     });
 };
 
@@ -65,9 +64,8 @@ exports.duplicate = (req, res) => {
         return res.send({redirect: './group/' + duplicateGroup.id});
       })
       .catch((err) => {
-        console.error(err);
-        req.flash('errors', { msg: 'Unable to duplicate group. ' + err.toString()});
-        return res.send({redirect: './groups'});
+        Alert.flash(req, 'Unable to duplicate group', err);
+        res.redirect(process.env.BASE_PATH + 'groups');
       });
   }
 }
@@ -86,9 +84,8 @@ exports.modify = (req, res) => {
       return res.send({redirect: './groups'});
     })
     .catch((err) => {
-      console.error(err);
-      req.flash('errors', { msg: 'Unable to update group. ' + err.toString()});
-      return next(err);
+      Alert.flash(req, 'Unable to update group', err);
+      res.redirect('./group/' + modifiedGroup.id);
     });
   }
 };
@@ -107,9 +104,8 @@ exports.clearCache = (req, res) => {
       req.flash('info',  { msg: 'Cache successfully cleared'});
       return res.send({redirect: './group/' + group.id});
     } catch(e) {
-      console.error(e);
-      req.flash('errors', { msg: 'Unable to clear cache. ' + e.toString()});
-      return res.send({redirect: './group/' + group.id});
+      Alert.flash(req, 'Unable to clear configuration cache', err);
+      res.redirect('./group/' + group.id);
     }
   }
 };

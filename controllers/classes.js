@@ -2,6 +2,7 @@ const Class = require('../models/Class');
 const moment = require('moment');
 const paginate = require('express-paginate');
 const MongoQS = require('mongo-querystring');
+const Alert = require('../models/Alert');
 
 /**
  * GET /
@@ -27,9 +28,8 @@ exports.index = (req, res) => {
       });
     })
     .catch((err) => {
-      console.error(err);
-      req.flash('errors', { msg: err.toString() });
-      res.redirect('back');
+      Alert.flash(req, 'Unable to display classes page', err);
+      res.render('error');
     });
 };
 
@@ -38,31 +38,3 @@ function filterArray(array, targetObj) {
     return Object.keys(targetObj).every(e => targetObj[e] == item[e]);
   });
 }
-
-exports.modify = (req, res) => {
-  // Add new group
-  if (req.body.action == 'addNew') {
-    console.info("Add new group.");
-    let group = new Group({ name: "New Group"});
-    group.save().then((group) => {
-      return res.redirect(process.env.BASE_PATH + 'class/' + group._id);
-    })
-    .catch((err) => {
-      console.error(err);
-      req.flash('errors', { msg: err.toString() });
-      res.redirect('back');
-    });
-  }
-  // Delete all groups
-  else if (req.body.action == 'deleteAll') {
-    console.info("Delete all groups.");
-    Group.remove({}).then(() => {
-        return res.redirect(process.env.BASE_PATH + 'classes');
-      })
-      .catch((err) => {
-        console.error(err);
-        req.flash('errors', { msg: err.toString() });
-        res.redirect('back');
-      });
-  }
-};

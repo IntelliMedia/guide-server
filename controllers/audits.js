@@ -2,6 +2,7 @@ const Audit = require('../models/Audit');
 const moment = require('moment');
 const paginate = require('express-paginate');
 const MongoQS = require('mongo-querystring');
+const Alert = require('../models/Alert');
 
 /**
  * GET /
@@ -29,12 +30,8 @@ exports.index = (req, res) => {
       });
     })
     .catch((err) => {
-      console.error(err);
-      req.flash('errors', { msg: err.toString() });
-      res.render('audits', {
-        title: 'Audits',
-        audits: []
-      });
+      Alert.flash(req, 'Unable to display audits page', err);
+      res.render('error');
     });
 };
 
@@ -63,9 +60,8 @@ exports.audit = (req, res) => {
       res.render('audit', data);
     })
     .catch((err) => {
-      console.error(err);
-      req.flash('errors', { msg: 'Unable to display audit: ' + err.toString()});
-      return res.redirect(process.env.BASE_PATH + 'audits');
+      Alert.flash(req, 'Unable to display audit page', err);
+      res.redirect(process.env.BASE_PATH + 'audits');
     });
 };
 
@@ -73,7 +69,7 @@ exports.clear = (req, res) => {
   Audit.remove({}).then(() => {
     return res.redirect(process.env.BASE_PATH + 'audits');
   }).catch((err) => {
-    console.error(err);
-    req.flash('errors', { msg: err.toString() });
+    Alert.flash(req, 'Unable to delete audits', err);
+    res.redirect(process.env.BASE_PATH + 'audits');
   });
 };

@@ -33,7 +33,8 @@ block content
                   s.fa.fa-info-circle
             td #{moment(alert.timestamp).calendar()}
             td #{alert.message}
-            td
-              a(href='./alerts/#{alert.id}') View
+            if (alert.eventJson || alert.stack)
+              td
+                a(href='./alerts/#{alert._id}') View
   div
     include ./paginate.jade

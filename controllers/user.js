@@ -6,6 +6,7 @@ const User = require('../models/User');
 const authz = require('../services/authorization');
 const _ = require('underscore');
 const Audit = require('../models/Audit');
+const Alert = require('../models/Alert');
 
 /**
  * GET /login
@@ -32,14 +33,14 @@ exports.postLogin = (req, res, next) => {
   const errors = req.validationErrors();
 
   if (errors) {
-    req.flash('errors', errors);
+    Alert.flash(req, 'Unable to sign in', err);
     return res.redirect(process.env.BASE_PATH + 'login');
   }
 
   passport.authenticate('local', (err, user, info) => {
     if (err) { return next(err); }
     if (!user) {
-      req.flash('errors', info);
+      Alert.flash(req, info, err);
       return res.redirect(process.env.BASE_PATH + 'login');
     }
     req.logIn(user, (err) => {
@@ -85,7 +86,7 @@ exports.postSignup = (req, res, next) => {
   const errors = req.validationErrors();
 
   if (errors) {
-    req.flash('errors', errors);
+    Alert.flash(req, errors);
     return res.redirect(process.env.BASE_PATH + 'signup');
   }
 
@@ -95,7 +96,7 @@ exports.postSignup = (req, res, next) => {
 
   exports.createUser(newUser, (user, err) => {
     if (err) {
-      req.flash('errors', { msg: err });
+      Alert.flash(req, 'Unable to create account', err);
       res.redirect(process.env.BASE_PATH + 'signup');
     }
     else {
@@ -194,7 +195,7 @@ exports.postUpdateProfile = (req, res, next) => {
   const errors = req.validationErrors();
 
   if (errors) {
-    req.flash('errors', errors);
+    Alert.flash(req, errors);
     return res.redirect(process.env.BASE_PATH + 'account/' + userInfo.url);
   }
 
@@ -208,8 +209,12 @@ exports.postUpdateProfile = (req, res, next) => {
     user.save((err) => {
       if (err) {
         if (err.code === 11000) {
-          req.flash('errors', { msg: 'The email address you have entered is already associated with an account.' });
+
+          let msg = 'The email address you have entered is already associated with an account.';
+          Alert.flash(req, msg);
           return res.redirect(process.env.BASE_PATH + 'account/' + userInfo.url);
+        } else {
+          Alert.flash(req, "Unable to update profile", err);
         }
         return next(err);
       }
@@ -292,7 +297,7 @@ exports.postUpdatePassword = (req, res, next) => {
   const errors = req.validationErrors();
 
   if (errors) {
-    req.flash('errors', errors);
+    Alert.flash(req, errors);
     return res.redirect(process.env.BASE_PATH + 'account/' + userInfo.url);
   }
 
@@ -381,7 +386,7 @@ exports.getReset = (req, res, next) => {
     .exec((err, user) => {
       if (err) { return next(err); }
       if (!user) {
-        req.flash('errors', { msg: 'Password reset token is invalid or has expired.' });
+        Alert.flash(req, 'Password reset token is invalid or has expired.');
         return res.redirect(process.env.BASE_PATH + 'forgot');
       }
       res.render('account/reset', {
@@ -401,7 +406,7 @@ exports.postReset = (req, res, next) => {
   const errors = req.validationErrors();
 
   if (errors) {
-    req.flash('errors', errors);
+    Alert.flash(req, errors);
     return res.redirect('back');
   }
 
@@ -413,7 +418,7 @@ exports.postReset = (req, res, next) => {
         .exec((err, user) => {
           if (err) { return next(err); }
           if (!user) {
-            req.flash('errors', { msg: 'Password reset token is invalid or has expired.' });
+            Alert.flash(req, 'Password reset token is invalid or has expired.');
             return res.redirect('back');
           }
           user.password = req.body.password;
@@ -476,7 +481,7 @@ exports.postForgot = (req, res, next) => {
   const errors = req.validationErrors();
 
   if (errors) {
-    req.flash('errors', errors);
+    Alert.flash(req, errors);
     return res.redirect(process.env.BASE_PATH + 'forgot');
   }
 
@@ -490,7 +495,7 @@ exports.postForgot = (req, res, next) => {
     function (token, done) {
       User.findOne({ email: req.body.email }, (err, user) => {
         if (!user) {
-          req.flash('errors', { msg: 'Account with that email address does not exist.' });
+          Alert.flash(req, 'Account with that email address does not exist.');
           return res.redirect(process.env.BASE_PATH + 'forgot');
         }
         user.passwordResetToken = token;

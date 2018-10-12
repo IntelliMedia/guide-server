@@ -3,6 +3,7 @@ const moment = require('moment');
 const paginate = require('express-paginate');
 const MongoQS = require('mongo-querystring');
 const Audit = require('../models/Audit');
+const Alert = require('../models/Alert');
 
 /**
  * GET /
@@ -30,9 +31,8 @@ exports.index = (req, res) => {
       });
     })
     .catch((err) => {
-      console.error(err);
-      req.flash('errors', { msg: err.toString() });
-      return res.redirect(process.env.BASE_PATH + '');
+      Alert.flash(req, 'Unable to display groups page', err);
+      res.render('error');
     });
 };
 
@@ -54,9 +54,8 @@ exports.modify = (req, res) => {
       return res.redirect(process.env.BASE_PATH + 'group/' + group._id);
     })
     .catch((err) => {
-      console.error(err);
-      req.flash('errors', { msg: err.toString() });
-      return res.redirect(process.env.BASE_PATH + 'groups');
+      Alert.flash(req, 'Unable to add new group', err);
+      res.redirect('back');
     });
   }
   // Delete all groups
@@ -67,9 +66,8 @@ exports.modify = (req, res) => {
         return res.redirect(process.env.BASE_PATH + 'groups');
       })
       .catch((err) => {
-        console.error(err);
-        req.flash('errors', { msg: err.toString() });
-        return res.redirect(process.env.BASE_PATH + 'groups');
+        Alert.flash(req, 'Unable to delete groups', err);
+        res.redirect('back');
       });
   }
 };

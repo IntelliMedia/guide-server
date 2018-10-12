@@ -30,12 +30,8 @@ exports.index = (req, res) => {
       });
     })
     .catch((err) => {
-      console.error(err);
-      req.flash('errors', { msg: err.toString() });
-      res.render('alerts', {
-        title: 'Alerts',
-        alerts: []
-      });
+      Alert.flash(req, 'Unable to display alerts page', err);
+      res.render('error');
     });
 };
 
@@ -64,8 +60,7 @@ exports.alert = (req, res) => {
       res.render('alert', data);
     })
     .catch((err) => {
-      console.error(err);
-      req.flash('errors', { msg: 'Unable to display alert: ' + err.toString()});
+      Alert.flash(req, 'Unable to display alert page', err);
       return res.redirect(process.env.BASE_PATH + 'alerts');
     });
 };
@@ -75,7 +70,7 @@ exports.clear = (req, res) => {
   Alert.remove({}).then(() => {
     return res.redirect(process.env.BASE_PATH + 'alerts');
   }).catch((err) => {
-    console.error(err);
-    req.flash('errors', { msg: err.toString() });
+    Alert.flash(req, 'Unable to delete alerts', err);
+    return res.redirect(process.env.BASE_PATH + 'alerts');
   });
 };

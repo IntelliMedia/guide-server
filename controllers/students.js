@@ -5,6 +5,7 @@ const datex = require('../utilities/datex');
 const paginate = require('express-paginate');
 const MongoQS = require('mongo-querystring');
 const Audit = require('../models/Audit');
+const Alert = require('../models/Alert');
 
 /**
  * GET /
@@ -40,9 +41,8 @@ exports.index = (req, res) => {
       })
     })
     .catch((err) => {
-      console.error(err);
-      req.flash('errors', { msg: 'Unable to load students. ' + err.toString()});
-      return res.redirect(process.env.BASE_PATH);
+      Alert.flash(req, 'Unable to display students page', err);
+      res.render('error');
     });
 };
 
@@ -68,7 +68,7 @@ exports.post = (req, res) => {
     Audit.record(req.user.email, 'downloaded', 'student data', JSON.stringify(filter, null, 2));
     studentController.downloadData(filter, exportName, res)
       .catch((err) => {
-        req.flash('errors', { msg: "Unable to download student data. " + err.toString()});
+        Alert.flash(req, 'Unable to download students\' data', err);
         res.redirect('back');
       });
   }
@@ -83,9 +83,8 @@ exports.delete = (req, res) => {
       return res.redirect(process.env.BASE_PATH + 'students');
     })
     .catch((err) => {
-      console.error(err);
-      req.flash('errors', { msg: 'Unable to delete student. ' + err.toString()});
-      return res.redirect(process.env.BASE_PATH + 'students');
+      Alert.flash(req, 'Unable to delete students', err);
+      res.redirect('back');
     });
   }
 };

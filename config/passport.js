@@ -11,6 +11,7 @@ const LinkedInStrategy = require('passport-linkedin-oauth2').Strategy;
 const OpenIDStrategy = require('passport-openid').Strategy;
 const OAuthStrategy = require('passport-oauth').OAuthStrategy;
 const OAuth2Strategy = require('passport-oauth').OAuth2Strategy;
+const Alert = require('../models/Alert');
 
 const User = require('../models/User');
 const userController = require('../controllers/user');
@@ -70,7 +71,8 @@ passport.use(new FacebookStrategy({
   if (req.user) {
     User.findOne({ facebook: profile.id }, (err, existingUser) => {
       if (existingUser) {
-        req.flash('errors', { msg: 'There is already a Facebook account that belongs to you. Sign in with that account or delete it, then link it with your current account.' });
+        let msg = 'There is already a Facebook account that belongs to you. Sign in with that account or delete it, then link it with your current account.';
+        Alert.flash(req, msg, err);
         done(err);
       } else {
         User.findById(req.user.id, (err, user) => {
@@ -93,7 +95,8 @@ passport.use(new FacebookStrategy({
       }
       User.findOne({ email: profile._json.email }, (err, existingEmailUser) => {
         if (existingEmailUser) {
-          req.flash('errors', { msg: 'There is already an account using this email address. Sign in to that account and link it with Facebook manually from Account Settings.' });
+          let msg = 'There is already an account using this email address. Sign in to that account and link it with Facebook manually from Account Settings.';
+          Alert.flash(req, msg, err);
           done(err);
         } else {
           const newUser = new User();
@@ -126,7 +129,8 @@ passport.use(new GoogleStrategy({
   if (req.user) {
     User.findOne({ google: profile.id }, (err, existingUser) => {
       if (existingUser) {
-        req.flash('errors', { msg: 'There is already a Google account that belongs to you. Sign in with that account or delete it, then link it with your current account.' });
+        let msg = 'There is already a Google account that belongs to you. Sign in with that account or delete it, then link it with your current account.' ;
+        Alert.flash(req, msg, err);
         done(err);
       } else {
         User.findById(req.user.id, (err, user) => {
@@ -149,7 +153,8 @@ passport.use(new GoogleStrategy({
       }
       User.findOne({ email: profile.emails[0].value }, (err, existingEmailUser) => {
         if (existingEmailUser) {
-          req.flash('errors', { msg: 'There is already an account using this email address. Sign in to that account and link it with Google manually from Account Settings.' });
+          let msg = 'There is already an account using this email address. Sign in to that account and link it with Google manually from Account Settings.';
+          Alert.flash(req, msg, err);
           done(err);
         } else {
           const newUser = new User();

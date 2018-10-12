@@ -28,7 +28,31 @@ alertSchema.statics.error = function(err, session, event) {
           sessionId: sessionId,
           eventJson: eventJson
       });
-  newAlert.save(); 
+  newAlert.save();
+}
+
+alertSchema.statics.flash = function(req, message, err) {
+  console.error(message);
+  if (err) {
+    console.error(err);
+  }
+
+  let errMsg = err ? '. ' + err.toString() : '';
+  let flashMsg = { msg: `${message}${errMsg}`};
+
+  req.flash('errors', flashMsg);
+
+  let stack = err ? err.stack : undefined;
+
+  let newAlert = Alert({
+          type: 'error',
+          timestamp: Date.now(),
+          message: flashMsg.msg,
+          stack: stack,
+          sessionId: '',
+          eventJson: '{}'
+      });
+  newAlert.save();
 }
 
 const Alert = mongoose.model('Alert', alertSchema);

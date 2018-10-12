@@ -5,6 +5,7 @@ var Archiver = require('archiver');
 const paginate = require('express-paginate');
 const MongoQS = require('mongo-querystring');
 const Audit = require('../models/Audit');
+const Alert = require('../models/Alert');
 
 /**
  * GET /
@@ -35,9 +36,8 @@ exports.index = (req, res) => {
       })
     })
     .catch((err) => {
-      console.error(err);
-      req.flash('errors', { msg: 'Unable to load sessions. ' + err.toString()});
-      return res.redirect(process.env.BASE_PATH + 'sessions');
+      Alert.flash(req, 'Unable to display sessions page', err);
+      res.render('error');
     });
 };
 
@@ -52,8 +52,7 @@ exports.post = (req, res) => {
         }
         return res.redirect(process.env.BASE_PATH + 'sessions');
       }).catch((err) => {
-        console.error(err);
-        req.flash('errors', { msg: "Unable to deactivate sessions. " + err.toString()});
+        Alert.flash(req, 'Unable to deactivate sessions', err);
         res.redirect('back');
       });
   }
@@ -66,8 +65,7 @@ exports.delete = (req, res) => {
     Session.remove({}).then(() => {
       return res.redirect(process.env.BASE_PATH + 'sessions');
     }).catch((err) => {
-      console.error(err);
-      req.flash('errors', { msg: "Unable to delete session. " + err.toString()});
+      Alert.flash(req, 'Unable to delete sessions', err);
       res.redirect('back');
     });
   }

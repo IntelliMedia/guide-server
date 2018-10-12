@@ -1,4 +1,5 @@
 const Session = require('../models/Session');
+const Alert = require('../models/Alert');
 
 /**
  * GET /
@@ -12,7 +13,7 @@ exports.index = (req, res) => {
 
   Session.findOne({ 'id': sessionId }).exec()
     .then((session) => {
-      const format = req.query.format; 
+      const format = req.query.format;
       if (format && format.toLowerCase() == "json") {
         res.attachment(session.id + ".json");
         res.json(session.events);
@@ -24,10 +25,9 @@ exports.index = (req, res) => {
       }
     })
     .catch((err) => {
-      console.error(err);
-      req.flash('errors', { msg: 'Unable to display session data. ' + err.toString()});
-      return res.redirect(process.env.BASE_PATH + 'sessions');
-    }); 
+      Alert.flash(req, 'Unable to display session page', err);
+      res.render('error');
+    });
 };
 
 exports.event = (req, res) => {
@@ -45,8 +45,7 @@ exports.event = (req, res) => {
       });
     })
     .catch((err) => {
-      console.error(err);
-      req.flash('errors', { msg: 'Unable to display session data. ' + err.toString()});
-      return res.redirect(process.env.BASE_PATH + 'sessions');
-    });   
+      Alert.flash(req, 'Unable to display event details', err);
+      res.redirect('back');
+    });
 };

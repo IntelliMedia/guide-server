@@ -4,6 +4,7 @@ const concept = require('../models/Concept');
 const Student = require('../models/Student');
 const StudentModel = require('../models/StudentModel');
 const _ = require('lodash');
+const Alert = require('../models/Alert');
 
 /**
  * This class creates charts based on student data using Highcharts service
@@ -44,9 +45,8 @@ class StudentDataVisualization {
             res.end(JSON.stringify(chartData));
         })
         .catch((err) => {
-            console.error(err);
-            req.flash('errors', { msg: 'Student with ID is not found: ' + studentId + ". " + err.toString()});
-            return res.redirect(process.env.BASE_PATH + '');
+            Alert.flash(req, 'Student with ID is not found: ' + studentId, err);
+            res.redirect(process.env.BASE_PATH + '');
         });
     }
 
@@ -94,7 +94,7 @@ class StudentDataVisualization {
         }
 
         if (yAxisField) {
-            collection.forEach((a) => { 
+            collection.forEach((a) => {
                 chartInfo.yLabels.push(a[yAxisField]);
             });
             chartInfo.yLabels = _.uniq(chartInfo.yLabels).sort();
@@ -147,22 +147,22 @@ class StudentDataVisualization {
     }
 
     static createAggregateConceptHeatmap(student) {
-        
+
         let chartInfo = StudentDataVisualization.getConceptScores(
-            student.studentModel.conceptsAggregated, 
-            "concepts", 
-            undefined, 
+            student.studentModel.conceptsAggregated,
+            "concepts",
+            undefined,
             "conceptId");
 
         return StudentDataVisualization.createConceptHeatmap(chartInfo, "Aggregate");
     }
 
     static createConceptByTraitHeatmap(student) {
-        
+
         let chartInfo = StudentDataVisualization.getConceptScores(
-            student.studentModel.conceptsByTrait, 
-            "concepts", 
-            "attribute", 
+            student.studentModel.conceptsByTrait,
+            "concepts",
+            "attribute",
             "conceptId");
 
         return StudentDataVisualization.createConceptHeatmap(chartInfo, "Trait");
@@ -171,9 +171,9 @@ class StudentDataVisualization {
     static createConceptByChallengeHeatmap(student) {
 
         let chartInfo = StudentDataVisualization.getConceptScores(
-            student.studentModel.conceptsByChallenge, 
-            "concepts", 
-            "challengeId", 
+            student.studentModel.conceptsByChallenge,
+            "concepts",
+            "challengeId",
             "conceptId");
 
         return StudentDataVisualization.createConceptHeatmap(chartInfo, "Challenge");
@@ -239,7 +239,7 @@ class StudentDataVisualization {
     }
 
     static createSnapshotsByConcept(student) {
-        
+
         let collection = student.studentModel.snapshotsByConceptId;
         // y axis is normalized probabilityLearned (0-1)
         let innerCollectionField = "snapshots";
@@ -253,7 +253,7 @@ class StudentDataVisualization {
             dataDetails: {}
         }
 
-        collection.forEach((a) => { 
+        collection.forEach((a) => {
             chartInfo.seriesLabels.push(a[seriesField]);
         });
         chartInfo.seriesLabels = _.uniq(chartInfo.seriesLabels).sort();
@@ -276,7 +276,7 @@ class StudentDataVisualization {
 
                 let seriesEntry = collection.find((g) => g[seriesField] == seriesLabel);
                 let dataPoint = seriesEntry[innerCollectionField].find((c) => c[xAxisField] === xLabel);
-                if (dataPoint) { 
+                if (dataPoint) {
                     let scaledScore = Math.round(dataPoint.probabilityLearned * 1000) / 10;
                     currentSeries.data.push([Math.round(dataPoint.timestamp.getTime()), scaledScore]);
                 }
@@ -318,7 +318,7 @@ class StudentDataVisualization {
                 align: 'right',
                 verticalAlign: 'middle'
             },
-        
+
             plotOptions: {
                 spline: {
                     marker: {
@@ -326,7 +326,7 @@ class StudentDataVisualization {
                     }
                 }
             },
-        
+
             series: chartInfo.series
         };
     }

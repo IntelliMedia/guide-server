@@ -4,6 +4,7 @@ const ConceptObservation = require('../models/ConceptObservation');
 const Concept = require('../models/Concept');
 const StudentDataExporter = require('../services/studentDataExporter');
 const Audit = require('../models/Audit');
+const Alert = require('../models/Alert');
 
 /**
  * GET /
@@ -31,9 +32,8 @@ exports.index = (req, res) => {
       }
     })
     .catch((err) => {
-      console.error(err);
-      req.flash('errors', { msg: 'Unable to load student. ' + err.toString()});
-      return res.redirect(process.env.BASE_PATH + 'students');
+      Alert.flash(req, 'Unable to display student page', err);
+      res.redirect('back');
     });
 };
 
@@ -44,7 +44,7 @@ exports.post = (req, res) => {
     Audit.record(req.user.email, 'downloaded', 'student data', JSON.stringify(filter, null, 2));
     exports.downloadData(filter, exportName, res)
       .catch((err) => {
-        req.flash('errors', { msg: 'Unable to download data. ' + err.toString()});
+        Alert.flash(req, 'Unable to download student data', err);
         res.redirect('back');
       });
   } else if (req.body.action == 'reset') {
@@ -54,7 +54,7 @@ exports.post = (req, res) => {
         res.redirect('back');
       })
       .catch((err) => {
-        req.flash('errors', { msg: 'Unable to reset student. ' + err.toString()});
+        Alert.flash(req, 'Unable to reset student model', err);
         res.redirect('back');
       });
   }
@@ -69,7 +69,7 @@ exports.delete = (req, res) => {
         res.redirect(process.env.BASE_PATH + 'students');
       })
       .catch((err) => {
-        req.flash('errors', { msg: 'Unable to delete student. ' + err.toString()});
+        Alert.flash(req, 'Unable to delete student', err);
         res.redirect('back');
       });
   }
