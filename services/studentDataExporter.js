@@ -40,16 +40,24 @@ class StudentDataExporter {
         students = Array.isArray(students) ? students : [students];
         this._exportStudentsSummary(students);
 
+        let sessionSummaries = [];
         let promises = [];
         students.forEach((student) => {
             promises.push(this._exportStudentModel(student)
                 .then(() => this._exportConceptObservations(student))
-                .then(() => this._exportSessions(student)));
+                .then(() => this._exportSessions(student))
+                .then((sessionSummary) => {
+                    sessionSummaries.push(sessionSummary);
+                }));
             ++this._studentsExportedCount;
         });
 
         if (promises.length > 0) {
-            return Promise.all(promises);
+            return Promise.all(promises).then(() => {
+                if (sessionSummaries.length > 0) {
+                    this._exportChallengeSummaries(sessionSummaries);
+                }
+            })
         } else {
             return Promise.reject(new Error('No students were found to export.'));
         }
@@ -105,6 +113,27 @@ class StudentDataExporter {
         return [finalHeadings, flatObjs];
     }
 
+    _exportChallengeSummaries(sessionSummaries) {
+        let headings = this._extractChallengeHeadings(sessionSummaries);
+        this._zip.append(this._toCsv(headings, sessionSummaries), { name: 'csv/Challenges-' + this.exportName + ".csv" });
+    }
+
+    _extractChallengeHeadings(sessionSummaries) {
+        let headings = new Set();
+
+        for (let summary of sessionSummaries) {
+            Object.keys(summary).forEach((property) => headings.add(property));
+        }
+
+        headings.delete('totalSessions');
+        headings.delete('studentId');
+        let finalHeadings = Array.from(headings).sort();
+        finalHeadings.unshift('totalSessions');
+        finalHeadings.unshift('studentId');
+
+        return finalHeadings;
+    }
+
     _exportStudentModel(student) {
         return Promise.resolve(
             this._zip.append(JSON.stringify(student, null, 2), { name: 'json/Student-' + student.id + ".json" })
@@ -131,14 +160,45 @@ class StudentDataExporter {
                       this._zip.append(JSON.stringify(session.events, null, 2), { name: 'json/TraceData-' + student.id + '-' + startTime.toFilename() + ".json" });
                     }
                 });
+
+                return this._summarizeSessions(student.id, sessions);
             });
     }
 
-    _observationValueMapper(heading, obj) {
-        if (heading == 'timestamp') {
-            heading = 'createdOn'
+    _summarizeSessions(studentId, sessions) {
+        let summary = {
+            studentId: studentId,
+            totalSessions: sessions.length
+
+        };
+
+        sessions.forEach((session) => {
+            if (session.events && session.events.length > 0) {
+                session.events.forEach((event) => {
+                    if (event.action === 'SUBMITTED'
+                    || event.action === 'SELECTED'
+                    || event.action === 'BRED') {
+                        let heading = event.context.challengeId + '-correct';
+                        this._zeroIfNotPresent(summary, heading);
+                        if (event.context.correct) {
+                            summary[heading]++
+                        }
+
+                        heading = event.context.challengeId + '-total';
+                        this._zeroIfNotPresent(summary, heading);
+                        summary[heading]++
+                    }
+                });
+            }
+        });
+
+        return summary;
+    }
+
+    _zeroIfNotPresent(obj, propertyName) {
+        if (!obj.hasOwnProperty(propertyName)) {
+            obj[propertyName] = 0;
         }
-        return obj[heading];
     }
 
     _observationHeadings() {
@@ -152,6 +212,9 @@ class StudentDataExporter {
         let count = 0;
         stream.write(heading + "\n");
         for (let row of rowObjs) {
+            if (headings.includes('timestamp') && !row['timestamp']) {
+                row['timestamp'] = row['createdAt'];
+            }
             let line = headings.map((heading) => this._dataToCell(row[heading])).join(",");
             stream.write(line + "\n");
             ++count;
