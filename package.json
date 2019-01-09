@@ -14,7 +14,7 @@
   "dependencies": {
     "acl": "^0.4.10",
     "archiver": "^3.0.0",
-    "async": "^2.6.0",
+    "async": "^2.6.1",
     "bcrypt-nodejs": "^0.0.3",
     "bitgo": "^4.36.0",
     "body-parser": "^1.17.2",

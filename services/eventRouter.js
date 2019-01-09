@@ -5,7 +5,6 @@ const sessions = require('../controllers/sessions');
 const Student = require('../models/Student');
 const TutorAction = require('../models/TutorAction');
 const Tutor = require('./tutor');
-const await = require('asyncawait/await');
 const guideProtocol = require('../shared/guide-protocol.js');
 const stringx = require("../utilities/stringx");
 const Biologicax = require('../shared/biologicax');
