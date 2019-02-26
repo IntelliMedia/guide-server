@@ -120,9 +120,9 @@ class AttributeRule extends Rule {
 
     _hasOrganismChanged(event) {
         // If there is no previous property, we can't determine if the selection has changed, 
-        // assume it has.
+        // assume it has. For example, if this is the very first submission.
         if (!event.context.hasOwnProperty("previous")) {
-            return false;
+            return true;
         }
 
         let currentAlleles = this._getProperty(event, "context.selected.alleles", true);
