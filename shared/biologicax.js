@@ -300,10 +300,11 @@ if (typeof exports === 'undefined') {
 
         let species = BioLogica.Species[speciesName];
         if (attribute === "sex") {
-            return BiologicaX.isSexEqual( currentSex, previousSex);
+            return !BiologicaX.isSexEqual( currentSex, previousSex);
         } else {
-            return (BiologicaX.findAlleles(species, currentAlleles, attribute) !=
-                BiologicaX.findAlleles(species, previousAlleles, attribute));
+            let currentAttributeAlleles = BiologicaX.findAlleles(species, currentAlleles, attribute);
+            let previousAttributeAlleles = BiologicaX.findAlleles(species, previousAlleles, attribute);
+            return (currentAttributeAlleles != previousAttributeAlleles);
         }
     }
 
