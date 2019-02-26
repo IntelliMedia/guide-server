@@ -69,7 +69,9 @@ class RulesFactory {
 
     _populatePreviousProperty(session, event) {
         // Create previous property
-        if (!event.context.hasOwnProperty("previous")) {
+        if (!event.context.hasOwnProperty("previous") 
+            || event.isMatch('*', 'SUBMITTED', '*')
+            || event.isMatch('*', 'BRED', '*')) {
             let previousEvent = session.findPreviousEvent(event);
             if (previousEvent != null && previousEvent.context.hasOwnProperty("selected")) {
                 event.context.previous = Object.assign(previousEvent.context.selected, {});

@@ -39,17 +39,24 @@ sessionSchema.methods.findPreviousEvent = function(event) {
   let foundEvent = null;
   for(let i = (this.events.length - 2); i >= 0; --i) {
     let previousEvent = this.events[i];
+
     // Situations that indicate a previous event can't be found
-    if (!previousEvent.context.hasOwnProperty("challengeId")
-      || previousEvent.context.challengeId != event.context.challengeId) {
+
+    // The current challenge is different than the most recent challenge
+    if (previousEvent.context.hasOwnProperty("challengeId")
+      && event.context.hasOwnProperty("challengeId")
+      && previousEvent.context.challengeId != event.context.challengeId) {
       break;
     }
 
+    // We're in remediation and wasn't previously
     if (previousEvent.context.hasOwnProperty("remediation")
+      && event.context.hasOwnProperty("remediation")
       && previousEvent.context.remediation != event.context.remediation) {
       break;
     }
 
+    // It's been more than 10 minutes since the last submission
     if (event.time - previousEvent.time > 600000) {
       break;
     }
