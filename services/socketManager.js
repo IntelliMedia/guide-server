@@ -46,7 +46,7 @@ function  initializeV3(server) {
 
 function handleConnect(socket) {
     var address = socket.handshake.address;
-    console.info('Connected to ' + address);
+    console.info(`Connected to ${address} | sockect: ${socket.id}`);
 }
 
 function handleConnectError(err) {
@@ -55,12 +55,12 @@ function handleConnectError(err) {
 
 function handleDisconnect(socket) {
     var address = socket.handshake.address;
-    console.info('Disconnected from ' + address);
+    console.info(`Disconnected from ${address} | sockect: ${socket.id}`);
     findSessionBySocket(socket).then((session) => {
         if (session && session.active) {
             sessions.deactivate(session);
         }
-    })
+    });
 }
 
 function handleEvent(socket, data) {
@@ -69,7 +69,7 @@ function handleEvent(socket, data) {
     var currentSession = null;
     GuideProtocol.Event.fromJsonAsync(data).then((event) => {
         receivedEvent = event;
-        console.info("Received: " + event.toString() + " user=" + event.studentId);
+        console.info(`Received: ${event.toString()} user=${event.studentId} socket=${socket.id}`);
         console.log("Event: " + JSON.stringify(event, null, '\t'));
         return findSession(socket, receivedEvent.studentId, receivedEvent.session);
     })
@@ -86,11 +86,11 @@ function handleEvent(socket, data) {
 function findSessionBySocket(socket) {
     return new Promise((resolve, reject) => {
         if (!socket) {
-            reject(new Error('Cannot find session since socket is null'));
+            return reject(new Error('Cannot find session since socket is null'));         
         }
 
-        if (socketMap[socket]) {
-            return resolve(socketMap[socket]);
+        if (socketMap[socket.id]) {
+            return resolve(socketMap[socket.id]);
         } else {
             return resolve(null);
         }
@@ -108,18 +108,18 @@ function findSession(socket, studentId, sessionId) {
         }
 
         if (!socket) {
-            reject('Cannot find session since socket is null');
+            throw new Error('socket is null');
         }
 
-        if (socketMap[socket] && socketMap[socket].id == sessionId) {
-            initializeSessionSocket(socketMap[socket], socket)
-            return resolve(socketMap[socket]);
+        if (socketMap[socket.id] && socketMap[socket.id].id == sessionId) {
+            initializeSessionSocket(socketMap[socket.id], socket)
+            return resolve(socketMap[socket.id]);
         }
 
         if (sessionId) {
 
             Session.findOrCreate(sessionId).then((session) => {
-                socketMap[socket] = session;
+                socketMap[socket.id] = session;
                 initializeSessionSocket(session, socket);
                 resolve(session);
             }).catch((err) => {
