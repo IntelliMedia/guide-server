@@ -199,7 +199,8 @@ router.use(session({
   secret: process.env.SESSION_SECRET,
   store: new MongoStore({
     url: mongoDbUri,
-    autoReconnect: true
+    autoReconnect: true,
+    collection: 'passportSession'
   })
 }));
 
