@@ -30,7 +30,7 @@ class BKTConceptParametersRepository extends GoogleSheetRepository {
 
         for(let conceptParameters of this.objs) {
             if (conceptParameters.conceptId === "DEFAULT") {
-                Alert.error(err);
+                Alert.error(null, err);
                 return conceptParameters;
             }
         }

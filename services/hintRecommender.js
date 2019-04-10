@@ -1,5 +1,6 @@
 'use strict';
 
+const Alert = require("../models/Alert");
 const ConceptHintsRepository = require('../storage/conceptHintsRepository');
 const Group = require('../models/Group');
 const TutorAction = require('../models/TutorAction');
@@ -22,7 +23,7 @@ class HintRecommender {
             let ids = group.getCollectionIds(tags);
 
             if (ids.length == 0) {
-                session.warningAlert("Unable to find Hint sheet for [" + tags + "] defined in '" + groupName + "' group");
+                Alert.warning("Unable to find Hint sheet for [" + tags + "] defined in '" + groupName + "' group", session);
             }
 
             return this.hintRepository.loadCollectionsAsync(ids, group.cacheDisabled);
@@ -81,7 +82,7 @@ class HintRecommender {
 
             if (conceptHints.length == 0) {
                 if (!(hintsForChallengeType.some((item) => item.conceptId === misconception.conceptId))) {
-                    session.warningAlert("No hint defined for " + challengeType + " challenge for concept: " + misconception.conceptId);
+                    Alert.warning("No hint defined for " + challengeType + " challenge for concept: " + misconception.conceptId, session);
                 }
             }
 

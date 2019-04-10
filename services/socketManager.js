@@ -79,7 +79,7 @@ function handleEvent(socket, data) {
         return eventRouter.processAsync(currentSession, receivedEvent);
     })
     .catch((err) => {
-        Alert.error(err, currentSession, receivedEvent);
+        Alert.error(null, err, currentSession, receivedEvent, socket);
     });
 }
 
@@ -136,8 +136,5 @@ function findSession(socket, studentId, sessionId) {
 function initializeSessionSocket(session, socket) {
     if (session.socket != socket) {
         session.socket = socket;
-        session.emit = (channel, message) => {
-            socket.emit(channel, message);
-        };
     }
 }

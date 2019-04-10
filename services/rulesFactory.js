@@ -1,5 +1,6 @@
 'use strict';
 
+const Alert = require("../models/Alert");
 const Group = require('../models/Group');
 const RulesRepository = require('../storage/rulesRepository');
 const AttributeConceptsRepository = require('../storage/attributeConceptsRepository');
@@ -94,7 +95,7 @@ class RulesFactory {
                 let ids = group.getCollectionIds(tags);
 
                 if (ids.length == 0) {
-                    session.warningAlert("Unable to find attribute concepts sheet for [" + tags + "] defined in '" + groupName + "' group");
+                    Alert.warning("Unable to find attribute concepts sheet for [" + tags + "] defined in '" + groupName + "' group", session);
                 }
 
                 attributeConceptsRepository = new AttributeConceptsRepository(global.cacheDirectory);
@@ -121,7 +122,7 @@ class RulesFactory {
             });
 
             if (ids.length == 0) {
-                session.warningAlert("No rules sheets specified for [" + tags + "] in '" + groupName + "' group.");
+                Alert.warning("No rules sheets specified for [" + tags + "] in '" + groupName + "' group.", session);
             }
 
             return rulesRepository.loadCollectionsAsync(ids, group.cacheDisabled);
@@ -140,7 +141,7 @@ class RulesFactory {
             let ids = group.getCollectionIds(tags);
 
             if (ids.length == 0) {
-                session.warningAlert("Unable to find challenge concepts sheet for [" + tags + "] defined in '" + groupName + "' group");
+                Alert.warning("Unable to find challenge concepts sheet for [" + tags + "] defined in '" + groupName + "' group", session);
             }
 
             challengeConceptsRepository = new ChallengeConceptsRepository(global.cacheDirectory);

@@ -76,7 +76,7 @@ class StudentModelService {
 
             return ConceptObservation.record(timestamp, conceptId, conceptState.probabilityLearned, attribute, student.id, challengeType, challengeId, isCorrect);
         } catch(err) {
-            Alert.error(err, session);
+            Alert.error("Unable to process concept data point", err, session);
         }
     }
 }

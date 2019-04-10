@@ -1,5 +1,6 @@
 'use strict';
 
+const Alert = require("../models/Alert");
 const RemediationRepository = require('../storage/remediationRepository');
 const Group = require('../models/Group');
 const TutorAction = require('../models/TutorAction');
@@ -22,7 +23,7 @@ class RemediationRecommender {
             let ids = group.getCollectionIds(tags);
 
             if (ids.length == 0) {
-                session.warningAlert("Unable to find Remediation sheet for [" + tags + "] defined in '" + groupName + "' group");
+                Alert.warning("Unable to find Remediation sheet for [" + tags + "] defined in '" + groupName + "' group", session);
             }
 
             return this.remediationRepository.loadCollectionsAsync(ids, group.cacheDisabled);

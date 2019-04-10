@@ -1,5 +1,6 @@
 'use strict';
 
+const Alert = require("../models/Alert");
 const students = require('../controllers/students');
 const sessions = require('../controllers/sessions');
 const Student = require('../models/Student');
@@ -49,9 +50,9 @@ class EventRouter {
                 ));
                 session.logEvent(action);
                 BiologicaX.fixOutgoingEvent(action);
-                session.emit(GuideProtocol.Event.Channel, action.toJson());
+                session.socket.emit(GuideProtocol.Event.Channel, action.toJson());
             } else {
-                session.debugAlert("No tutoring action recommended.");
+                Alert.debug("No tutoring action recommended.", session);
             }
         })
         .then(() => {
@@ -62,7 +63,7 @@ class EventRouter {
         })
         .then(() => {
             if (event.isMatch("SYSTEM", "ENDED", "SESSION")) {
-                session.infoAlert("Session Ended");
+                Alert.info("Session Ended", session);
                 if (session && session.active) {
                     return sessions.deactivate(session);
                 }
@@ -97,7 +98,7 @@ class EventRouter {
                 return tutor.processAsync(event);
 
             } else {
-                session.warningAlert("Unhandled message: " + event.toString());
+                Alert.warning("Unhandled message: " + event.toString(), session);
                 return Promise.resolve(null);
             }
         } catch(err) {
@@ -107,7 +108,7 @@ class EventRouter {
 
     handleSystemStartedSessionAsync(student, session, event) {
 
-        session.infoAlert("Session Started");
+        Alert.info("Session Started", session);
 
         return new Promise((resolve, reject) => {
 

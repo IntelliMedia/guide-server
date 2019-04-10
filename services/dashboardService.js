@@ -1,5 +1,7 @@
 'use strict';
 
+const Alert = require("../models/Alert");
+
 if (!process.env.FIREBASE_DB_URL) {
   throw new Error("FIREBASE_DB_URL environment variable is not defined.");
 }
@@ -55,7 +57,7 @@ class DashboardService {
               console.log("Successfully set student data in dashboard db.");
             })
             .catch((err) => {
-              session.errorAlert("Unable to set student data in dashboard db: " + err);
+              Alert.error("Unable to set student data in dashboard db", err, session);
             });
 
           return Promise.resolve();

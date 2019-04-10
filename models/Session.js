@@ -73,52 +73,6 @@ sessionSchema.methods.findPreviousEvent = function(event) {
   return foundEvent;
 }
 
-sessionSchema.methods.errorAlert = function(e) {
-    console.error(e);
-    return this.sendAlert(GuideProtocol.Alert.Error, e.toString(), true);
-}
-
-sessionSchema.methods.warningAlert = function(msg) {
-    console.warn(msg);
-    return this.sendAlert(GuideProtocol.Alert.Warning, msg, true);
-}
-
-sessionSchema.methods.infoAlert = function(msg) {
-    console.info(msg);
-    return this.sendAlert(GuideProtocol.Alert.Info, msg, true);
-}
-
-sessionSchema.methods.debugAlert = function(msg) {
-    console.log(msg);
-    return this.sendAlert(GuideProtocol.Alert.Debug, msg);
-}
-
-sessionSchema.methods.sendAlert = function(type, msg, writeToEventLog) {
-
-  let context = {
-    type: type,
-    message: msg
-  };
-
-  let event = new GuideProtocol.Event(
-    this.studentId,
-    this.id,
-    "ITS", "ISSUED", "ALERT",
-    context);
-
-  if (!this.emit) {
-    console.error("Unable to send alert message to client. Emit method is not defined.");
-  } else {
-    this.emit(GuideProtocol.Event.Channel, event.toJson());
-  }
-
-  if (writeToEventLog) {
-    this.logEvent(event);
-  }
-
-  return event;
-}
-
 const Session = mongoose.model('Session', sessionSchema);
 module.exports = Session;
 

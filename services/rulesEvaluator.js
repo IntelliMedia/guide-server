@@ -1,5 +1,6 @@
 'use strict';
 
+const Alert = require("../models/Alert");
 const RuleCondition = require('../models/ruleCondition');
 const StudentModelService = require('./studentModelService');
 const RulesFactory = require('./rulesFactory');
@@ -44,9 +45,9 @@ class RulesEvaluator {
         let activatedRules = [];
 
         if (rules.length > 0) {
-            this.session.debugAlert("Evaluating " + rules.length + " rules for event: " + event.toString());
+            Alert.debug("Evaluating " + rules.length + " rules for event: " + event.toString(), this.session);
         } else {
-            this.session.warningAlert("No rules found for event: " + event.toString());
+            Alert.warning("No rules found for event: " + event.toString(), this.session);
             return activatedRules;
         }
 
@@ -61,7 +62,7 @@ class RulesEvaluator {
             && rules.some((rule) => {
                 return (rule.attribute != undefined && rule.attribute != "n/a");
             })) {
-            this.session.errorAlert("context.selectableAttributes is missing or empty");
+            Alert.error("context.selectableAttributes is missing or empty", null, this.session);
         }
 
         let selectionChangedCache = {};
@@ -77,7 +78,7 @@ class RulesEvaluator {
                     }
                 }
             } catch(err) {
-                this.session.errorAlert(err);
+                Alert.error("Unable to evaluate rule: " + rule.sourceAsUrl(), err, this.session);
             }
         }
 
@@ -87,7 +88,7 @@ class RulesEvaluator {
     _updateStudentModelAsync(activatedRules, event) {
 
         if (activatedRules.length == 0) {
-            this.session.debugAlert("No rules fired. Skip student model update.");
+            Alert.debug("No rules fired. Skip student model update.", this.session);
             return Promise.resolve();
         }
 
@@ -115,7 +116,7 @@ class RulesEvaluator {
             }
         }
 
-        this.session.debugAlert("Fired " + rulesFiredMsgs.length + " rules: \n" + rulesFiredMsgs.join("\n"));
+        Alert.debug("Fired " + rulesFiredMsgs.length + " rules: \n" + rulesFiredMsgs.join("\n"), this.session);
         savePromises.push(this.studentModelService.updateDashboardAsync(this.student, this.session));
 
         return Promise.all(savePromises);

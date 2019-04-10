@@ -1,5 +1,6 @@
 'use strict';
 
+const Alert = require("../models/Alert");
 const HintRecommender = require('./hintRecommender');
 const RemediationRecommender = require('./remediationRecommender');
 const stringx = require("../utilities/stringx");
@@ -42,7 +43,7 @@ class TutorialPlanner {
                 .filter((action) => action != null)
                 .sort((a, b) => b.context.priority - a.context.priority);
 
-            this.session.debugAlert("Possible Tutor Actions: " + filteredAndSorted.length + "\n" + filteredAndSorted.map(a => {
+            Alert.debug("Possible Tutor Actions: " + filteredAndSorted.length + "\n" + filteredAndSorted.map(a => {
                 let actionDescription;
                 if (a.action === "HINT") {
                     actionDescription = "{0} | {1} | {2} | {3} | {4} | {5} | {6}".format(
@@ -65,7 +66,7 @@ class TutorialPlanner {
                 }
 
                 return actionDescription;
-            }).join("\n"));
+            }).join("\n"), this.session);
 
             return filteredAndSorted.length > 0 ? filteredAndSorted[0] : null;
         });
