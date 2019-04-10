@@ -78,7 +78,7 @@ class RulesEvaluator {
                     }
                 }
             } catch(err) {
-                Alert.error("Unable to evaluate rule: " + rule.sourceAsUrl(), err, this.session);
+                Alert.error("Unable to evaluate rule", err, this.session, event);
             }
         }
 
