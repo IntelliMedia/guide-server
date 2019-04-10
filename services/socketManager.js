@@ -98,7 +98,6 @@ function findSessionBySocket(socket) {
 }
 
 function findSession(socket, studentId, sessionId) {
-    return new Promise((resolve, reject) => {
         if (!sessionId) {
             throw new Error("sessionId is blank");
         }
@@ -113,7 +112,7 @@ function findSession(socket, studentId, sessionId) {
 
         if (socketMap[socket.id] && socketMap[socket.id].id == sessionId) {
             initializeSessionSocket(socketMap[socket.id], socket)
-            return resolve(socketMap[socket.id]);
+            return Promise.resolve(socketMap[socket.id]);
         }
 
         if (sessionId) {
@@ -127,7 +126,6 @@ function findSession(socket, studentId, sessionId) {
         } else {
             throw new Error('Unable to find session with id: ' + sessionId);
         }
-    });
 }
 
 function initializeSessionSocket(session, socket) {
