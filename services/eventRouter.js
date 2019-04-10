@@ -21,16 +21,22 @@ class EventRouter {
             session.groupId = event.context.groupId;
         }
 
+        // Use this to start the processing in case we need to save new session info
+        let initialPromise = Promise.resolve();
+
         // Is this the beginning of the session?
         if (event.isMatch("SYSTEM", "STARTED", "SESSION")) {
             session.studentId = event.studentId;
             session.active = true;
             session.startTime = event.time;
+            initialPromise = session.save();
         }
 
         var currentStudent = null;
-        return Student.findOrCreate(session.studentId).then((student) => {
-
+        return initialPromise.then(() => {
+            return Student.findOrCreate(session.studentId);
+        })
+        .then((student) => {
             currentStudent = student;
             session.logEvent(event);
 
@@ -113,8 +119,16 @@ class EventRouter {
         return new Promise((resolve, reject) => {
 
             if (!event.context.hasOwnProperty("classId") || !event.context.classId) {
-                reject(new Error("context.classId is missing or undefined"));
-                return;
+                if (Student.isTempUser(session.studentId)) {
+                    event.context.classId = "TEMP";
+                } else {
+                    // rgtaylor 2019-04-09 Missing classId should be rejected, since it
+                    // is specified as required in the protocol spec. However, the client
+                    // doesn't always send a classId.
+                    event.context.classId = "NOT-SENT-BY-CLIENT";
+                    //reject(new Error("context.classId is missing or undefined"));
+                    //return;
+                }
             }
 
             if (!event.context.hasOwnProperty("groupId") || !event.context.groupId) {

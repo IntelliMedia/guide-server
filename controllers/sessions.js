@@ -1,4 +1,5 @@
 const Session = require('../models/Session');
+const Student = require('../models/Student');
 const StudentController = require('../controllers/student');
 const moment = require('moment');
 var Archiver = require('archiver');
@@ -81,7 +82,7 @@ exports.deactivate = (session) => {
   }
   return session.save()
     .then(() => {
-        if (session.studentId.startsWith("TEMP-")) {
+        if (Student.isTempUser(session.studentId)) {
           console.info("Delete temp user");
           return StudentController.deleteStudent(session.studentId);
         } else {

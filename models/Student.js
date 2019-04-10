@@ -26,6 +26,10 @@ studentSchema.statics.findOrCreate = function(studentId) {
   });
 }
 
+studentSchema.statics.isTempUser = function(studentId) {
+  return (studentId ? studentId.startsWith("TEMP-") : false);
+}
+
 studentSchema.methods.reset = function() {
   let studentId = this.id;
   return this.remove().then(() => {
