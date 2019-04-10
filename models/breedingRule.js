@@ -22,6 +22,7 @@ class BreedingRule extends AttributeRule {
     }
 
     evaluate(event) {
+
         let isActivated = false;
         if (this.attribute === "sex") {
             // The sex isn't selectable for this kind of challenge, don't evaluate it
@@ -41,6 +42,8 @@ class BreedingRule extends AttributeRule {
     }
 
     _evaluateBreeding(event) {
+
+        this._checkContextIsValid(event);
 
         let speciesName = this._getProperty(event, "context.species", true);
 

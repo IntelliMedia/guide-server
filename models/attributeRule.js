@@ -70,6 +70,8 @@ class AttributeRule extends Rule {
 
     _evaluateSex(event) {
 
+        this._checkContextIsValid(event);
+
         this._selected = BiologicaX.sexToString(this._getProperty(event, "context.selected.sex", true));
         this._target = BiologicaX.sexToString(this._getProperty(event, "context.target.sex", true));
 
@@ -83,6 +85,9 @@ class AttributeRule extends Rule {
     }
 
     _evaluateTrait(event) {
+
+        this._checkContextIsValid(event);
+
         if (!event.context.selected.hasOwnProperty("phenotype")) {
             event.context.selected.phenotype = this._createPhenotypeFromAlleles(
                 event.context.selected.alleles,
@@ -147,6 +152,16 @@ class AttributeRule extends Rule {
             throw new Error("Unable to find event value at property path: " + path);
         }
         return propertyValue;
+    }
+
+    _checkContextIsValid(event) {
+        if (!event.context.hasOwnProperty("selected")) {
+            throw new Error("context.selected property is missing");
+        }
+
+        if (!event.context.hasOwnProperty("target")) {
+            throw new Error("context.target property is missing");
+        }
     }
 
     _checkEvaluated() {
