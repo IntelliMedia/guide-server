@@ -118,17 +118,14 @@ function findSession(socket, studentId, sessionId) {
 
         if (sessionId) {
 
-            Session.findOrCreate(sessionId).then((session) => {
+            return Session.findOrCreate(sessionId).then((session) => {
                 socketMap[socket.id] = session;
                 initializeSessionSocket(session, socket);
-                resolve(session);
-            }).catch((err) => {
-                console.error(err);
-                reject(err);
+                return session;
             });
 
         } else {
-            reject('Unable to find session with id: ' + sessionId);
+            throw new Error('Unable to find session with id: ' + sessionId);
         }
     });
 }

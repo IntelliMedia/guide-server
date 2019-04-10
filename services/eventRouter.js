@@ -60,6 +60,7 @@ class EventRouter {
             } else {
                 Alert.debug("No tutoring action recommended.", session);
             }
+            return Promise.resolve();
         })
         .then(() => {
             return session.save();
@@ -76,12 +77,6 @@ class EventRouter {
             }
 
             return Promise.resolve();
-        });
-    }
-
-    saveAsync(session, student) {
-        return session.save().then(() => {
-            return student.save();
         });
     }
 

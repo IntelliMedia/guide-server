@@ -25,9 +25,6 @@ sessionSchema.statics.findOrCreate = (sessionId) => {
         } else {
           return Promise.resolve(session);
         }
-      })
-      .catch((err) => {
-        console.error('Unable to find or create session for: ' + session.id);
       });
 }
 
