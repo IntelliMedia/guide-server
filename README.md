@@ -1,7 +1,7 @@
 Guide
 =====
 
-This server is intended to provide ntelligent tutoring system (ITS) functionality to the [Geniventure](https://concord.org/blog/tag/geniventure/) game-based learning environment.
+This server is intended to provide intelligent tutoring system (ITS) functionality to the [Geniventure](https://concord.org/blog/tag/geniventure/) game-based learning environment.
 
 This project was originally created using the [hackathon-starter](https://github.com/sahat/hackathon-starter) (boilerplate for **Node.js** web applications).
 
@@ -36,7 +36,7 @@ node guide.js
 
 ## Administering the Server
 
-After the server is successfully started, use a web browser to navigate to the GUIDE ITS Nodejs server. The first person to sign in through the web admin UI will be given admin privileges.
+After the server is successfully started, use a web browser to navigate to the GUIDE ITS Node.js server. The first person to sign in through the web admin UI will be given admin privileges.
 
 ## Reset Database
 

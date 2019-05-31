@@ -63,7 +63,7 @@ switch (process.env.NODE_ENV) {
     break;
 
   default:
-    envFilename = './env.example';
+    envFilename = '.env.example';
 }
 
 dotenv.load({ path: envFilename });

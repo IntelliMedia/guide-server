@@ -41,7 +41,7 @@ studentModelSchema.methods.reset = function() {
 studentModelSchema.methods.getBktConceptState = function(conceptId, L0) {
   let conceptState = this.bktConceptStates.find((c) => c.conceptId === conceptId);
   if (!conceptState) {
-    // Initiialize a new concept state
+    // Initialize a new concept state
     this.bktConceptStates.unshift(new BktConceptState({
       timestamp: new Date(),
       conceptId: conceptId,
