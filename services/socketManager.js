@@ -46,7 +46,7 @@ function  initializeV3(server) {
 
 function handleConnect(socket) {
     var address = socket.handshake.address;
-    console.info(`Connected to ${address} | sockect: ${socket.id}`);
+    console.info(`Connected to ${address} | socket: ${socket.id}`);
 }
 
 function handleConnectError(err) {
@@ -55,7 +55,7 @@ function handleConnectError(err) {
 
 function handleDisconnect(socket) {
     var address = socket.handshake.address;
-    console.info(`Disconnected from ${address} | sockect: ${socket.id}`);
+    console.info(`Disconnected from ${address} | socket: ${socket.id}`);
     findSessionBySocket(socket).then((session) => {
         if (session && session.active) {
             sessions.deactivate(session);

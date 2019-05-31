@@ -649,13 +649,11 @@ if (typeof exports === 'undefined') {
     // TODO rgtaylor 2018-09-21 This "workaround" should be removed in the future.
     // Workarounds necessary because data that Geniventure is expecting doesn't match the species
     // traitRules defined in Biologicajs.
-    BiologicaX.fixOutgoingEvent = function(event) {
-
-        if (event.hasOwnProperty('context') && event.context.hasOwnProperty('attribute')) {
-            if (event.context.attribute === "colored") {
-                event.context.attribute = "color";
-            }
+    BiologicaX.fixOutgoingEvent = function(key, value) {
+        if (key === "attribute" && value === "colored") {
+            return "color";
         }
+        return value;
     }
 
 }).call(this);
