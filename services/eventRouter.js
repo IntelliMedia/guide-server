@@ -55,8 +55,9 @@ class EventRouter {
                     action.sequence
                 ));
                 session.logEvent(action);
-                BiologicaX.fixOutgoingEvent(action);
-                session.socket.emit(GuideProtocol.Event.Channel, action.toJson());
+
+                const actionJson = action.toJson(BiologicaX.fixOutgoingEvent);
+                session.socket.emit(GuideProtocol.Event.Channel, actionJson);
             } else {
                 Alert.debug("No tutoring action recommended.", session);
             }

@@ -53,8 +53,8 @@ if (typeof exports === 'undefined') {
         return this.actor + "-" + this.action + "-" + this.target;
     } 
 
-    GuideProtocol.Event.prototype.toJson = function() {
-        return JSON.stringify(this);
+    GuideProtocol.Event.prototype.toJson = function(replacer) {
+        return JSON.stringify(this, replacer);
     }   
 
     GuideProtocol.Event.fromJson = function(json) {
