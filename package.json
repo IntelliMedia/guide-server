@@ -10,6 +10,7 @@
   "main": "guide.js",
   "scripts": {
     "start": "node guide.js",
+    "sync:upstream": "git fetch upstream && git checkout master && git merge upstream master",
     "test": "mocha --reporter spec --timeout 5000"
   },
   "dependencies": {
