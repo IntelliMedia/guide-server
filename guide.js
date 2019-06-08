@@ -66,8 +66,12 @@ switch (process.env.NODE_ENV) {
     envFilename = '.env.example';
 }
 
-dotenv.load({ path: envFilename });
-console.info('Server configured using: ' + envFilename);
+// set GUIDE_CONFIGURED to use preset environment variables
+// rather than configuring the environment from local files.
+if (!process.env.GUIDE_ENV_CONFIGURED) {
+  dotenv.load({ path: envFilename });
+  console.info('Server configured using: ' + envFilename);
+}
 
 /**
  * Configure the path where the web app is located

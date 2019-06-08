@@ -6,12 +6,18 @@ if (!process.env.FIREBASE_DB_URL) {
   throw new Error("FIREBASE_DB_URL environment variable is not defined.");
 }
 
-if (!process.env.FIREBASE_CREDENTIAL_FILE) {
-  throw new Error("FIREBASE_CREDENTIAL_FILE environment variable is not defined.");
+let serviceAccount;
+if (process.env.FIREBASE_CREDENTIAL) {
+  serviceAccount = JSON.parse(process.env.FIREBASE_CREDENTIAL);
+}
+else if (process.env.FIREBASE_CREDENTIAL_FILE) {
+  serviceAccount = require("../" + process.env.FIREBASE_CREDENTIAL_FILE);
+}
+else {
+  throw new Error("FIREBASE_CREDENTIAL or FIREBASE_CREDENTIAL_FILE environment variable must be defined.");
 }
 
 const firebase = require("firebase-admin");
-const serviceAccount = require("../" + process.env.FIREBASE_CREDENTIAL_FILE);
 
 // Singletons so that we don't have to reinitilize this each time
 let firebaseApp = null;
