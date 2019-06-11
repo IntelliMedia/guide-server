@@ -174,6 +174,7 @@ app.use(paginate.middleware(30, 50));
  * Jade Template configuration.
  */
 // Variables accessible in templates
+app.locals.env = process.env;
 app.locals.basepath = process.env.BASE_PATH;
 app.locals.moment = require('moment');
 
