@@ -7,8 +7,14 @@
     "url": "https://github.com/IntelliMedia/guide-server"
   },
   "license": "https://github.com/IntelliMedia/guide-server/blob/master/LICENSE.md",
+  "main": "guide.js",
   "scripts": {
     "start": "node guide.js",
+    "start:configured": "GUIDE_ENV_CONFIGURED=true node guide.js",
+    "start:development": "NODE_ENV=development node guide.js",
+    "start:production": "NODE_ENV=production node guide.js",
+    "start:staging": "NODE_ENV=staging node guide.js",
+    "sync:upstream": "git fetch upstream && git checkout master && git merge upstream/master",
     "test": "mocha --reporter spec --timeout 5000"
   },
   "dependencies": {
@@ -88,6 +94,6 @@
     "supertest": "^3.0.0"
   },
   "engines": {
-    "node": "6.1.0"
+    "node": "10.x"
   }
 }
