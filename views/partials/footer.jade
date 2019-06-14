@@ -3,8 +3,8 @@ footer
     //p.pull-left © 2016 North Carolina State University, Inc. All Rights Reserved
     ul.pull-right.list-inline
       li
-        a(href='https://github.com/IntelliMedia/guide-server') GitHub Project
+        a(href=repository.url || repository) GitHub Project
       li
-        a(href='https://github.com/IntelliMedia/guide-server/issues') Issues
+        a(href=(repository.url || repository) + '/issues') Issues
       li
         <span>#{version}</span>

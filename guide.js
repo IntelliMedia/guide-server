@@ -114,6 +114,7 @@ const passportConfig = require('./config/passport');
  */
 const app = express();
 app.locals.version = guideInfo.version;
+app.locals.repository = guideInfo.repository;
 
 // Pretty print JSON
 app.set('json spaces', 2);
