@@ -4,9 +4,9 @@
   "author": "Robert Taylor",
   "repository": {
     "type": "git",
-    "url": "https://github.com/IntelliMedia/guide-server"
+    "url": "https://github.com/concord-consortium/guide-server"
   },
-  "license": "https://github.com/IntelliMedia/guide-server/blob/master/LICENSE.md",
+  "license": "https://github.com/concord-consortium/guide-server/blob/master/LICENSE.md",
   "main": "guide.js",
   "scripts": {
     "start": "node guide.js",
