@@ -96,6 +96,7 @@ const studentController = require('./controllers/student');
 const classesController = require('./controllers/classes');
 const groupsController = require('./controllers/groups');
 const groupController = require('./controllers/group');
+const toolsController = require('./controllers/tools');
 const alertsController = require('./controllers/alerts');
 const auditsController = require('./controllers/audits');
 const usersController = require('./controllers/users');
@@ -287,6 +288,7 @@ function initializeRoutes() {
   router.post('/group/modify', authz.middleware(1), groupController.modify);
   router.post('/group/clear-cache', authz.middleware(1), groupController.clearCache);
   router.post('/group/duplicate', authz.middleware(1), groupController.duplicate);
+  router.get('/tools', authz.middleware(), toolsController.index);
   router.get('/alerts', authz.middleware(), alertsController.index);
   router.get('/alerts/:alertId', authz.middleware(1), alertsController.alert);
   router.post('/alerts/clear', authz.middleware(1), alertsController.clear);
