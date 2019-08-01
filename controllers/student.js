@@ -85,7 +85,8 @@ exports.resetStudentModel = (studentId) => {
 }
 
 exports.downloadData = (studentFilter, filename, response) => {
-  console.info("Download student data -> filter: " + JSON.stringify(studentFilter, null, 2));
+  let displayableFilter = JSON.stringify(studentFilter, null, 2).substring(1, 256);
+  console.info("Download student data | filter: " + displayableFilter);
   let exporter;
   return Student.find(studentFilter).exec()
     .then((students) => {

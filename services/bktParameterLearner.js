@@ -10,6 +10,7 @@ class BKTParameterLearner {
     }
 
     runAsync(studentIds) {
+        console.info("Start BKT parameter learner");
         let url = new URL(process.env.MONGODB_URI);
         let dbName = url.pathname.substr(1);
         console.info("Connect to: %s db: %s", process.env.MONGODB_URI, dbName);
@@ -21,24 +22,16 @@ class BKTParameterLearner {
         }).then((conceptObservations) => {
             console.info(`Concept observations queried: ${conceptObservations.length}`);
             let computeKTparamsAll = new ComputeKTparamsAll();
-            return computeKTparamsAll.computeParameters(conceptObservations);            
+            let csv = computeKTparamsAll.computeParameters(conceptObservations);    
+            return csv;        
         }).finally(() => {
             if (this.client) {
                 this.client.close();
             }
         });
-        // return readFileAsync(global.observationDataFilename)
-        //     .then((testDataCsv) => parseAsync(testDataCsv)).then((testData) => {
-        //         let computeKTparamsAll = new ComputeKTparamsAll();
-        //         let csv = computeKTparamsAll.computelzerot(testData);
-
-        //         return writeFileAsync(parametersFilename, csv);
-        //     });
-        //return Promise.resolve(studentIds.join(","));
     }
 
     _queryConceptObservations(studentIds, db) {
-        console.info("Students to export: %d", studentIds.length);
         let query = {};
         for (let heading of ["conceptId", "isCorrect", "studentId"]) {
             query[heading] = {$exists: true, $not: {$size: 0}};
@@ -46,6 +39,9 @@ class BKTParameterLearner {
 
         query.studentId = { $in: studentIds};
 
+        let displayableFilter = JSON.stringify(query, null, 2).substring(1, 256);
+        console.info("Query concept observations | filter: " + displayableFilter);
+        
         return db.collection('conceptobservations')
         .find(
             query,

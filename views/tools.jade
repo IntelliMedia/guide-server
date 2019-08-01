@@ -10,7 +10,7 @@ block extraHeader
 
 block content
   .page-header
-    h3 Machine Learning
+    h3 Bulk Data Operations
 
   form.form-horizontal(action='./tools', method='POST')
     input(type='hidden', name='_csrf', value=_csrf)
@@ -20,6 +20,9 @@ block content
         input.form-control(type='text', name='studentsSheetId', id='studentsSheetId')
     .form-group
       .col-sm-offset-3.col-sm-4
-        button.btn.btn.btn-primary(type='submit' name='action' value='learn-parameters')
+        button.btn.btn.btn-primary(type='submit' name='action' value='learn-parameters' style='margin-right: 5px;')
           i.fa.fa-rocket
-          | Start
+          | Learn BKT Parameters
+        button.btn.btn.btn-primary(type='submit' name='action' value='download')
+          i.fa.fa-download
+          | Download Data          
