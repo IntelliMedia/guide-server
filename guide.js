@@ -255,6 +255,9 @@ server.listen(app.get('port'), () => {
   console.info("Express listening on: %s:%d%s", address, server.address().port, process.env.BASE_PATH);
 });
 
+// Learning BKT parameters can take a long time 6+ minutes
+server.setTimeout(10*60*1000); // 10 * 60 seconds * 1000 msecs
+
 /**
  * Start WebSocket listener.
  */
@@ -290,7 +293,7 @@ function initializeRoutes() {
   router.post('/group/clear-cache', authz.middleware(1), groupController.clearCache);
   router.post('/group/duplicate', authz.middleware(1), groupController.duplicate);
   router.get('/tools', authz.middleware(), toolsController.index);
-  router.post('/tools/start-ml', authz.usersMiddleware(1), toolsController.startML);
+  router.post('/tools', authz.middleware(), toolsController.post);
   router.get('/alerts', authz.middleware(), alertsController.index);
   router.get('/alerts/:alertId', authz.middleware(1), alertsController.alert);
   router.post('/alerts/clear', authz.middleware(1), alertsController.clear);

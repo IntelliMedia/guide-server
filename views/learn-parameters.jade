@@ -6,20 +6,11 @@ block extraHeader
     script(src='https://cdnjs.cloudflare.com/ajax/libs/jquery/2.1.3/jquery.min.js') 
     script(src='https://ajax.googleapis.com/ajax/libs/jqueryui/1.11.2/jquery-ui.min.js') 
     script(src='https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.1.1/socket.io.slim.js') 
-    script(src='./js/tools.js') 
+    script(src='./js/learn-parameters.js') 
 
 block content
+  .alert.hide(id="alert")
+    i
+    #alertMessage 
   .page-header
-    h3 Machine Learning
-
-  form.form-horizontal(action='./tools', method='POST')
-    input(type='hidden', name='_csrf', value=_csrf)
-    .form-group
-      label.col-sm-3.control-label(for='studentsSheetId') Student IDs Google Sheet Doc ID
-      .col-sm-7
-        input.form-control(type='text', name='studentsSheetId', id='studentsSheetId')
-    .form-group
-      .col-sm-offset-3.col-sm-4
-        button.btn.btn.btn-primary(type='submit' name='action' value='learn-parameters')
-          i.fa.fa-rocket
-          | Start
+    h3 In progress
