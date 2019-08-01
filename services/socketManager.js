@@ -15,7 +15,7 @@ const GuideSocketioNamespace = 'guide-protocol';
 var socketMap = {};
 
 exports.initialize = (server) => {
-    initializeV3(server);
+    return initializeV3(server);
 }
 
 function  initializeV3(server) {
@@ -42,6 +42,8 @@ function  initializeV3(server) {
             handleEvent(socket, data);
         });
     });
+
+    return ioServer;
 }
 
 function handleConnect(socket) {

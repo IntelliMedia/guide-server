@@ -258,7 +258,8 @@ server.listen(app.get('port'), () => {
 /**
  * Start WebSocket listener.
  */
-socketManager.initialize(server);
+let io = socketManager.initialize(server);
+app.set('socketio', io);
 
 module.exports = app;
 
@@ -289,6 +290,7 @@ function initializeRoutes() {
   router.post('/group/clear-cache', authz.middleware(1), groupController.clearCache);
   router.post('/group/duplicate', authz.middleware(1), groupController.duplicate);
   router.get('/tools', authz.middleware(), toolsController.index);
+  router.post('/tools/start-ml', authz.usersMiddleware(1), toolsController.startML);
   router.get('/alerts', authz.middleware(), alertsController.index);
   router.get('/alerts/:alertId', authz.middleware(1), alertsController.alert);
   router.post('/alerts/clear', authz.middleware(1), alertsController.clear);

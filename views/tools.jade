@@ -1,129 +1,28 @@
 extends layout
 
+block extraHeader
+    meta(http-equiv="cache-control" content="private, no-cache, max-age=0, must-revalidate, no-store")
+    link(rel='stylesheet', href='https://ajax.googleapis.com/ajax/libs/jqueryui/1.11.2/themes/smoothness/jquery-ui.css')
+    script(src='https://cdnjs.cloudflare.com/ajax/libs/jquery/2.1.3/jquery.min.js') 
+    script(src='https://ajax.googleapis.com/ajax/libs/jqueryui/1.11.2/jquery-ui.min.js') 
+    script(src='https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.1.1/socket.io.slim.js') 
+    script(src='./js/tools.js') 
+
 block content
   .page-header
-    h3 Profile Information
+    h3 Machine Learning
 
-  form.form-horizontal(action='./account/profile/#{selectedUser.id}', method='POST')
+  form.form-horizontal(action='./tools/start-ml', method='POST')
     input(type='hidden', name='_csrf', value=_csrf)
     .form-group
-      label.col-sm-3.control-label(for='email') Email
+      label.col-sm-3.control-label(for='studentsSheetId') Student IDs Google Sheet Doc ID
       .col-sm-7
-        input.form-control(type='email', name='email', id='email', value='#{selectedUser.email}')
-    .form-group
-      label.col-sm-3.control-label(for='name') Name
-      .col-sm-7
-        input.form-control(type='text', name='name', id='name', value='#{selectedUser.profile.name}')
-    .form-group
-      label.col-sm-3.control-label(for='location') Location
-      .col-sm-7
-        input.form-control(type='text', name='location', id='location', value='#{selectedUser.profile.location}')
-    .form-group
-      label.col-sm-3.control-label(for='website') Website
-      .col-sm-7
-        input.form-control(type='text', name='website', id='website', value='#{selectedUser.profile.website}')
-    .form-group
-      label.col-sm-3.control-label(for='gravatar') Gravatar
-      .col-sm-4
-        img(src="#{selectedUser.gravatar()}", class='profile', width='100', height='100')
+        input.form-control(type='text', name='studentsSheetId', id='studentsSheetId')
     .form-group
       .col-sm-offset-3.col-sm-4
         button.btn.btn.btn-primary(type='submit')
-          i.fa.fa-pencil
-          | Update Profile
+          i.fa.fa-rocket
+          | Start
 
-  if isAllowed('roles', 'post')  
-    .page-header
-      h3 Roles
-
-    form.form-horizontal(action='./account/roles/#{selectedUser.id}', method='POST')
-      input(type='hidden', name='_csrf', value=_csrf)
-      .form-group
-        label.col-sm-3.control-label(for='adminLabel')
-        .col-sm-7
-          label(for="checkbox")
-            input(type='checkbox', checked=selectedUserRoles.indexOf('administrator') >= 0, name='administratorCheckbox')
-            |   Administrator
-      .form-group
-        label.col-sm-3.control-label(for='researcherLabel')
-        .col-sm-7
-          label(for="checkbox")
-            input(type='checkbox', checked=selectedUserRoles.indexOf('researcher') >= 0, name='researcherCheckbox')
-            |   Researcher              
-      .form-group
-        label.col-sm-3.control-label(for='guestLabel')
-        .col-sm-7
-          label(for="checkbox")
-            input(type='checkbox', checked=selectedUserRoles.indexOf('guest') >= 0, name='guestCheckbox')
-            |   Guest
-      .form-group
-        .col-sm-offset-3.col-sm-4
-          button.btn.btn-primary(type='submit')
-            i.fa.fa-lock
-            | Update Roles
-
-  .page-header
-    h3 Change Password
-
-  form.form-horizontal(action='./account/password/#{selectedUser.id}', method='POST')
-    input(type='hidden', name='_csrf', value=_csrf)
-    .form-group
-      label.col-sm-3.control-label(for='password') New Password
-      .col-sm-7
-        input.form-control(type='password', name='password', id='password')
-    .form-group
-      label.col-sm-3.control-label(for='confirmPassword') Confirm Password
-      .col-sm-7
-        input.form-control(type='password', name='confirmPassword', id='confirmPassword')
-    .form-group
-      .col-sm-offset-3.col-sm-4
-        button.btn.btn-primary(type='submit')
-          i.fa.fa-lock
-          | Change Password
-
-  .page-header
-    h3 Delete Account
-
-  form.form-horizontal(action='./account/delete/#{selectedUser.id}', method='POST')
-    .form-group
-      p.col-sm-offset-3.col-sm-4 You can delete this account, but keep in mind this action is irreversible.
-      input(type='hidden', name='_csrf', value=_csrf)
-      .col-sm-offset-3.col-sm-4
-        button.btn.btn-danger(type='submit')
-          i.fa.fa-trash
-          | Delete account
-
-  .page-header
-    h3 Linked Accounts
-  .form-horizontal
-    .form-group
-      .col-sm-offset-3.col-sm-4
-        if selectedUser.instagram
-          p: a.text-danger(href='./account/unlink/instagram/#{selectedUser.id}') Unlink Instagram account
-        else
-          p: a(href='./auth/instagram') Link your Instagram account
-      .col-sm-offset-3.col-sm-4
-        if selectedUser.google
-          p: a.text-danger(href='./account/unlink/google/#{selectedUser.id}') Unlink Google account
-        else
-          p: a(href='./auth/google') Link your Google account
-      .col-sm-offset-3.col-sm-4
-        if selectedUser.facebook
-          p: a.text-danger(href='./account/unlink/facebook/#{selectedUser.id}') Unlink Facebook account
-        else
-          p: a(href='./auth/facebook') Link your Facebook account
-      .col-sm-offset-3.col-sm-4
-        if selectedUser.twitter
-          p: a.text-danger(href='./account/unlink/twitter/#{selectedUser.id}') Unlink Twitter account
-        else
-          p: a(href='./auth/twitter') Link your Twitter account
-      .col-sm-offset-3.col-sm-4
-        if selectedUser.github
-          p: a.text-danger(href='./account/unlink/github/#{selectedUser.id}') Unlink GitHub account
-        else
-          p: a(href='./auth/github') Link your GitHub account
-      .col-sm-offset-3.col-sm-4
-        if selectedUser.linkedin
-          p: a.text-danger(href='./account/unlink/linkedin/#{selectedUser.id}') Unlink LinkedIn account
-        else
-          p: a(href='./auth/linkedin') Link your LinkedIn account
+  p Progress 
+  #downloadZipFileProgress 

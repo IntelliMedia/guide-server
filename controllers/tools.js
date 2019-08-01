@@ -174,14 +174,31 @@ exports.index = (req, res) => {
       if (roleErr) { return next(roleErr); }
 
       res.render('tools', {
-        title: 'Tools',
-        selectedUser: user,
-        selectedUserRoles: roles
+        title: 'Tools'
       });
     });
   });
 };
 
+exports.startML = (req, res) => {
+  
+  let docId = req.body.studentsSheetId;
+  if (!docId) {
+    Alert.flash(req, "Google Sheet Doc ID is blank");
+    return res.redirect(process.env.BASE_PATH + 'tools');
+  }
+
+  req.flash('success', { msg: 'Started machine learning...' });
+  console.info("Start ML using students from: " + docId);
+  setTimeout(() => {
+      console.info("Finished: " + docId);
+      var socketio = req.app.get('socketio');
+      socketio.emit("progress", 50);
+      req.flash('success', { msg: 'Finished!' });
+  }, 5000);
+  
+  return res.redirect(process.env.BASE_PATH + 'tools');
+};
 /**
  * POST /account/tools
  * Update profile information.
