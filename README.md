@@ -38,10 +38,18 @@ node guide.js
 
 After the server is successfully started, use a web browser to navigate to the GUIDE ITS Node.js server. The first person to sign in through the web admin UI will be given admin privileges.
 
+## Learning BKT Parameters
+
+This functionality is accessible from the Tools page in the admin UI. However, this can be a *very long running process*. For example: 2212 students with 744,794 observations requires ~12 hrs on an Intel i7 w/ 6 cores and 32 GB of memory. Thus, use the npm script to learn BKT parameters at the command line from a Google Sheet with a single column named "StudentId".
+
+```
+npm run learn-bkt-params <Google Sheet ID>
+```
+
 ## Reset Database
 
 ```
-mongo mongodb://localhost/guide --eval "db.dropDatabase()"
+mongo mongodb://localhost/guide3 --eval "db.dropDatabase()"
 ```
 
 ## Copyright
