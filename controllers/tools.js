@@ -5,8 +5,10 @@ const Alert = require('../models/Alert');
 const BKTParameterLearner = require("../services/bktParameterLearner");
 const StudentIdsRepository = require("../storage/studentIdsRepository");
 const StudentController = require('../controllers/student');
+const datex = require('../utilities/datex');
 const path = require('path');
 const fs = require('fs');
+const os = require('os');
 
 exports.index = (req, res) => {
   const userId = (req.params.userId ? req.params.userId : req.user.id);
@@ -71,7 +73,7 @@ function learnParameters(req, res, docId, studentIds) {
     // Write to tmp directory
     let outfile = path.resolve(os.tmpdir(), filename);
     fs.writeFileSync(outfile, csv);
-    console.log(`Generated: ${outFile}`);
+    console.log(`Generated: ${outfile}`);
 
     // Send back to requestor
     res.set({"Content-Disposition":`attachment; filename=\"${filename}\"`});
