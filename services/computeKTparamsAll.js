@@ -1,11 +1,9 @@
 'use strict'
 
+// Based on BKT Brute Force toolkit for Bayesian Knowledge by Baker et al. (2010, 2011a, 2011b, 2011c)
+// https://pslcdatashop.web.cmu.edu/ExternalTools?toolId=2
+
 class ComputeKTparamsAll {
-	 /** 
-	 * This class expects data sorted on Skill and then on Student in the below mentioned format
-	 * num		lesson					student			skill		   cell 	right
-	 *	1	Z3.Three-FactorZCros2008	student102	META-DETERMINE-DXO	cell	0
-	 * */
 
 	constructor() {
 		this.students_ = [];// Number of instances
