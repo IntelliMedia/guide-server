@@ -23,6 +23,9 @@
         if isAllowed('groups','get')
           li(class=(title == 'Groups') ? 'active' : undefined)
             a(href='./groups') Groups
+        if isAllowed('tools','get')
+          li(class=(title == 'Tools') ? 'active' : undefined)
+            a(href='./tools') Tools            
         if isAllowed('alerts','get')
           li(class=(title == 'Alerts') ? 'active' : undefined)
             a(href='./alerts') Alerts

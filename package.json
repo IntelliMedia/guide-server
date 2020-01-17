@@ -1,6 +1,6 @@
 {
   "name": "GUIDE",
-  "version": "3.16.4",
+  "version": "3.17.0",
   "author": "Robert Taylor",
   "repository": {
     "type": "git",
@@ -14,6 +14,7 @@
     "start:development": "NODE_ENV=development node guide.js",
     "start:production": "NODE_ENV=production node guide.js",
     "start:staging": "NODE_ENV=staging node guide.js",
+    "learn-bkt-params": "node commands.js -- --learn-bkt-params",
     "sync:upstream": "git fetch upstream && git checkout master && git merge upstream/master",
     "test": "mocha --reporter spec --timeout 5000"
   },

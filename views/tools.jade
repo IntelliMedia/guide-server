@@ -1,0 +1,28 @@
+extends layout
+
+block extraHeader
+    meta(http-equiv="cache-control" content="private, no-cache, max-age=0, must-revalidate, no-store")
+    link(rel='stylesheet', href='https://ajax.googleapis.com/ajax/libs/jqueryui/1.11.2/themes/smoothness/jquery-ui.css')
+    script(src='https://cdnjs.cloudflare.com/ajax/libs/jquery/2.1.3/jquery.min.js') 
+    script(src='https://ajax.googleapis.com/ajax/libs/jqueryui/1.11.2/jquery-ui.min.js') 
+    script(src='https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.1.1/socket.io.slim.js') 
+    script(src='./js/tools.js') 
+
+block content
+  .page-header
+    h3 Bulk Data Operations
+
+  form.form-horizontal(action='./tools', method='POST')
+    input(type='hidden', name='_csrf', value=_csrf)
+    .form-group
+      label.col-sm-3.control-label(for='studentsSheetId') Student IDs Google Sheet Doc ID
+      .col-sm-7
+        input.form-control(type='text', name='studentsSheetId', id='studentsSheetId')
+    .form-group
+      .col-sm-offset-3.col-sm-4
+        button.btn.btn.btn-primary(type='submit' name='action' value='learn-parameters' style='margin-right: 5px;')
+          i.fa.fa-rocket
+          | Learn BKT Parameters
+        button.btn.btn.btn-primary(type='submit' name='action' value='download')
+          i.fa.fa-download
+          | Download Data          

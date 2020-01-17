@@ -1,0 +1,16 @@
+extends layout
+
+block extraHeader
+    meta(http-equiv="cache-control" content="private, no-cache, max-age=0, must-revalidate, no-store")
+    link(rel='stylesheet', href='https://ajax.googleapis.com/ajax/libs/jqueryui/1.11.2/themes/smoothness/jquery-ui.css')
+    script(src='https://cdnjs.cloudflare.com/ajax/libs/jquery/2.1.3/jquery.min.js') 
+    script(src='https://ajax.googleapis.com/ajax/libs/jqueryui/1.11.2/jquery-ui.min.js') 
+    script(src='https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.1.1/socket.io.slim.js') 
+    script(src='./js/learn-parameters.js') 
+
+block content
+  .alert.hide(id="alert")
+    i
+    #alertMessage 
+  .page-header
+    h3 In progress

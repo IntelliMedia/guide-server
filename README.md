@@ -41,7 +41,7 @@ After the server is successfully started, use a web browser to navigate to the G
 ## Reset Database
 
 ```
-mongo mongodb://localhost/guide --eval "db.dropDatabase()"
+mongo mongodb://localhost/guide3 --eval "db.dropDatabase()"
 ```
 
 ## Copyright

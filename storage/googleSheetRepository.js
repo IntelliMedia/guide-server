@@ -57,6 +57,7 @@ class GoogleSheetRepository extends FileRepository {
             })
             .then(() => {
                 this.insert(collectionObjs);
+                return collectionObjs;
             });
     }
 
