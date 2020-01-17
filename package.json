@@ -30,7 +30,7 @@
     "compression": "^1.7.2",
     "connect-mongo": "^2.0.1",
     "cors": "^2.8.4",
-    "csv-parse": "^4.3.0",
+    "csv-parse": "^4.4.6",
     "dotenv": "^6.0.0",
     "errorhandler": "^1.4.3",
     "es6-promise": "^4.2.4",
