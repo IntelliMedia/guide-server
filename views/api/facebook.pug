@@ -19,7 +19,7 @@ block content
   h3
     i.fa.fa-user
     |  My Profile
-  img.thumbnail(src='https://graph.facebook.com/#{me.id}/picture?type=large', width='90', height='90')
+  img.thumbnail(src=`https://graph.facebook.com/${me.id}/picture?type=large`, width='90', height='90')
   h4= me.name
   h6 First Name: #{me.first_name}
   h6 Last Name: #{me.last_name}
@@ -36,5 +36,5 @@ block content
   .row
     for friend in friends
       .col-xs-3.col-md-2
-        a.thumbnail(href='http://facebook.com/#{friend.id}')
-          img(src='https://graph.facebook.com/#{friend.id}/picture?width=150&height=150')
+        a.thumbnail(href=`http://facebook.com/${friend.id}`)
+          img(src=`https://graph.facebook.com/${friend.id}/picture?width=150&height=150`)

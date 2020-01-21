@@ -9,6 +9,7 @@
   "license": "https://github.com/concord-consortium/guide-server/blob/master/LICENSE.md",
   "main": "guide.js",
   "scripts": {
+    "lint:views": "npx pug-lint views",
     "start": "node guide.js",
     "start:configured": "GUIDE_ENV_CONFIGURED=true node guide.js",
     "start:development": "NODE_ENV=development node guide.js",
@@ -45,7 +46,6 @@
     "github-api": "^3.3.0",
     "highcharts": "^7.0.1",
     "instagram-node": "^0.5.8",
-    "jade": "^1.11.0",
     "lastfm": "^0.9.3",
     "lob": "^6.0.6",
     "lodash": "^4.17.15",
@@ -75,6 +75,7 @@
     "paypal-rest-sdk": "^1.8.1",
     "promisfy": "^1.2.0",
     "property-path": "^1.0.0",
+    "pug": "^2.0.4",
     "request": "^2.88.0",
     "request-promise": "^4.2.5",
     "secp256k1": "^3.5.0",
@@ -90,6 +91,7 @@
     "yui": "^3.18.1"
   },
   "devDependencies": {
+    "@debitoor/pug-lint-config-debitoor": "2.0.0",
     "chai": "^4.1.1",
     "mocha": "^5.2.0",
     "pug-lint": "^2.6.0",

@@ -181,7 +181,7 @@ app.locals.basepath = process.env.BASE_PATH;
 app.locals.moment = require('moment');
 
 app.set('views', path.join(__dirname, 'views'));
-app.set('view engine', 'jade');
+app.set('view engine', 'pug');
 
 /**
  * Express configuration.
