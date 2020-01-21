@@ -14,8 +14,8 @@ block content
         for user in users
           tr
             td
-              a(href='./account/#{user.id}') #{user.email}
+              a(href=`./account/${user.id}`) #{user.email}
             td #{user.profile.name}
             td #{roleMap[user.id]}
   div
-    include ./paginate.jade
+    include ./paginate

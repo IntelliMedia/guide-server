@@ -16,7 +16,7 @@ block content
       <pre>#{stack}</pre>
     if sessionId != null
       h2 Session
-      a(href='./session/#{sessionId}') #{sessionId}
+      a(href=`./session/${sessionId}`) #{sessionId}
     if eventJson != null
       h2 Event
       | <pre><code class="json">#{eventJson}</code></pre>

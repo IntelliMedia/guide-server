@@ -14,7 +14,7 @@ block content
         div.pull-right.form-inline
           form.form-group(action='./student', method='POST')
               input(type='hidden', name='_csrf', value=_csrf)
-              input(type='hidden', name='studentId', value='#{student.id}')
+              input(type='hidden', name='studentId', value=`${student.id}`)
               button.btn.btn-primary(type='submit' name='action' value='download' style='margin-right: 5px;')
                 i.fa.fa-download
                 | Download Data
@@ -24,7 +24,7 @@ block content
           if isAllowed('student', 'delete')
             form.form-group(action='./student/delete', method='POST')
                 input(type='hidden', name='_csrf', value=_csrf)
-                input(type='hidden', name='studentId', value='#{student.id}')
+                input(type='hidden', name='studentId', value=`${student.id}`)
                 button.btn.btn-danger(type='submit' name='action' value='delete')
                   i.fa.fa-trash
                   | Delete
@@ -32,9 +32,9 @@ block content
   h4 #{student.classId}
   h4 #{student.groupId}
   h4
-    a(href='./sessions?studentId=#{student.id}') Sessions
+    a(href=`./sessions?studentId=${student.id}`) Sessions
     p
-    a(href='./student/#{student.id}?view=json') JSON
+    a(href=`./student/${student.id}?view=json`) JSON
   div
     table.table.table-striped
       thead

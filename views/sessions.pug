@@ -7,7 +7,7 @@ block content
 
   div
     - var title = (filter.active === true ? 'Active' : ' ')
-     h3 #{title}
+      h3 #{title}
         div.pull-right.form-inline
           if !studentId
             if (filter.active)
@@ -42,7 +42,7 @@ block content
         for session in sessions
           tr
             td
-              a(href='./session/#{session.id}') #{session.id}
+              a(href=`./session/${session.id}`) #{session.id}
             td #{session.active}
             td #{session.studentId}
             td #{session.classId}
@@ -53,4 +53,4 @@ block content
             else
               td No events
   div
-    include ./paginate.jade
+    include ./paginate

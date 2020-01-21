@@ -16,5 +16,5 @@ block content
           for event in session.events
             tr
               td
-                a(href='./session/#{session.id}/event/#{session.events.indexOf(event)}') #{event.actor} #{event.action} #{event.target}
+                a(href=`./session/${session.id}/event/${session.events.indexOf(event)}`) #{event.actor} #{event.action} #{event.target}
               td #{new Date(event.time)}

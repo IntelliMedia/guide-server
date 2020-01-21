@@ -11,6 +11,6 @@ block content
         for c in classes
           tr
             td
-              a(href='./students?classId=#{c.id}') #{c.id}
+              a(href=`./students?classId=${c.id}`) #{c.id}
   div
-    include ./paginate.jade
+    include ./paginate
