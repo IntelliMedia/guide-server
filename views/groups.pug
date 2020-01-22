@@ -23,6 +23,6 @@ block content
         for group in groups
           tr
             td
-              a(href='./group/#{group._id}') #{group.name}
+              a(href=`./group/${group._id}`) #{group.name}
   div
-    include ./paginate.jade
+    include ./paginate

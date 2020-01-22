@@ -35,6 +35,6 @@ block content
             td #{alert.message}
             if (alert.eventJson || alert.stack)
               td
-                a(href='./alerts/#{alert._id}') View
+                a(href=`./alerts/${alert._id}`) View
   div
-    include ./paginate.jade
+    include ./paginate

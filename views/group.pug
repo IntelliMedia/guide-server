@@ -32,7 +32,7 @@ block content
         | #{group.name}
     div
         br
-        input(type="checkbox", id="cacheDisabled" checked=("#{group.cacheDisabled}" == "true")) 
+        input(type="checkbox", id="cacheDisabled" checked=(`${group.cacheDisabled}` == "true")) 
         span  Disable Cache
     div.table-editable(id="table" style='margin-top: 10px;')
         table.table

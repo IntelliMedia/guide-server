@@ -1,4 +1,4 @@
-//- paginate.jade
+//- paginate
 
 //- This examples makes use of Bootstrap 3.x pagination classes
 
@@ -7,7 +7,7 @@ if paginate.hasPreviousPages || paginate.hasNextPages(pageCount)
     ul.pager
       if paginate.hasPreviousPages
         li.previous
-          a(href=paginate.href(true)).prev
+          a.prev(href=paginate.href(true))
             i.fa.fa-arrow-circle-left
             |  Previous
       if pages
@@ -15,6 +15,6 @@ if paginate.hasPreviousPages || paginate.hasNextPages(pageCount)
           a.btn.btn-default(href=page.url)= page.number
       if paginate.hasNextPages(pageCount)
         li.next
-          a(href=paginate.href()).next
+          a.next(href=paginate.href())
             | Next&nbsp;
             i.fa.fa-arrow-circle-right
