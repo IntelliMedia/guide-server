@@ -22,7 +22,8 @@ function  initializeV3(server) {
     let socketPath = process.env.BASE_PATH + "socket.io";
 
     var ioServer = socketio.listen(server, {
-        path: socketPath
+        path: socketPath,
+        cookie: false   // cf. https://github.com/socketio/socket.io/issues/2276#issuecomment-306448731
     });
     ioServer.on('connect_error', function(err) {
         handleConnectError(err);
