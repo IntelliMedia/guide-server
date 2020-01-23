@@ -260,8 +260,9 @@ server.setTimeout(10*60*1000); // 10 * 60 seconds * 1000 msecs
 
 /**
  * Start WebSocket listener.
+ * cf. https://github.com/socketio/socket.io/issues/2276#issuecomment-553633888 for cookie setting
  */
-let io = socketManager.initialize(server);
+let io = socketManager.initialize(server, { cookie: false });
 app.set('socketio', io);
 
 module.exports = app;
