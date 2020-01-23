@@ -9,12 +9,7 @@ if (!Date.prototype.toFilename) {
     }
 
     Date.prototype.toFilename = function() {
-      return this.getUTCFullYear() +
-        '-' + pad(this.getUTCMonth() + 1) +
-        '-' + pad(this.getUTCDate()) +
-        'T' + pad(this.getUTCHours()) +
-        '-' + pad(this.getUTCMinutes()) +
-        '-' + pad(this.getUTCSeconds());
+      return this.toISOString().replace(/:/g, "-");
     };
 
   }());

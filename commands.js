@@ -67,14 +67,21 @@ if (!process.env.MONGODB_URI) {
 try {
   // Normalize args by dropping node <script name> and leaving arg0 arg1 arg2...
   var args = process.argv.slice(3);
-
-  if (args[0] === "--learn-bkt-params") {
-    learnParameters(args[1]);
+  let cmd = args[0];
+  if (cmd === "--learn-bkt-params") {
+    let googleDocId = args[1];
+    let mongoDbUri = args[2];
+    if (mongoDbUri) {
+      process.env.MONGODB_URI = mongoDbUri;
+    }
+    learnParameters(googleDocId);
   } else {
-    throw new Error("Unknown command: " + args[0]);
+    throw new Error("Unknown command: " + cmd);
   }
 } catch(err) {
   console.error("Command failed", err);
+  console.info("Usage: npm run learn-bkt-params <Google Sheet ID> [<MongoDB URI>]")
+  console.info("Example: npm run learn-bkt-params 1qxVydWFBTPejUl9KzjBhhOJ0pS4SZt9wMYi5_wbOq9k mongodb://localhost/guide3")
 }
 
 function learnParameters(docId) {
@@ -82,7 +89,6 @@ function learnParameters(docId) {
     throw new Error("Google Sheet Doc ID is blank");
   }
 
-  let begin=Date.now();
   let studentIdsRepository = new StudentIdsRepository();
   studentIdsRepository.loadCollectionAsync(docId, true)
   .then((studentIds) =>
@@ -93,19 +99,21 @@ function learnParameters(docId) {
     let parameterLearner = new BKTParameterLearner(); 
     return parameterLearner.runAsync(studentIds);
   })
-  .then((csv) => {
-      // Write to tmp directory
-      let filename = 'bkt-parameters-' + (new Date()).toFilename() + ".csv";
+  .then((parameterLearner) => {
+      let datetime = parameterLearner.startTime.toFilename();
+      // Write to parameters CSV file
+      let filename = 'bkt-parameters-' + (datetime + ".csv");
       let outfile = path.resolve(__dirname, filename);
-      fs.writeFileSync(outfile, csv);
+      fs.writeFileSync(outfile, parameterLearner.outputCsv);
       console.log(`Generated: ${outfile}`);
+
+      // Write stats to CSV file
+      filename = 'bkt-learning-stats-' + (datetime + ".csv");
+      outfile = path.resolve(__dirname, filename);
+      fs.writeFileSync(outfile, parameterLearner.statsCsv);
+      console.log(`Generated: ${outfile}`); 
   })
   .catch((err) => {
     console.error(err);
-  })
-  .finally(() => {
-    let end= Date.now();
-    let timeSpent=(end-begin)/1000;
-    console.info("Run time: %f seconds", timeSpent);
   });
 }

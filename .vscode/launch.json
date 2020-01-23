@@ -1,6 +1,7 @@
 {
     "version": "0.2.0",
     "configurations": [
+
         {
             "name": "Launch",
             "type": "node",
@@ -23,6 +24,28 @@
             "sourceMaps": false,
             "outDir": null
         },
+        {
+            "name": "Learn Parameters",
+            "type": "node",
+            "request": "launch",
+            "program": "${workspaceRoot}/commands.js",
+            "stopOnEntry": false,
+            "args": ["--", "--learn-bkt-params", "1qxVydWFBTPejUl9KzjBhhOJ0pS4SZt9wMYi5_wbOq9k", "mongodb://localhost/guide3"],
+            "cwd": "${workspaceRoot}",
+            "preLaunchTask": null,
+            "runtimeExecutable": null,
+            "runtimeArgs": [
+                "--nolazy"
+            ],
+            "env": {
+                "NODE_ENV": "development",
+                "DEBUG": "info",
+                "DISABLE_DEBUG_LOG": false
+            },
+            "externalConsole": false,
+            "sourceMaps": false,
+            "outDir": null
+        },        
         {
             "name": "Attach",
             "type": "node",

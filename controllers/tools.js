@@ -65,20 +65,27 @@ exports.post = (req, res) => {
 };
 
 function learnParameters(req, res, docId, studentIds) {
-  let filename = 'bkt-parameters-' + (new Date()).toFilename() + ".csv";
   let parameterLearner = new BKTParameterLearner(); 
   Audit.record(req.user.email, 'started', 'BKT parameter learning', `docId: ${docId}\ntotal student Ids: ${studentIds.length}`);
-  return parameterLearner.runAsync(studentIds).then((csv) => {
+  return parameterLearner.runAsync(studentIds).then((parameterLearner) => {
+    let datetime = parameterLearner.startTime.toFilename();
 
-    // Write to tmp directory
+    // Write to parameters CSV file
+    let filename = 'bkt-parameters-' + (datetime + ".csv");
     let outfile = path.resolve(os.tmpdir(), filename);
-    fs.writeFileSync(outfile, csv);
+    fs.writeFileSync(outfile, parameterLearner.outputCsv);
     console.log(`Generated: ${outfile}`);
+
+    // Write stats to CSV file
+    filename = 'bkt-learning-stats-' + (datetime + ".csv");
+    outfile = path.resolve(os.tmpdir(), filename);
+    fs.writeFileSync(outfile, parameterLearner.statsCsv);
+    console.log(`Generated: ${outfile}`);     
 
     // Send back to requestor
     res.set({"Content-Disposition":`attachment; filename=\"${filename}\"`});
-    res.send(csv);
-  });
+    res.send(parameterLearner.outputCsv);
+  })  
 };
 
 function download(req, res, docId, studentIds) {
