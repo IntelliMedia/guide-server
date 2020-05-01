@@ -38,11 +38,21 @@ node guide.js
 
 After the server is successfully started, use a web browser to navigate to the GUIDE ITS Node.js server. The first person to sign in through the web admin UI will be given admin privileges.
 
-## Reset Database
+## Reset Database (Development)
 
 ```
 mongo mongodb://localhost/guide3 --eval "db.dropDatabase()"
 ```
+
+## Configure Database (Production)
+
+The following fields should be indexed for database performance:
+
+| Collection | Indexed Fields |
+| ----- | -------------- |
+| sessions | "id", "studentId" |
+| students | "id" |
+| conceptobservations | "studentId" |
 
 ## Copyright
 
