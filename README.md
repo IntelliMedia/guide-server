@@ -50,9 +50,9 @@ The following fields should be indexed for database performance:
 
 | Collection | Indexed Fields |
 | ----- | -------------- |
-| sessions | "id", "studentId" |
-| students | "id" |
-| conceptobservations | "studentId" |
+| sessions | { "id": 1 }, { "studentId": 1 } |
+| students | { "id": 1 } |
+| conceptobservations | { "studentId": 1 } |
 
 ## Copyright
 
