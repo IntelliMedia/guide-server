@@ -75,7 +75,7 @@
     "paypal-rest-sdk": "^1.8.1",
     "promisfy": "^1.2.0",
     "property-path": "^1.0.0",
-    "pug": "^2.0.4",
+    "pug": "^3.0.1",
     "request": "^2.88.0",
     "request-promise": "^4.2.5",
     "secp256k1": "^3.5.0",
