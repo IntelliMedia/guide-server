@@ -44,7 +44,7 @@
     "fibers": "^3.1.1",
     "firebase-admin": "^8.9.1",
     "github-api": "^3.3.0",
-    "highcharts": "^7.0.1",
+    "highcharts": "^9.0.0",
     "instagram-node": "^0.5.8",
     "lastfm": "^0.9.3",
     "lob": "^6.0.6",
