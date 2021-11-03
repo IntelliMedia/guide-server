@@ -87,7 +87,7 @@
     "twit": "^2.2.11",
     "underscore": "^1.9.2",
     "uuid": "^3.4.0",
-    "validator": "^12.1.0",
+    "validator": "^13.7.0",
     "websocket": "^1.0.31",
     "yui": "^3.18.1"
   },
