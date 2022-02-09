@@ -59,7 +59,7 @@
     "multer": "^1.4.2",
     "node-foursquare": "^0.4.6",
     "node-linkedin": "^0.5.6",
-    "node-sass": "^4.13.1",
+    "node-sass": "^7.0.0",
     "node-sass-middleware": "^0.11.0",
     "nodemailer": "^5.0.1",
     "passport": "^0.4.1",
