@@ -79,7 +79,7 @@
     "request": "^2.88.0",
     "request-promise": "^4.2.5",
     "secp256k1": "^3.5.0",
-    "socket.io": "^2.3.0",
+    "socket.io": "^2.5.0",
     "stripe": "^6.10.0",
     "systeminformation": "^4.19.2",
     "tumblr.js": "^2.0.2",
